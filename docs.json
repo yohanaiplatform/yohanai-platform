@@ -1,13 +1,21 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "Yohan.AI Documentation",
   "theme": "mint",
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "index"
-      ]
-    }
-  ]
+  "name": "Yohan.AI",
+  "description": "Official documentation for Yohan.AI Platform",
+
+  "colors": {
+    "primary": "#16A34A"
+  },
+
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index"
+        ]
+      }
+    ]
+  }
 }
