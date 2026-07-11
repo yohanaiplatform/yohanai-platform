@@ -1,1 +1,47 @@
-# Coming Soon
+# Yohan.AI Architecture Overview
+
+## Vision
+
+Yohan.AI is an AI-powered Property Buyer Behavior Intelligence Platform.
+
+## Core Stack
+
+- Next.js
+- Supabase
+- OpenAI
+- Vercel
+- Cloudflare
+- Mintlify
+
+## Core Modules
+
+- CRM
+- Property Listing
+- Customer Intelligence
+- AI Engine
+- Workflow Automation
+- Document Generator
+
+## High Level Architecture
+
+```text
+Client
+    │
+    ▼
+Next.js
+    │
+    ▼
+API Layer
+    │
+ ┌──┴───────────────┐
+ │                  │
+ ▼                  ▼
+Supabase        OpenAI
+ │                  │
+ └──────┬───────────┘
+        ▼
+ AI Engine
+        │
+        ▼
+CRM / Listing / Documents
+```
