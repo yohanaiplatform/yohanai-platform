@@ -23,11 +23,12 @@
         ]
       },
       {
-        "group": "Database",
-        "pages": [
-          "docs/database/schema"
-        ]
-      },
+  "group": "Database",
+  "pages": [
+    "docs/database/schema",
+    "docs/database/erd"
+  ]
+},
       {
         "group": "API",
         "pages": [
