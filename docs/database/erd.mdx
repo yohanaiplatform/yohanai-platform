@@ -1,0 +1,40 @@
+# Entity Relationship Diagram
+
+## Core Entities
+
+- users
+- customers
+- properties
+- listings
+- inquiries
+- conversations
+- ai_queue
+- ai_analysis
+- documents
+- workflows
+- notifications
+- audit_logs
+
+## Relationships
+
+users
+ ├── customers
+ ├── listings
+ ├── documents
+
+customers
+ ├── inquiries
+ ├── conversations
+ ├── ai_analysis
+
+properties
+ ├── listings
+
+listings
+ ├── inquiries
+
+inquiries
+ ├── conversations
+
+ai_queue
+ ├── ai_analysis
