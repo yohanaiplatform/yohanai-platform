@@ -1,0 +1,15 @@
+# Master Technical Blueprint
+
+This document is the main technical reference for the Yohan.AI Platform.
+
+## Sections
+
+- Architecture
+- Database
+- API
+- AI Engine
+- Modules
+- Deployment
+- Security
+- Coding Standards
+- Versioning
