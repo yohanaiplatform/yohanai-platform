@@ -23,12 +23,12 @@
         ]
       },
       {
-  "group": "Database",
-  "pages": [
-    "docs/database/schema",
-    "docs/database/erd"
-  ]
-},
+        "group": "Database",
+        "pages": [
+          "docs/database/schema",
+          "docs/database/erd"
+        ]
+      },
       {
         "group": "API",
         "pages": [
@@ -48,17 +48,17 @@
         ]
       },
       {
+        "group": "Blueprint",
+        "pages": [
+          "docs/blueprint/master"
+        ]
+      },
+      {
         "group": "Roadmap",
         "pages": [
           "docs/roadmap/v1"
         ]
       }
-      {
-  "group": "Blueprint",
-  "pages": [
-    "docs/blueprint/master"
-  ]
-}
     ]
   }
 }
