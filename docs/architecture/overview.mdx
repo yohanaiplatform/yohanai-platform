@@ -1,47 +1,32 @@
-# Yohan.AI Architecture Overview
+# System Architecture
 
-## Vision
+## Frontend
 
-Yohan.AI is an AI-powered Property Buyer Behavior Intelligence Platform.
+- Next.js 16
+- React
+- Tailwind CSS
 
-## Core Stack
+## Backend
 
-- Next.js
 - Supabase
-- OpenAI
+- Edge Functions
+- PostgreSQL
+
+## AI Layer
+
+- OpenAI API
+- AI Decision Engine
+- Knowledge Base
+
+## Infrastructure
+
+- GitHub
 - Vercel
 - Cloudflare
 - Mintlify
 
-## Core Modules
+## Development Workflow
 
-- CRM
-- Property Listing
-- Customer Intelligence
-- AI Engine
-- Workflow Automation
-- Document Generator
+GitHub → Vercel → Production
 
-## High Level Architecture
-
-```text
-Client
-    │
-    ▼
-Next.js
-    │
-    ▼
-API Layer
-    │
- ┌──┴───────────────┐
- │                  │
- ▼                  ▼
-Supabase        OpenAI
- │                  │
- └──────┬───────────┘
-        ▼
- AI Engine
-        │
-        ▼
-CRM / Listing / Documents
-```
+GitHub → Mintlify → Documentation
