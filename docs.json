@@ -53,6 +53,12 @@
           "docs/roadmap/v1"
         ]
       }
+      {
+  "group": "Blueprint",
+  "pages": [
+    "docs/blueprint/master"
+  ]
+}
     ]
   }
 }
