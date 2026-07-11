@@ -1,21 +1,46 @@
-{
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Yohan.AI",
-  "description": "Official documentation for Yohan.AI Platform",
-
-  "colors": {
-    "primary": "#16A34A"
-  },
-
-  "navigation": {
-    "groups": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index"
-        ]
-      }
-    ]
-  }
+"navigation": {
+  "groups": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "docs/index"
+      ]
+    },
+    {
+      "group": "Architecture",
+      "pages": [
+        "docs/architecture/overview"
+      ]
+    },
+    {
+      "group": "Database",
+      "pages": [
+        "docs/database/schema"
+      ]
+    },
+    {
+      "group": "API",
+      "pages": [
+        "docs/api/overview"
+      ]
+    },
+    {
+      "group": "Modules",
+      "pages": [
+        "docs/modules/crm"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "docs/deployment/vercel"
+      ]
+    },
+    {
+      "group": "Roadmap",
+      "pages": [
+        "docs/roadmap/v1"
+      ]
+    }
+  ]
 }
