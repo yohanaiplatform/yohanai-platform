@@ -1,0 +1,13 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Yohan.AI Documentation",
+  "theme": "mint",
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "index"
+      ]
+    }
+  ]
+}
