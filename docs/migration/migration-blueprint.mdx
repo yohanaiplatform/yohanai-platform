@@ -1,0 +1,104 @@
+---
+description: Legacy migration strategy for Yohan.AI
+title: Migration Blueprint
+---
+
+# Migration Blueprint
+
+## Executive Summary
+
+Yohan.AI adalah proyek migrasi dari Google Workspace menuju platform
+modern berbasis Next.js 16 + Supabase PostgreSQL. Strategi migrasi
+menggunakan **Progressive Migration** sehingga sistem legacy tetap aktif
+sampai seluruh modul tervalidasi.
+
+## Legacy Architecture
+
+``` text
+Google Form
+      ↓
+Google Spreadsheet
+      ↓
+Google Apps Script
+      ↓
+Google Apps Script API
+      ↓
+WAHA / n8n
+      ↓
+CRM & Dashboard
+```
+
+## Target Architecture
+
+``` text
+Next.js
+    ↓
+Supabase PostgreSQL
+    ↓
+API Route
+    ↓
+AI Engine
+    ↓
+Dashboard
+```
+
+## Legacy Assets
+
+### Spreadsheet
+
+-   CRM Database
+-   Listing Database
+-   Listing Inbox
+-   Chat Log
+-   System Config
+
+### Apps Script
+
+-   AI Processor
+-   Decision Engine
+-   CRM Engine
+-   Dashboard
+-   Automation
+
+### Google API
+
+-   Customer API
+-   Inbox API
+-   Chat Log API
+-   AI Update API
+
+## Database Mapping
+
+  Legacy          Supabase
+  --------------- ---------------
+  Input Data      customers
+  Listing         properties
+  Listing Inbox   inquiries
+  Chat Log        chat_logs
+  AI Queue        ai_queue
+  AI Analysis     ai_analysis
+  Config          system_config
+
+## API Mapping
+
+  Legacy API         Next.js API
+  ------------------ -------------------
+  customer           /api/customers
+  createCustomer     /api/customers
+  createInboxLead    /api/inquiries
+  createChatLog      /api/chatlogs
+  updateCustomerAI   /api/ai/customers
+
+## Migration Strategy
+
+-   Progressive Migration
+-   Blue-Green Deployment
+-   Parallel Validation
+-   Rollback Ready
+-   Zero Data Loss
+
+## Current Sprint
+
+Completed - Infrastructure - Supabase Foundation
+
+Next - Database Schema - ERD - CRM Foundation - AI Foundation

@@ -1,40 +1,74 @@
-# Entity Relationship Diagram
+---
+title: Database ERD
+---
 
-## Core Entities
+# Database ERD
 
-- users
-- customers
-- properties
-- listings
-- inquiries
-- conversations
-- ai_queue
-- ai_analysis
-- documents
-- workflows
-- notifications
-- audit_logs
+ERD mengikuti domain CRM, Property, Conversation, AI, Workflow, Knowledge Base, Marketing, Reporting, dan System.
 
-## Relationships
+## Schemas
 
-users
- ├── customers
- ├── listings
- ├── documents
+- core
+- auth_ext
+- property
+- customer
+- chat
+- workflow
+- marketing
+- ai
+- knowledge
+- reporting
 
-customers
- ├── inquiries
- ├── conversations
- ├── ai_analysis
+## Main Relationships
 
-properties
- ├── listings
+```text
+auth.users
+    │
+    └──────────────► auth_ext.profiles
+                          │
+                          └────────► core.roles
+                                         │
+                                         └────────► core.role_permissions
+                                                       │
+                                                       └────────► core.permissions
 
-listings
- ├── inquiries
+property.categories
+        │
+        └────────► property.listings
 
-inquiries
- ├── conversations
+customer.lead_sources
+        │
+        └────────► customer.leads
+                          │
+                          ├────────► customer.contacts
+                          │
+                          └────────► chat.conversations
+                                          │
+                                          └────────► chat.messages
 
-ai_queue
- ├── ai_analysis
+workflow.definitions
+        │
+        ├────────► workflow.steps
+        └────────► workflow.executions
+
+marketing.campaigns
+marketing.templates
+
+ai.models
+        │
+        └────────► ai.interactions
+
+ai.prompts
+        │
+        └────────► ai.interactions
+
+knowledge.categories
+        │
+        └────────► knowledge.articles
+                          │
+                          └────────► knowledge.chunks
+
+reporting.dashboards
+        │
+        └────────► reporting.metrics
+```
