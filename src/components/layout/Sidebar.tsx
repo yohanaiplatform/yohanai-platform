@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +13,8 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
 
 type SidebarProps = {
   isMobile?: boolean;
@@ -33,6 +36,25 @@ export function Sidebar({
   onClose,
 }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    try {
+      setIsLoggingOut(true);
+
+      await supabase.auth.signOut();
+
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
 
   return (
     <aside className="flex h-full w-64 flex-col border-r bg-background">
@@ -65,13 +87,6 @@ export function Sidebar({
           );
         })}
       </nav>
-
-      <div className="border-t p-4">
-        <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground">
-          <LogOut className="h-4 w-4" />
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }

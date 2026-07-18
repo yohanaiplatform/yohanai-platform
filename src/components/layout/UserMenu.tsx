@@ -1,7 +1,11 @@
-// src/components/layout/UserMenu.tsx
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CircleUser } from "lucide-react";
+
+import { createClient } from "@/lib/supabase/client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,32 +17,60 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function UserMenu() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    try {
+      setIsLoggingOut(true);
+
+      await supabase.auth.signOut();
+
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  }
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 w-10"
-      >
+      <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 w-10">
         <CircleUser className="h-5 w-5" />
-        <span className="sr-only">Toggle user menu</span>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        </DropdownMenuGroup>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
 
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push("/profile")}
+          >
+            Profile
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={() => router.push("/settings")}
+          >
+            Settings
+          </DropdownMenuItem>
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuGroup>
-          <DropdownMenuItem>Logout</DropdownMenuItem>
-        </DropdownMenuGroup>
+        <DropdownMenuItem
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="text-red-600 focus:text-red-600"
+        >
+          {isLoggingOut ? "Signing out..." : "Logout"}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
