@@ -1,4 +1,5 @@
 // src/types/dashboard.ts
+
 export type Priority = "HIGH" | "MEDIUM" | "LOW";
 
 export interface DashboardStats {
@@ -42,4 +43,26 @@ export interface Insight {
   description: string;
   priority: Priority;
   type: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* New types used by Dashboard Service                                         */
+/* -------------------------------------------------------------------------- */
+
+export interface RecentActivity {
+  id: string;
+  created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  message: string;
+  read: boolean;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  recentLeads: RecentLead[];
+  recentActivities: RecentActivity[];
+  notifications: Notification[];
 }
