@@ -1,15 +1,19 @@
-export default function Home() {
+import { Hero } from "@/components/landing/Hero";
+import { FeatureGrid } from "@/components/landing/FeatureGrid";
+import { PlatformStatus } from "@/components/landing/PlatformStatus";
+import { CTA } from "@/components/landing/CTA";
+import { Footer } from "@/components/landing/Footer";
+
+export default function LandingPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white">
-      <h1 className="text-6xl font-bold">Yohan.AI</h1>
-
-      <p className="mt-4 text-xl text-slate-300">
-        AI Operating Platform
-      </p>
-
-      <p className="mt-2 text-slate-500">
-        Platform is under development.
-      </p>
-    </main>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <main className="flex-1">
+        <Hero />
+        <FeatureGrid />
+        <PlatformStatus />
+        <CTA />
+      </main>
+      <Footer />
+    </div>
   );
 }
