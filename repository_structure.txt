@@ -1,0 +1,224 @@
+.gitignore
+.mintignore
+AGENTS.md
+CLAUDE.md
+README.md
+components.json
+docs.json
+docs/api/overview.mdx
+docs/architecture/overview.mdx
+docs/blueprint
+docs/database/database-architecture.mdx
+docs/database/erd.mdx
+docs/database/schema.mdx
+docs/index.mdx
+docs/migration/migration-blueprint.mdx
+docs/modules/crm.mdx
+docs/roadmap/v1.mdx
+eslint.config.mjs
+index.mdx
+middleware.ts
+next.config.ts
+package-lock.json
+package.json
+postcss.config.mjs
+project-docs/AI_CONTEXT - Sesi2 18 Juli 2026.md
+project-docs/AI_CONTEXT.md
+project-docs/Agents - Sesi 2 18 July 2026.md
+project-docs/KNOWN_ISSUES - Sesi 2 18 July 2026.md
+project-docs/KNOWN_ISSUES.md
+project-docs/PROJECT_RULES - Sesi2 18 July 2026.md
+project-docs/PROJECT_RULES.md
+project-docs/QWEN_HANDOFF - Sesi2 18 July 2026.md
+project-docs/QWEN_HANDOFF.md
+project-docs/SESSION_CONTEXT.md
+project-docs/YohanAI_Master_Project_Documentation_v1.10 - Sesi2.md
+project-docs/YohanAI_Master_Project_Documentation_v1.7.md
+project-docs/archive/15 Juli/AGENTS.md
+project-docs/archive/15 Juli/AI_CONTEXT.md
+project-docs/archive/15 Juli/KNOWN_ISSUES.md
+project-docs/archive/15 Juli/PROJECT_RULES.md
+project-docs/archive/15 Juli/QWEN_HANDOFF.md
+project-docs/archive/15 Juli/Yohan.AI_Daily_Log_2026-07-15_Sesi_Malam.md
+project-docs/archive/15 Juli/Yohan.AI_Daily_Log_2026-07-15_Sprint004.md
+project-docs/archive/15 Juli/YohanAI_Master_Project_Documentation_v1.4.md
+project-docs/archive/15 Juli/YohanAI_Master_Project_Documentation_v1.5.md
+project-docs/archive/16 Juli 2026/AGENTS.md
+project-docs/archive/16 Juli 2026/AI_CONTEXT.md
+project-docs/archive/16 Juli 2026/KNOWN_ISSUES.md
+project-docs/archive/16 Juli 2026/PROJECT_RULES.md
+project-docs/archive/16 Juli 2026/QWEN_HANDOFF.md
+project-docs/archive/16 Juli 2026/Yohan.AI Master Project Documentation v1.7.md
+project-docs/archive/16 Juli 2026/Yohan.AI_Daily_Log_2026-07-16_Sprint006.md
+project-docs/archive/17 Juli 2026/AGENTS.md
+project-docs/archive/17 Juli 2026/AI_CONTEXT.md
+project-docs/archive/17 Juli 2026/KNOWN_ISSUES.md
+project-docs/archive/17 Juli 2026/PROJECT_RULES.md
+project-docs/archive/17 Juli 2026/QWEN_HANDOFF.md
+project-docs/archive/17 Juli 2026/Sesi Malam/AGENTS.md
+project-docs/archive/17 Juli 2026/Sesi Malam/AI_CONTEXT.md
+project-docs/archive/17 Juli 2026/Sesi Malam/KNOWN_ISSUES.md
+project-docs/archive/17 Juli 2026/Sesi Malam/PROJECT_RULES.md
+project-docs/archive/17 Juli 2026/Sesi Malam/QWEN_HANDOFF.md
+project-docs/archive/17 Juli 2026/Sesi Malam/YohanAI Master Project Documentationv1.9.md
+project-docs/archive/17 Juli 2026/Sesi Malam/YohanAI_Daily_Log_2026-07-17_Sprint007.md
+project-docs/archive/17 Juli 2026/YohanAI Master Project Documentationv1.8.md
+project-docs/archive/17 Juli 2026/YohanAI_Daily_Log_2026-07-17_Sprint007.md
+project-docs/archive/AGENTS.md
+project-docs/archive/AI_CONTEXT.md
+project-docs/archive/KNOWN_ISSUES.md
+project-docs/archive/PROJECT_RULES.md
+project-docs/archive/QWEN_HANDOFF.md
+project-docs/archive/YohanAI Master Project Documentationv1.8.md
+project-docs/archive/YohanAI Master Project Documentationv1.9.md
+project-docs/daily-log/2026-07-11_YohanAI_Daily_Log.md
+project-docs/daily-log/Yohan.AI - Daily Log 14 Jul 2026 - 2.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-13.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-13_v1.1_Final.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-15_Sesi_Malam.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-15_Sprint004.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-16_Sprint006.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-18_Sprint007 - Sesi2.md
+project-docs/daily-log/Yohan.AI_Daily_Log_2026-07-18_Sprint007.md
+project-docs/daily-log/YohanAI_Daily_Log_2026-07-17_Sprint007.md
+project-docs/daily-log/YohanAI_Master_Daily_Log_2026-07-11.md
+project-docs/database/01_Database_Architecture_v1.0.md
+project-docs/database/02_Database_ERD_v1.0.md
+project-docs/database/03_PostgreSQL_Schema_v1.0.md
+project-docs/database/05_RLS_Strategy_v1.0.md
+project-docs/database/06_Data_Migration_Strategy_v1.0.md
+project-docs/migration/YohanAI_Migration_Blueprint_v1.0.md
+project-docs/sprint/Sprint_002_Report.md
+project-docs/sql/001_extensions.sql
+project-docs/sql/002_schemas.sql
+project-docs/sql/003_functions.sql
+project-docs/sql/004_system_tables.sql
+project-docs/sql/005_auth_tables.sql
+project-docs/sql/006_property_tables.sql
+project-docs/sql/007_customer_tables.sql
+project-docs/sql/008_chat_tables.sql
+project-docs/sql/009_workflow_tables.sql
+project-docs/sql/010_marketing_tables.sql
+project-docs/sql/011_ai_tables.sql
+project-docs/sql/012_knowledge_tables.sql
+project-docs/sql/013_reporting_tables.sql
+project-docs/sql/014_foreign_keys.sql
+project-docs/sql/015_indexes.sql
+project-docs/sql/016_triggers.sql
+project-docs/sql/017_rls.sql
+project-docs/sql/018_seed_data.sql
+project-docs/sql/019_storage.sql
+project-docs/sql/020_verify_database.sql
+project-docs/sql/021_post_deployment_validation.sql
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+src/app/(auth)/layout.tsx
+src/app/(auth)/login/login-form.tsx
+src/app/(auth)/login/page.tsx
+src/app/(dashboard)/communication/page.tsx
+src/app/(dashboard)/crm/page.tsx
+src/app/(dashboard)/dashboard/page.tsx
+src/app/(dashboard)/layout.tsx
+src/app/(dashboard)/page.tsx
+src/app/(dashboard)/properties/page.tsx
+src/app/(dashboard)/sales/page.tsx
+src/app/(dashboard)/settings/page.tsx
+src/app/api/health/route.ts
+src/app/favicon.ico
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.tsx
+src/app/social/page.tsx
+src/components/dashboard/AIInsightPanel.tsx
+src/components/dashboard/LeadFunnel.tsx
+src/components/dashboard/PropertySummary.tsx
+src/components/dashboard/RecentActivityList.tsx
+src/components/dashboard/RecentChats.tsx
+src/components/dashboard/RecentLeads.tsx
+src/components/layout/AppShell.tsx
+src/components/layout/AuthGuard.tsx
+src/components/layout/BottomNav.tsx
+src/components/layout/Breadcrumb.tsx
+src/components/layout/Header.tsx
+src/components/layout/Logo.tsx
+src/components/layout/NavigationRail.tsx
+src/components/layout/NotificationMenu.tsx
+src/components/layout/PageContainer.tsx
+src/components/layout/SearchCommand.tsx
+src/components/layout/Sidebar.tsx
+src/components/layout/SidebarGroup.tsx
+src/components/layout/SidebarItem.tsx
+src/components/layout/UserMenu.tsx
+src/components/ui/ai-insight-card.tsx
+src/components/ui/badge.tsx
+src/components/ui/breadcrumb.tsx
+src/components/ui/button.tsx
+src/components/ui/card.tsx
+src/components/ui/command.tsx
+src/components/ui/dialog.tsx
+src/components/ui/dropdown-menu.tsx
+src/components/ui/empty-state.tsx
+src/components/ui/input-group.tsx
+src/components/ui/input.tsx
+src/components/ui/label.tsx
+src/components/ui/quick-action-card.tsx
+src/components/ui/section-card.tsx
+src/components/ui/sheet.tsx
+src/components/ui/skeleton.tsx
+src/components/ui/stat-card.tsx
+src/components/ui/textarea.tsx
+src/components/ui/tooltip.tsx
+src/config/navigation.ts
+src/constants/dashboard.ts
+src/hooks/useDashboard.ts
+src/lib/dashboard/getDashboardInsights.ts
+src/lib/dashboard/getDashboardStats.ts
+src/lib/dashboard/getLeadSummary.ts
+src/lib/dashboard/getPropertySummary.ts
+src/lib/dashboard/getRecentChats.ts
+src/lib/dashboard/getRecentLeads.ts
+src/lib/errors/app-error.ts
+src/lib/repositories/README.md
+src/lib/repositories/base.repository.ts
+src/lib/repositories/dashboard.repository.ts
+src/lib/services/README.md
+src/lib/services/base.service.ts
+src/lib/services/dashboard.service.ts
+src/lib/supabase/client.ts
+src/lib/supabase/middleware.ts
+src/lib/supabase/server.ts
+src/lib/utils.ts
+src/lib/utils/api-response.ts
+src/lib/utils/date.ts
+src/lib/validators/README.md
+src/lib/validators/index.ts
+src/types/dashboard.ts
+src/types/database-backup.ts
+src/types/database.ts
+supabase/.gitignore
+supabase/config.toml
+supabase/migrations/001_extensions.sql
+supabase/migrations/002_schemas.sql
+supabase/migrations/003_functions.sql
+supabase/migrations/004_system_tables.sql
+supabase/migrations/005_auth_tables.sql
+supabase/migrations/006_property_tables.sql
+supabase/migrations/007_customer_tables.sql
+supabase/migrations/008_chat_tables.sql
+supabase/migrations/009_workflow_tables.sql
+supabase/migrations/010_marketing_tables.sql
+supabase/migrations/011_ai_tables.sql
+supabase/migrations/012_knowledge_tables.sql
+supabase/migrations/013_reporting_tables.sql
+supabase/migrations/014_foreign_keys.sql
+supabase/migrations/015_indexes.sql
+supabase/migrations/016_triggers.sql
+supabase/migrations/017_rls.sql
+supabase/migrations/018_seed_data.sql
+supabase/migrations/019_storage.sql
+supabase/migrations/020_verify_database.sql
+supabase/migrations/021_post_deployment_validation.sql
+tsconfig.json

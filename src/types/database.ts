@@ -12,143 +12,47 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  ai: {
+  auth_ext: {
     Tables: {
-      interactions: {
+      profiles: {
         Row: {
-          cost: number | null
+          avatar_url: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          first_name: string | null
           id: string
-          input_data: Json
-          model_id: string | null
-          output_data: Json
-          prompt_id: string | null
-          tokens_used: number | null
+          last_name: string | null
+          role_id: string | null
           updated_at: string
           updated_by: string | null
+          user_id: string
         }
         Insert: {
-          cost?: number | null
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          first_name?: string | null
           id?: string
-          input_data?: Json
-          model_id?: string | null
-          output_data?: Json
-          prompt_id?: string | null
-          tokens_used?: number | null
+          last_name?: string | null
+          role_id?: string | null
           updated_at?: string
           updated_by?: string | null
+          user_id: string
         }
         Update: {
-          cost?: number | null
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          first_name?: string | null
           id?: string
-          input_data?: Json
-          model_id?: string | null
-          output_data?: Json
-          prompt_id?: string | null
-          tokens_used?: number | null
+          last_name?: string | null
+          role_id?: string | null
           updated_at?: string
           updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interactions_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interactions_prompt_id_fkey"
-            columns: ["prompt_id"]
-            isOneToOne: false
-            referencedRelation: "prompts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      models: {
-        Row: {
-          config: Json
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          is_active: boolean
-          name: string
-          provider: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          provider: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          provider?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      prompts: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          name: string
-          system_prompt: string
-          updated_at: string
-          updated_by: string | null
-          variables: Json
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          name: string
-          system_prompt: string
-          updated_at?: string
-          updated_by?: string | null
-          variables?: Json
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          name?: string
-          system_prompt?: string
-          updated_at?: string
-          updated_by?: string | null
-          variables?: Json
-          version?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -979,24 +883,6 @@ export type Database = {
       [_ in never]: never
     }
   }
-  public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   reporting: {
     Tables: {
       dashboards: {
@@ -1374,7 +1260,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  ai: {
+  auth_ext: {
     Enums: {},
   },
   chat: {
@@ -1393,9 +1279,6 @@ export const Constants = {
     Enums: {},
   },
   property: {
-    Enums: {},
-  },
-  public: {
     Enums: {},
   },
   reporting: {
