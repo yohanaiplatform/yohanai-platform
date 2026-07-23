@@ -17,7 +17,11 @@ export class DashboardRepository {
       .schema("customer")
       .from("leads")
       .select("id", { head: true, count: "exact" });
-    if (error) throw new Error(`Failed to fetch lead count: ${error.message}`);
+
+    if (error) {
+      throw new Error(`Failed to fetch lead count: ${error.message}`);
+    }
+
     return count ?? 0;
   }
 
@@ -26,7 +30,11 @@ export class DashboardRepository {
       .schema("chat")
       .from("conversations")
       .select("id", { head: true, count: "exact" });
-    if (error) throw new Error(`Failed to fetch chat count: ${error.message}`);
+
+    if (error) {
+      throw new Error(`Failed to fetch chat count: ${error.message}`);
+    }
+
     return count ?? 0;
   }
 
@@ -35,19 +43,28 @@ export class DashboardRepository {
       .schema("property")
       .from("listings")
       .select("id", { head: true, count: "exact" });
-    if (error) throw new Error(`Failed to fetch property count: ${error.message}`);
+
+    if (error) {
+      throw new Error(`Failed to fetch property count: ${error.message}`);
+    }
+
     return count ?? 0;
   }
 
   async getTodayLeadCount(): Promise<number> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const { count, error } = await this.client
       .schema("customer")
       .from("leads")
       .select("id", { head: true, count: "exact" })
       .gte("created_at", today.toISOString());
-    if (error) throw new Error(`Failed to fetch today's lead count: ${error.message}`);
+
+    if (error) {
+      throw new Error(`Failed to fetch today's lead count: ${error.message}`);
+    }
+
     return count ?? 0;
   }
 
@@ -55,11 +72,26 @@ export class DashboardRepository {
     const { data, error } = await this.client
       .schema("customer")
       .from("leads")
-      .select("id, name, email, source, agent, status, created_at")
+      .select(
+        `
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        lead_source_id,
+        status,
+        created_at
+      `
+      )
       .order("created_at", { ascending: false })
       .limit(5);
-    if (error) throw new Error(`Failed to fetch recent leads: ${error.message}`);
-    return data ?? [];
+
+    if (error) {
+      throw new Error(`Failed to fetch recent leads: ${error.message}`);
+    }
+
+    return (data ?? []) as RecentLead[];
   }
 
   async getRecentActivities(): Promise<RecentActivity[]> {
@@ -93,10 +125,23 @@ export class DashboardRepository {
     const { data, error } = await this.client
       .schema("chat")
       .from("conversations")
-      .select("id, customer_name, status, last_message_at, created_at, updated_at")
+      .select(
+        `
+        id,
+        lead_id,
+        title,
+        status,
+        created_at,
+        updated_at
+      `
+      )
       .order("updated_at", { ascending: false })
       .limit(5);
-    if (error) throw new Error(`Failed to fetch recent chats: ${error.message}`);
+
+    if (error) {
+      throw new Error(`Failed to fetch recent chats: ${error.message}`);
+    }
+
     return (data ?? []).map((chat) => ({
       ...chat,
       unreadCount: 0,

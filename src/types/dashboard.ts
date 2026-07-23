@@ -7,11 +7,12 @@ export interface DashboardStats {
 
 export interface RecentLead {
   id: string;
-  name: string | null;
+  first_name: string;
+  last_name: string;
   email: string | null;
-  source: string | null;
-  agent: string | null;
-  status: string | null;
+  phone: string | null;
+  lead_source_id: string | null;
+  status: string;
   created_at: string;
 }
 
@@ -47,9 +48,9 @@ export interface PropertySummary {
 
 export interface RecentChat {
   id: string;
-  customer_name: string | null;
-  status: string | null;
-  last_message_at: string | null;
+  lead_id: string | null;
+  title: string | null;
+  status: string;
   unreadCount: number;
   created_at: string;
   updated_at: string;

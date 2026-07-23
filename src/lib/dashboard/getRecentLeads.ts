@@ -11,7 +11,16 @@ export async function getRecentLeads(
   const res = await supabase
     .schema("customer")
     .from("leads")
-    .select("id, first_name, last_name, status, created_at")
+    .select(`
+      id,
+      first_name,
+      last_name,
+      email,
+      phone,
+      lead_source_id,
+      status,
+      created_at
+    `)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(LIMITS.RECENT_LEADS);
@@ -19,12 +28,14 @@ export async function getRecentLeads(
   return {
     data: res.error
       ? null
-      : (res.data ?? []).map((lead) => ({
+      : (res.data ?? []).map((lead): RecentLead => ({
           id: lead.id,
-          name: `${lead.first_name ?? ""} ${lead.last_name ?? ""}`.trim(),
+          first_name: lead.first_name,
+          last_name: lead.last_name,
+          email: lead.email,
+          phone: lead.phone,
+          lead_source_id: lead.lead_source_id,
           status: lead.status,
-          agent: null,
-          source: null,
           created_at: lead.created_at,
         })),
     error: !!res.error,

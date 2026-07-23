@@ -1,3 +1,5 @@
+// src/lib/dashboard/getRecentChats.ts
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { RecentChat } from "@/types/dashboard";
@@ -9,7 +11,14 @@ export async function getRecentChats(
   const res = await supabase
     .schema("chat")
     .from("conversations")
-    .select("id, title, status, updated_at")
+    .select(`
+      id,
+      lead_id,
+      title,
+      status,
+      created_at,
+      updated_at
+    `)
     .is("deleted_at", null)
     .order("updated_at", { ascending: false })
     .limit(LIMITS.RECENT_CHATS);
@@ -17,12 +26,17 @@ export async function getRecentChats(
   return {
     data: res.error
       ? null
-      : res.data.map((row) => ({
-          id: row.id,
-          customer_name: row.title ?? "Untitled",
-          status: row.status,
-          last_message_at: row.updated_at,
-        })),
+      : (res.data ?? []).map(
+          (row): RecentChat => ({
+            id: row.id,
+            lead_id: row.lead_id,
+            title: row.title,
+            status: row.status,
+            unreadCount: 0,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+          })
+        ),
     error: !!res.error,
   };
 }

@@ -6,9 +6,11 @@ export async function getPropertySummary(
   _supabase: SupabaseClient<Database>
 ): Promise<PropertySummary> {
   return {
+    total: 0,
     available: 0,
-    booked: 0,
+    reserved: 0,
     sold: 0,
+    booked: 0,
     hold: 0,
   };
 }
