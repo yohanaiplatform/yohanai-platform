@@ -18,6 +18,10 @@ export class DashboardService {
       todayLeads,
       recentLeads,
       recentActivities,
+      leadSummary,
+      propertySummary,
+      recentChats,
+      insights,
     ] = await Promise.all([
       this.repository.getLeadCount(),
       this.repository.getChatCount(),
@@ -25,6 +29,10 @@ export class DashboardService {
       this.repository.getTodayLeadCount(),
       this.repository.getRecentLeads(),
       this.repository.getRecentActivities(),
+      this.repository.getLeadSummary(),
+      this.repository.getPropertySummary(),
+      this.repository.getRecentChats(),
+      this.repository.getInsights(),
     ]);
 
     return {
@@ -32,9 +40,12 @@ export class DashboardService {
       recentLeads,
       recentActivities,
       notifications: [],
+      leadSummary,
+      propertySummary,
+      recentChats,
+      insights,
     };
   }
 }
 
-// Singleton instance — reused across the application
 export const dashboardService = new DashboardService();
