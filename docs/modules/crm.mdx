@@ -1,16 +1,226 @@
+---
+title: CRM Module
+description: Customer Relationship Management Module
+---
+
 # CRM Module
 
-## Features
+CRM merupakan inti operasional Yohan.AI.
 
-- Customer Database
-- Lead Management
+Seluruh data calon pembeli, aktivitas follow-up, timeline komunikasi, dan AI Intelligence akan berpusat pada modul ini.
+
+CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelanggan.
+
+---
+
+# Current Status
+
+| Item | Status |
+|------|--------|
+| Development | 🟡 In Progress |
+| Production Ready | 🟡 Foundation |
+| Backend | ✅ Available |
+| UI | 🟡 In Progress |
+| AI Integration | 🔵 Planned |
+
+---
+
+# Objectives
+
+CRM membantu agen untuk:
+
+- Mengelola Lead
+- Mengelola Customer
+- Mencatat aktivitas
+- Menjadwalkan Follow-up
+- Memprioritaskan prospek menggunakan AI
+
+---
+
+# Current Features
+
+## Lead List
+
+Menampilkan seluruh lead dari database.
+
+---
+
+## Lead Detail
+
+Informasi lengkap setiap calon pembeli.
+
+---
+
+## Timeline
+
+Riwayat aktivitas:
+
+- Chat
 - Follow-up
-- Sales Pipeline
-- Lead Scoring
-- AI Summary
-- AI Recommendation
-- Activity Timeline
+- Call
+- Meeting
+- Visit
 
-## Status
+---
 
-Development Phase
+## Activity
+
+Seluruh aktivitas agen terhadap lead.
+
+---
+
+## Notes
+
+Catatan internal agen.
+
+---
+
+## Follow-up
+
+Penjadwalan aktivitas berikutnya.
+
+---
+
+# Future AI Features
+
+CRM Intelligence akan memberikan:
+
+- Lead Score
+- Buyer Intent
+- Buying Signal
+- Priority Recommendation
+- Next Best Action
+- Conversion Prediction
+
+---
+
+# User Flow
+
+```text
+Lead Masuk
+
+↓
+
+CRM
+
+↓
+
+Lead Detail
+
+↓
+
+Timeline
+
+↓
+
+AI Recommendation
+
+↓
+
+Follow-up
+
+↓
+
+Deal / Lost
+```
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+app/crm/
+
+components/crm/
+
+lib/crm/
+
+types/
+```
+
+---
+
+# Database
+
+Primary Tables
+
+- customer.leads
+- customer.activities
+- customer.notes
+
+Future
+
+- ai.lead_scores
+- ai.recommendations
+
+---
+
+# Business Rules
+
+- Satu Lead memiliki banyak Activity.
+- Satu Lead memiliki banyak Notes.
+- Semua perubahan dicatat pada Timeline.
+- Follow-up wajib memiliki tanggal.
+
+---
+
+# Dependencies
+
+- Authentication
+- Dashboard
+- Communication
+- Sales
+- AI Intelligence
+
+---
+
+# Current Limitations
+
+- Timeline belum lengkap
+- Activity belum lengkap
+- Notes belum lengkap
+- AI belum aktif
+- Automation belum aktif
+
+---
+
+# Future Roadmap
+
+## Phase 1
+
+CRM Foundation
+
+## Phase 2
+
+Timeline
+
+## Phase 3
+
+Activity Management
+
+## Phase 4
+
+AI Lead Intelligence
+
+## Phase 5
+
+Automation
+
+---
+
+# Related Documents
+
+- Project Context
+- Project Status
+- Database Schema
+- Dashboard Module
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

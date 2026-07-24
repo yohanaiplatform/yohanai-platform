@@ -13,7 +13,19 @@
       {
         "group": "Getting Started",
         "pages": [
-          "docs/index"
+          "docs/start-here",
+          "docs/index",
+          "docs/context",
+          "docs/status"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "docs/development/workflow",
+          "docs/development/coding-standards",
+          "docs/development/qa-checklist",
+          "docs/development/migration"
         ]
       },
       {
@@ -25,6 +37,7 @@
       {
         "group": "Database",
         "pages": [
+          "docs/database/database-architecture",
           "docs/database/schema",
           "docs/database/erd"
         ]
@@ -38,19 +51,25 @@
       {
         "group": "Modules",
         "pages": [
-          "docs/modules/crm"
+          "docs/modules/dashboard",
+          "docs/modules/crm",
+          "docs/modules/property",
+          "docs/modules/sales",
+          "docs/modules/ai",
+          "docs/modules/automation"
         ]
       },
       {
-        "group": "Deployment",
+        "group": "ADR",
         "pages": [
-          "docs/deployment/vercel"
+          "docs/adr/index"
         ]
       },
       {
-        "group": "Blueprint",
+        "group": "Release",
         "pages": [
-          "docs/blueprint/master"
+          "docs/release/changelog",
+          "docs/release/versions"
         ]
       },
       {

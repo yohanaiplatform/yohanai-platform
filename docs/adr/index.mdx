@@ -1,0 +1,218 @@
+---
+title: Architecture Decision Records
+description: Architectural decisions made throughout the development of Yohan.AI
+---
+
+# Architecture Decision Records (ADR)
+
+Dokumen ini mencatat seluruh keputusan arsitektur penting yang diambil selama pengembangan Yohan.AI.
+
+Tujuan ADR adalah memberikan konteks mengapa suatu keputusan dibuat, alternatif yang dipertimbangkan, serta dampaknya terhadap sistem.
+
+---
+
+# Status
+
+| Item | Value |
+|------|-------|
+| Project | Yohan.AI |
+| Current Version | v0.1.0-alpha |
+| Documentation Status | Active |
+| Last Review | 24 July 2026 |
+
+---
+
+# Decision List
+
+## ADR-001 — Mintlify as Single Source of Truth
+
+**Status**
+
+Accepted
+
+### Decision
+
+Seluruh dokumentasi resmi proyek disimpan di Mintlify.
+
+### Reason
+
+- Mudah diakses seluruh tim.
+- Mendukung version control.
+- Mengurangi dokumen lokal yang tidak sinkron.
+
+### Impact
+
+- Dokumentasi Markdown lokal tidak lagi menjadi referensi utama.
+- Semua pembaruan dokumentasi dilakukan melalui repository dokumentasi.
+
+---
+
+## ADR-002 — Supabase as Primary Backend
+
+**Status**
+
+Accepted
+
+### Decision
+
+Supabase digunakan sebagai backend utama.
+
+### Reason
+
+- PostgreSQL
+- Authentication
+- Storage
+- Row Level Security
+- Realtime
+- Edge Functions (future)
+
+### Impact
+
+Seluruh modul menggunakan schema Supabase sebagai sumber data utama.
+
+---
+
+## ADR-003 — Next.js as Frontend Framework
+
+**Status**
+
+Accepted
+
+### Decision
+
+Frontend dibangun menggunakan Next.js dengan TypeScript.
+
+### Reason
+
+- Modern React framework
+- Server Components
+- Routing
+- Performance
+- Developer Experience
+
+---
+
+## ADR-004 — Modular Architecture
+
+**Status**
+
+Accepted
+
+### Decision
+
+Platform dipisahkan menjadi modul independen.
+
+### Modules
+
+- Dashboard
+- CRM
+- Property
+- Sales
+- AI Intelligence
+- Communication Automation
+
+### Impact
+
+Setiap modul dapat dikembangkan tanpa memengaruhi modul lain secara langsung.
+
+---
+
+## ADR-005 — AI as Decision Support
+
+**Status**
+
+Accepted
+
+### Decision
+
+AI berfungsi sebagai pendukung keputusan, bukan pengambil keputusan.
+
+### Principles
+
+- AI memberikan insight.
+- AI memberikan rekomendasi.
+- Agen tetap mengambil keputusan akhir.
+
+---
+
+## ADR-006 — Documentation First
+
+**Status**
+
+Accepted
+
+### Decision
+
+Perubahan arsitektur signifikan harus diikuti dengan pembaruan dokumentasi.
+
+### Impact
+
+Dokumentasi selalu mencerminkan kondisi sistem yang sebenarnya.
+
+---
+
+# ADR Workflow
+
+```text
+Problem Identified
+
+↓
+
+Options Evaluated
+
+↓
+
+Decision Taken
+
+↓
+
+ADR Updated
+
+↓
+
+Implementation
+
+↓
+
+Documentation Review
+```
+
+---
+
+# Future ADR Topics
+
+Beberapa keputusan yang kemungkinan akan didokumentasikan di masa mendatang:
+
+- Multi-Agent Architecture
+- AI Memory Strategy
+- Knowledge Base Design
+- Workflow Engine Evolution
+- Omnichannel Communication
+- AI Model Selection
+- Caching Strategy
+- Event-Driven Architecture
+- Monitoring & Observability
+- Deployment Strategy
+
+---
+
+# Guidelines
+
+Setiap ADR baru sebaiknya memuat:
+
+- Context
+- Problem
+- Alternatives
+- Decision
+- Consequences
+- Status
+- Date
+- Author
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

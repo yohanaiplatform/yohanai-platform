@@ -1,0 +1,236 @@
+---
+title: Property Module
+description: Property Listing Management Module
+---
+
+# Property Module
+
+Property Module merupakan pusat pengelolaan seluruh listing properti di platform Yohan.AI.
+
+Modul ini memastikan setiap listing memiliki data yang lengkap, terstruktur, dan siap digunakan oleh CRM, Sales Pipeline, AI Intelligence, serta Communication Automation.
+
+Property menjadi salah satu aset utama dalam ekosistem Yohan.AI.
+
+---
+
+# Current Status
+
+| Item | Status |
+|------|--------|
+| Development | 🟡 In Progress |
+| Production Ready | 🟡 Foundation |
+| Backend | ✅ Available |
+| UI | 🟡 In Progress |
+| AI Integration | 🔵 Planned |
+
+---
+
+# Objectives
+
+Property Module bertujuan untuk:
+
+- Mengelola seluruh listing properti
+- Menyimpan detail lengkap setiap unit
+- Mengelola status listing
+- Menghubungkan listing dengan lead
+- Menjadi sumber data utama bagi AI Recommendation
+
+---
+
+# Current Features
+
+## Property List
+
+Menampilkan seluruh listing yang tersedia.
+
+---
+
+## Property Detail
+
+Informasi lengkap mengenai setiap properti.
+
+Contoh informasi:
+
+- Nama Properti
+- Tipe
+- Harga
+- Lokasi
+- Luas Tanah
+- Luas Bangunan
+- Kamar Tidur
+- Kamar Mandi
+- Status
+- Foto
+- Deskripsi
+
+---
+
+## Property Status
+
+Status listing meliputi:
+
+- Available
+- Reserved
+- Sold
+- Hold
+- Draft
+- Archived
+
+---
+
+## Property Search
+
+Pencarian berdasarkan:
+
+- Harga
+- Lokasi
+- Tipe
+- Status
+- Keyword
+
+---
+
+## Media Gallery
+
+Dokumentasi media properti:
+
+- Foto
+- Video
+- Virtual Tour (Future)
+
+---
+
+# User Flow
+
+```text
+Admin
+
+↓
+
+Tambah Listing
+
+↓
+
+Upload Media
+
+↓
+
+Publish
+
+↓
+
+Listing Aktif
+
+↓
+
+Terhubung ke CRM
+
+↓
+
+Direkomendasikan AI
+
+↓
+
+Terjual
+```
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+app/property/
+
+components/property/
+
+lib/property/
+
+types/
+```
+
+---
+
+# Database
+
+Primary Tables
+
+- property.listings
+- property.images
+
+Future Tables
+
+- property.documents
+- property.virtual_tours
+- property.analytics
+
+---
+
+# Business Rules
+
+- Setiap listing memiliki status.
+- Setiap listing memiliki harga.
+- Setiap listing memiliki lokasi.
+- Foto utama wajib tersedia sebelum dipublikasikan.
+- Listing yang sudah terjual tidak dapat menerima lead baru.
+
+---
+
+# Dependencies
+
+- Dashboard
+- CRM
+- Sales
+- AI Intelligence
+- Supabase Storage
+
+---
+
+# Current Limitations
+
+- Upload media masih dasar
+- Belum ada Virtual Tour
+- Belum ada Analytics
+- AI Recommendation belum aktif
+
+---
+
+# Future Roadmap
+
+## Phase 1
+
+Property Management Foundation
+
+## Phase 2
+
+Advanced Search & Filtering
+
+## Phase 3
+
+Media Management
+
+## Phase 4
+
+Property Analytics
+
+## Phase 5
+
+AI Property Recommendation
+
+---
+
+# Related Documents
+
+- Dashboard Module
+- CRM Module
+- Database Schema
+- API Overview
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

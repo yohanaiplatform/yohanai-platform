@@ -1,0 +1,227 @@
+---
+title: Dashboard Module
+description: Executive Dashboard of Yohan.AI Platform
+---
+
+# Dashboard
+
+Dashboard adalah pusat informasi utama Yohan.AI.
+
+Semua insight bisnis, aktivitas pengguna, dan rekomendasi AI ditampilkan melalui modul ini.
+
+Dashboard bukan sekadar halaman statistik, tetapi menjadi **Executive Decision Center** bagi agen properti.
+
+---
+
+# Current Status
+
+| Item | Status |
+|------|--------|
+| Development | ✅ Complete (Foundation) |
+| Production Ready | ✅ Yes |
+| Backend Integration | 🟡 Runtime QA |
+| UI | ✅ Complete |
+| AI Integration | 🟡 Planned |
+
+---
+
+# Objectives
+
+Dashboard membantu pengguna untuk:
+
+- Melihat kondisi bisnis secara real-time
+- Memantau aktivitas sales
+- Memprioritaskan lead
+- Melihat performa pipeline
+- Mendapatkan insight AI
+
+---
+
+# Current Features
+
+## Dashboard Cards
+
+Menampilkan ringkasan:
+
+- Total Leads
+- Active Property
+- Sales Pipeline
+- Conversion Rate
+
+---
+
+## Recent Leads
+
+Menampilkan daftar lead terbaru dari Supabase.
+
+---
+
+## Recent Chats
+
+Menampilkan aktivitas komunikasi terbaru.
+
+---
+
+## AI Insight
+
+Saat ini masih menggunakan placeholder.
+
+Pada fase AI Intelligence akan diganti dengan:
+
+- Buyer Intent
+- Buying Signal
+- Follow-up Recommendation
+- Conversion Prediction
+
+---
+
+# User Flow
+
+```text
+Login
+
+↓
+
+Dashboard
+
+↓
+
+Dashboard Cards
+
+↓
+
+Recent Activity
+
+↓
+
+AI Insight
+
+↓
+
+Open CRM / Property / Sales
+```
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+app/dashboard/
+
+components/dashboard/
+
+lib/dashboard/
+
+types/dashboard.ts
+```
+
+---
+
+# Database
+
+Dashboard mengambil data dari Supabase.
+
+Saat ini menggunakan:
+
+- customer.leads
+- chat.conversations
+- property.listings
+
+Seluruh query berada pada:
+
+```text
+src/lib/dashboard/
+```
+
+---
+
+# Dashboard Helpers
+
+Helper yang digunakan:
+
+- getDashboardStats()
+- getRecentLeads()
+- getRecentChats()
+- getLeadSummary()
+- getPropertySummary()
+- getDashboardInsights()
+
+Semua helper harus mengikuti schema terbaru Supabase.
+
+---
+
+# Business Rules
+
+Dashboard tidak menyimpan data.
+
+Dashboard hanya:
+
+- Query
+- Aggregate
+- Transform
+- Display
+
+Semua business logic berada pada helper.
+
+---
+
+# Dependencies
+
+Dashboard bergantung pada:
+
+- Authentication
+- Supabase
+- CRM
+- Property
+- Sales
+
+---
+
+# Current Limitations
+
+- AI Insight masih placeholder
+- Property Summary masih placeholder
+- Runtime QA dengan data produksi masih berjalan
+
+---
+
+# Future Roadmap
+
+## Phase 1
+
+Dashboard Runtime QA
+
+## Phase 2
+
+Executive Dashboard
+
+## Phase 3
+
+AI Recommendation Engine
+
+## Phase 4
+
+Buyer Behavior Intelligence
+
+## Phase 5
+
+Predictive Analytics
+
+---
+
+# Related Documents
+
+- Project Context
+- Project Status
+- Database Schema
+- API Overview
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

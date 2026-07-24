@@ -1,0 +1,219 @@
+---
+title: Sales Module
+description: Sales Pipeline & Opportunity Management Module
+---
+
+# Sales Module
+
+Sales Module mengelola seluruh proses penjualan mulai dari lead yang telah memenuhi syarat hingga transaksi selesai.
+
+Modul ini menjadi pusat pengelolaan pipeline penjualan, opportunity, aktivitas closing, dan performa agen. Sales Module bekerja erat dengan CRM, Property, dan AI Intelligence untuk membantu meningkatkan conversion rate.
+
+---
+
+# Current Status
+
+| Item | Status |
+|------|--------|
+| Development | 🟡 In Progress |
+| Production Ready | 🟡 Foundation |
+| Backend | 🟡 Partial |
+| UI | 🟡 In Progress |
+| AI Integration | 🔵 Planned |
+
+---
+
+# Objectives
+
+Sales Module bertujuan untuk:
+
+- Mengelola Sales Pipeline
+- Memantau Opportunity
+- Mengelola proses Closing
+- Mengukur performa penjualan
+- Menyediakan data untuk AI Prediction
+
+---
+
+# Current Features
+
+## Sales Pipeline
+
+Tahapan standar penjualan:
+
+- New Lead
+- Qualified
+- Contacted
+- Meeting
+- Property Visit
+- Negotiation
+- Booking
+- Closing
+- Lost
+
+---
+
+## Opportunity Management
+
+Setiap lead yang memiliki potensi pembelian akan berubah menjadi Opportunity.
+
+Opportunity menyimpan:
+
+- Nilai transaksi
+- Properti yang diminati
+- Probabilitas closing
+- Target closing
+- Sales Owner
+
+---
+
+## Deal Tracking
+
+Memantau perkembangan transaksi dari awal hingga selesai.
+
+---
+
+## Sales Performance
+
+Menampilkan indikator seperti:
+
+- Total Opportunity
+- Closing Rate
+- Revenue
+- Average Deal Value
+- Pipeline Value
+
+---
+
+# User Flow
+
+```text
+Lead Qualified
+
+↓
+
+Create Opportunity
+
+↓
+
+Sales Pipeline
+
+↓
+
+Negotiation
+
+↓
+
+Booking
+
+↓
+
+Closing
+
+↓
+
+Revenue Recorded
+```
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+app/sales/
+
+components/sales/
+
+lib/sales/
+
+types/
+```
+
+---
+
+# Database
+
+Primary Tables
+
+- sales.opportunities
+- sales.pipeline
+- sales.transactions
+
+Future Tables
+
+- sales.targets
+- sales.commissions
+- sales.performance
+
+---
+
+# Business Rules
+
+- Opportunity harus berasal dari Lead.
+- Setiap Opportunity memiliki satu Sales Owner.
+- Pipeline harus mengikuti urutan status.
+- Closing otomatis memperbarui status Lead dan Property.
+- Listing yang sudah Closing berubah menjadi Sold.
+
+---
+
+# Dependencies
+
+- CRM
+- Property
+- Dashboard
+- Authentication
+- AI Intelligence
+
+---
+
+# Current Limitations
+
+- Pipeline masih sederhana
+- Belum ada Komisi
+- Belum ada Target Sales
+- Belum ada Forecast Revenue
+- AI Prediction belum aktif
+
+---
+
+# Future Roadmap
+
+## Phase 1
+
+Sales Pipeline Foundation
+
+## Phase 2
+
+Opportunity Management
+
+## Phase 3
+
+Revenue Analytics
+
+## Phase 4
+
+Commission Management
+
+## Phase 5
+
+AI Sales Prediction
+
+---
+
+# Related Documents
+
+- CRM Module
+- Property Module
+- Dashboard Module
+- Database Schema
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

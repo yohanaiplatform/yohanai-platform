@@ -1,0 +1,124 @@
+---
+title: QA Checklist
+description: Quality Assurance checklist before merge and deployment
+---
+
+# QA Checklist
+
+Semua task harus melewati checklist ini sebelum di-merge ke branch `main`.
+
+---
+
+# Code Quality
+
+- [ ] Tidak ada duplicate logic
+- [ ] Tidak ada dead code
+- [ ] Tidak ada unused import
+- [ ] Tidak ada hardcoded value yang seharusnya configurable
+- [ ] Penamaan file dan function konsisten
+
+---
+
+# TypeScript
+
+- [ ] 0 TypeScript Error
+- [ ] Tidak menggunakan `any`
+- [ ] Type berasal dari Supabase (`database.ts`)
+- [ ] Tidak ada type duplication
+
+---
+
+# Component Review
+
+- [ ] UI terpisah dari business logic
+- [ ] Component reusable
+- [ ] Tidak ada component terlalu besar
+- [ ] Menggunakan helper pada `src/lib`
+
+---
+
+# Database
+
+- [ ] Query menggunakan schema terbaru
+- [ ] Tidak hardcode nama tabel lama
+- [ ] Tidak membuat schema lokal
+- [ ] Supabase tetap menjadi Source of Truth
+
+---
+
+# Runtime QA
+
+Pastikan:
+
+- [ ] Halaman dapat dibuka
+- [ ] Navigation berjalan
+- [ ] Empty State benar
+- [ ] Error State benar
+- [ ] Loading State benar
+
+---
+
+# Build Verification
+
+Jalankan:
+
+```bash
+npm run build
+```
+
+Checklist:
+
+- [ ] TypeScript PASS
+- [ ] ESLint PASS
+- [ ] Production Build PASS
+
+Jika build gagal:
+
+**Merge dibatalkan.**
+
+---
+
+# Git Checklist
+
+- [ ] git status bersih
+- [ ] Commit message sesuai
+- [ ] Push ke branch yang benar
+
+---
+
+# Deployment
+
+Pastikan:
+
+- [ ] Vercel Build PASS
+- [ ] Website dapat diakses
+- [ ] Tidak ada runtime error
+- [ ] Environment Variables valid
+
+---
+
+# Documentation
+
+- [ ] Mintlify diperbarui jika ada perubahan arsitektur
+- [ ] Status proyek diperbarui bila milestone berubah
+- [ ] ADR ditambah jika ada keputusan arsitektur baru
+
+---
+
+# Definition of Done
+
+Sebuah task dianggap selesai apabila:
+
+- ✅ Feature selesai
+- ✅ Review selesai
+- ✅ TypeScript PASS
+- ✅ Build PASS
+- ✅ Runtime PASS
+- ✅ Deploy PASS
+- ✅ Dokumentasi diperbarui
+
+Jika salah satu belum terpenuhi, status task tetap **In Progress**.
+
+---
+
+# End of QA Checklist

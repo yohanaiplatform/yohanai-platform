@@ -1,0 +1,93 @@
+---
+title: Troubleshooting Guide
+description: Common development issues and resolutions
+---
+
+# Troubleshooting Guide
+
+Dokumen ini berisi masalah yang umum ditemui selama pengembangan beserta langkah penyelesaiannya.
+
+---
+
+# TypeScript Errors
+
+## Gejala
+
+- Build gagal
+- `npm run build` menampilkan error TypeScript
+
+### Solusi
+
+- Jalankan `npm run lint`
+- Jalankan `npx tsc --noEmit`
+- Periksa tipe yang berubah
+- Pastikan tidak ada `any` yang tidak diperlukan
+
+---
+
+# Supabase Schema Mismatch
+
+## Gejala
+
+- Error pada query
+- Kolom tidak ditemukan
+- Tipe menjadi `never`
+
+### Solusi
+
+- Regenerasi tipe database
+- Sinkronkan migration
+- Verifikasi schema aktif
+
+---
+
+# Build Failed
+
+## Gejala
+
+- Vercel gagal build
+- Local build gagal
+
+### Solusi
+
+- Jalankan build lokal terlebih dahulu
+- Periksa dependency
+- Pastikan environment variables tersedia
+
+---
+
+# Runtime Error
+
+## Gejala
+
+- Halaman kosong
+- Error saat membuka dashboard
+
+### Solusi
+
+- Periksa browser console
+- Periksa server log
+- Verifikasi koneksi Supabase
+- Uji helper yang terkait
+
+---
+
+# Documentation Out of Sync
+
+## Gejala
+
+- Dokumentasi tidak sesuai implementasi
+
+### Solusi
+
+- Perbarui Mintlify setelah perubahan kode
+- Tinjau ADR jika ada perubahan arsitektur
+- Pastikan changelog diperbarui untuk perubahan signifikan
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

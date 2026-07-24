@@ -1,0 +1,207 @@
+---
+title: Coding Standards
+description: Official coding standards for Yohan.AI Platform
+---
+
+# Coding Standards
+
+Dokumen ini mendefinisikan standar coding yang wajib diikuti pada seluruh pengembangan Yohan.AI.
+
+---
+
+# General Principles
+
+Semua kode harus:
+
+- Clean
+- Readable
+- Reusable
+- Maintainable
+- Strongly Typed
+- Production Ready
+
+---
+
+# Architecture Rules
+
+- Gunakan Modular Architecture.
+- Hindari file yang terlalu besar.
+- Pisahkan UI dan Business Logic.
+- Hindari duplicate code.
+- Gunakan helper untuk data processing.
+
+---
+
+# Component Rules
+
+Component hanya bertanggung jawab terhadap:
+
+- UI
+- Rendering
+- User Interaction
+
+Jangan menaruh business logic di component.
+
+---
+
+# Business Logic
+
+Business Logic ditempatkan pada:
+
+```
+src/lib/
+```
+
+Contoh:
+
+```
+src/lib/dashboard/
+src/lib/crm/
+src/lib/property/
+```
+
+---
+
+# Database Rules
+
+Supabase adalah **Single Source of Truth**.
+
+Dilarang:
+
+- Hardcode schema database
+- Membuat type manual yang berbeda dengan Supabase
+
+Semua TypeScript type harus berasal dari:
+
+```
+database.ts
+```
+
+---
+
+# TypeScript
+
+Wajib menggunakan:
+
+- Strict Type
+- Explicit Interface
+- Hindari `any`
+- Hindari type duplication
+
+Target:
+
+```
+0 TypeScript Errors
+```
+
+---
+
+# Folder Structure
+
+```
+src/
+
+components/
+lib/
+types/
+hooks/
+app/
+```
+
+Folder harus konsisten.
+
+---
+
+# Naming Convention
+
+Component
+
+```
+PascalCase
+```
+
+Contoh:
+
+```
+DashboardCard.tsx
+```
+
+Function
+
+```
+camelCase
+```
+
+Contoh:
+
+```
+getDashboardStats()
+```
+
+Constant
+
+```
+UPPER_SNAKE_CASE
+```
+
+Contoh:
+
+```
+MAX_UPLOAD_SIZE
+```
+
+---
+
+# Import Rules
+
+Gunakan alias:
+
+```
+@/
+```
+
+Contoh:
+
+```ts
+import { Button } from "@/components/ui/button";
+```
+
+Hindari relative import yang terlalu panjang.
+
+---
+
+# Build Rules
+
+Setiap task wajib lulus:
+
+- TypeScript PASS
+- ESLint PASS
+- Build PASS
+
+Perintah:
+
+```bash
+npm run build
+```
+
+---
+
+# Code Review Checklist
+
+Sebelum merge pastikan:
+
+- Tidak ada duplicate logic
+- Tidak ada hardcoded schema
+- Tidak ada unused code
+- Tidak ada TypeScript error
+- Tidak ada build error
+
+---
+
+# Golden Rule
+
+> Code harus mudah dipahami enam bulan kemudian oleh developer lain tanpa perlu penjelasan tambahan.
+
+---
+
+# End of Coding Standards

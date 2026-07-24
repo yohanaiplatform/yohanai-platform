@@ -1,7 +1,221 @@
 ---
 title: Database Architecture
+description: High-level database architecture of the Yohan.AI Platform
 ---
 
 # Database Architecture
 
-Dokumen ini menjelaskan struktur database inti Yohan.AI berdasarkan hasil migrasi dari sistem legacy.
+Yohan.AI menggunakan **Supabase PostgreSQL** sebagai database utama.
+
+Seluruh modul aplikasi berbagi satu sumber data yang konsisten dengan pemisahan menggunakan schema PostgreSQL.
+
+Database dirancang untuk:
+
+- Konsisten
+- Mudah dikembangkan
+- Mendukung AI
+- Aman dengan Row Level Security (RLS)
+- Siap untuk multi-tenant pada fase berikutnya
+
+---
+
+# Architecture Overview
+
+```text
+                Next.js Platform
+                       │
+                       │
+               Supabase Client
+                       │
+      ┌────────────────┼────────────────┐
+      │                │                │
+ Authentication     Database        Storage
+      │                │                │
+      │        PostgreSQL Schemas       │
+      │                │                │
+      └────────────────┼────────────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+     customer      property        sales
+        │              │              │
+        ├──────────────┼──────────────┤
+        │              │              │
+       chat            ai      automation
+```
+
+---
+
+# Design Principles
+
+## Single Source of Truth
+
+Supabase adalah sumber data utama untuk seluruh platform.
+
+Tidak ada data bisnis yang disimpan secara permanen di frontend.
+
+---
+
+## Modular Schema
+
+Database dipisahkan berdasarkan domain bisnis.
+
+Contoh:
+
+- customer
+- property
+- sales
+- chat
+- ai
+- automation
+
+Pendekatan ini membuat struktur lebih mudah dipelihara dan dikembangkan.
+
+---
+
+## Security First
+
+Setiap tabel harus mempertimbangkan:
+
+- Authentication
+- Authorization
+- Row Level Security (RLS)
+- Auditability
+
+---
+
+## AI Ready
+
+Struktur database dirancang agar dapat mendukung:
+
+- Lead Scoring
+- Buyer Behavior Intelligence
+- Recommendation Engine
+- Predictive Analytics
+
+tanpa perlu perubahan besar pada fondasi database.
+
+---
+
+# Current Schemas
+
+| Schema | Purpose |
+|---------|---------|
+| auth | Authentication |
+| public | Shared objects |
+| customer | CRM & Leads |
+| property | Property Listings |
+| sales | Sales Pipeline |
+| chat | Conversations |
+| ai | AI Intelligence |
+| automation | Workflow Automation |
+
+> Daftar schema dapat berkembang seiring kebutuhan platform.
+
+---
+
+# Data Flow
+
+```text
+User
+
+↓
+
+Authentication
+
+↓
+
+Application
+
+↓
+
+Supabase
+
+↓
+
+Business Schema
+
+↓
+
+Business Logic
+
+↓
+
+Dashboard / CRM / Sales / AI
+```
+
+---
+
+# Database Responsibilities
+
+Database bertanggung jawab untuk:
+
+- Menyimpan data bisnis
+- Menjaga integritas data
+- Menyediakan query yang efisien
+- Mendukung audit trail
+- Menjadi fondasi AI Intelligence
+
+---
+
+# Migration Strategy
+
+Seluruh perubahan struktur database harus dilakukan melalui migration.
+
+Workflow:
+
+```text
+Design
+
+↓
+
+Migration
+
+↓
+
+Review
+
+↓
+
+Apply
+
+↓
+
+Verification
+
+↓
+
+Documentation
+```
+
+Migration langsung pada Production Database tanpa file migration tidak diperbolehkan.
+
+---
+
+# Future Evolution
+
+Roadmap database meliputi:
+
+- Multi-Tenant Support
+- Event Logging
+- Analytics Warehouse
+- AI Knowledge Store
+- Performance Optimization
+- Advanced Partitioning
+
+---
+
+# Related Documents
+
+- Database Schema
+- Entity Relationship Diagram (ERD)
+- API Overview
+- Architecture Decision Records
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

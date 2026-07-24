@@ -1,0 +1,236 @@
+---
+title: Project Context
+description: Core identity and development context of Yohan.AI Platform
+---
+
+# Project Context
+
+## Product Identity
+
+Yohan.AI adalah **Property Buyer Behavior Intelligence Platform**.
+
+Platform ini membantu agen properti memahami perilaku calon pembeli, mengelola hubungan dengan pelanggan, mengotomatisasi komunikasi, dan meningkatkan conversion rate menggunakan Artificial Intelligence.
+
+WhatsApp hanyalah salah satu channel komunikasi, bukan produk utama.
+
+---
+
+# Vision
+
+Menjadi platform AI paling lengkap untuk industri properti Indonesia.
+
+Fokus utama:
+
+- Buyer Behavior Intelligence
+- CRM Intelligence
+- Property Intelligence
+- Executive Dashboard
+- Communication Automation
+- AI Recommendation Engine
+
+---
+
+# Technology Stack
+
+## Frontend
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+## Backend
+
+- Supabase
+
+## Authentication
+
+- Supabase Auth
+
+## Deployment
+
+- Vercel
+
+## Documentation
+
+- Mintlify
+
+## Source Control
+
+- GitHub
+
+---
+
+# Development Principles
+
+Semua pengembangan harus mengikuti prinsip berikut:
+
+- Modular Architecture
+- Reusable Components
+- Strong TypeScript
+- Clean Folder Structure
+- No Duplicate Logic
+- Build First
+- Review Before Merge
+
+---
+
+# Source of Truth
+
+Database Schema
+
+↓
+
+Supabase
+
+Semua TypeScript Type harus mengikuti schema Supabase.
+
+Tidak boleh membuat schema lokal yang berbeda.
+
+---
+
+# Current Architecture
+
+Landing Page
+
+↓
+
+Login
+
+↓
+
+Dashboard
+
+├── CRM
+
+├── Property
+
+├── Sales
+
+├── Communication
+
+├── Social
+
+├── Profile
+
+└── Settings
+
+---
+
+# Development Workflow
+
+Planning
+
+↓
+
+Architecture Review (ChatGPT)
+
+↓
+
+Implementation (Qwen)
+
+↓
+
+Architecture Review
+
+↓
+
+Build Verification
+
+↓
+
+Git Commit
+
+↓
+
+GitHub Push
+
+↓
+
+Vercel Deployment
+
+↓
+
+Documentation Update
+
+---
+
+# Quality Gate
+
+Sebelum merge wajib memenuhi:
+
+- TypeScript PASS
+- ESLint PASS
+- Production Build PASS
+- Runtime QA PASS
+- Architecture Review PASS
+
+Jika salah satu gagal, task dianggap belum selesai.
+
+---
+
+# Coding Rules
+
+- Jangan hardcode schema database.
+- Gunakan helper untuk business logic.
+- Component hanya bertanggung jawab terhadap UI.
+- Hindari duplicate code.
+- Semua feature harus modular.
+- Gunakan Server Component bila memungkinkan.
+
+---
+
+# Long-term Roadmap
+
+1. Dashboard Intelligence
+2. CRM Intelligence
+3. Property Intelligence
+4. Sales Pipeline
+5. AI Recommendation Engine
+6. Communication Automation
+7. Multi Tenant Platform
+8. AI Agent Workspace
+
+---
+
+# AI Roles
+
+## ChatGPT
+
+Bertanggung jawab untuk:
+
+- System Architecture
+- Technical Review
+- Quality Assurance
+- Documentation
+- Planning
+- Product Design
+
+## Qwen
+
+Bertanggung jawab untuk:
+
+- Coding
+- Refactoring
+- UI Implementation
+- Bug Fixing
+
+---
+
+# Documentation Strategy
+
+Mintlify adalah **Single Source of Truth** untuk seluruh dokumentasi proyek.
+
+Dokumen lokal tidak lagi digunakan sebagai dokumentasi utama.
+
+---
+
+# Session Rule
+
+Setiap memulai sesi baru, AI wajib membaca:
+
+1. Project Context
+2. Project Status
+
+Setelah itu langsung melanjutkan task tanpa investigasi ulang yang tidak diperlukan.

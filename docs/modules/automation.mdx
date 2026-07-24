@@ -1,0 +1,256 @@
+---
+title: Communication Automation Module
+description: Omnichannel Communication & Workflow Automation Module
+---
+
+# Communication Automation Module
+
+Communication Automation mengelola seluruh komunikasi otomatis antara Yohan.AI dengan calon pembeli, pelanggan, maupun agen.
+
+Modul ini berfungsi sebagai **Automation Orchestrator**, menghubungkan CRM, AI Intelligence, WhatsApp, Email, dan layanan pihak ketiga agar proses komunikasi berjalan secara efisien dan konsisten.
+
+Communication Automation bukan sekadar chatbot, melainkan sistem otomasi yang menjalankan workflow berdasarkan data dan perilaku pengguna.
+
+---
+
+# Current Status
+
+| Item | Status |
+|------|--------|
+| Development | 🟡 In Progress |
+| Production Ready | ❌ No |
+| Backend | 🟡 Foundation |
+| UI | 🔵 Planned |
+| Workflow Engine | 🟡 Foundation |
+
+---
+
+# Objectives
+
+Communication Automation bertujuan untuk:
+
+- Mengotomatisasi komunikasi dengan lead
+- Menjalankan workflow berdasarkan trigger
+- Mengurangi pekerjaan manual agen
+- Mengirim pengingat secara otomatis
+- Menghubungkan berbagai channel komunikasi
+
+---
+
+# Current Features
+
+## Workflow Engine
+
+Menjalankan alur otomatis berdasarkan event tertentu.
+
+---
+
+## Event Trigger
+
+Contoh trigger:
+
+- Lead baru dibuat
+- Status Lead berubah
+- Follow-up jatuh tempo
+- Booking berhasil
+- Closing selesai
+
+---
+
+## Task Automation
+
+Workflow dapat membuat:
+
+- Follow-up
+- Reminder
+- Notifikasi
+- Assignment
+
+---
+
+## Integration Foundation
+
+Arsitektur telah disiapkan untuk integrasi dengan:
+
+- WhatsApp
+- Email
+- Webhook
+- AI Intelligence
+
+---
+
+# Planned Features
+
+## WhatsApp Automation
+
+- Follow-up otomatis
+- Reminder otomatis
+- Broadcast terjadwal
+- Template Message
+
+---
+
+## Email Automation
+
+- Welcome Email
+- Reminder
+- Newsletter
+- Campaign
+
+---
+
+## Notification Center
+
+Notifikasi untuk:
+
+- Agen
+- Admin
+- Customer
+
+---
+
+## Workflow Builder
+
+Visual workflow untuk menyusun automation tanpa menulis kode.
+
+---
+
+# User Flow
+
+```text
+Lead Event
+
+↓
+
+Workflow Trigger
+
+↓
+
+Rule Evaluation
+
+↓
+
+AI Recommendation (Optional)
+
+↓
+
+Send Message
+
+↓
+
+Record Activity
+
+↓
+
+CRM Updated
+```
+
+---
+
+# Folder Structure
+
+```text
+src/
+
+app/automation/
+
+components/automation/
+
+lib/automation/
+
+types/
+```
+
+---
+
+# Database
+
+Current Tables
+
+- customer.activities
+- customer.leads
+- chat.conversations
+
+Future Tables
+
+- automation.workflows
+- automation.executions
+- automation.logs
+- automation.templates
+- automation.notifications
+
+---
+
+# Business Rules
+
+- Semua workflow harus memiliki trigger.
+- Semua eksekusi automation harus dicatat dalam log.
+- Automation tidak boleh mengubah data bisnis tanpa validasi.
+- Semua komunikasi harus dapat ditelusuri melalui riwayat aktivitas.
+
+---
+
+# Dependencies
+
+- CRM
+- Dashboard
+- AI Intelligence
+- Sales
+- Property
+- Supabase
+- n8n
+- WAHA
+- WhatsApp API
+- Email Service
+
+---
+
+# Current Limitations
+
+- Workflow Builder belum tersedia
+- WhatsApp Automation belum aktif
+- Email Automation belum aktif
+- Notification Center belum tersedia
+- Monitoring workflow masih dasar
+
+---
+
+# Future Roadmap
+
+## Phase 1
+
+Workflow Foundation
+
+## Phase 2
+
+WhatsApp Automation
+
+## Phase 3
+
+Email Automation
+
+## Phase 4
+
+Visual Workflow Builder
+
+## Phase 5
+
+Omnichannel Communication Platform
+
+---
+
+# Related Documents
+
+- AI Intelligence Module
+- CRM Module
+- Dashboard Module
+- API Overview
+- Database Schema
+
+---
+
+# Last Updated
+
+24 July 2026
+
+Sprint 009

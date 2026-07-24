@@ -1,0 +1,168 @@
+---
+title: Development Workflow
+description: Official development workflow for Yohan.AI Platform
+---
+
+# Development Workflow
+
+Yohan.AI menggunakan workflow yang konsisten untuk menjaga kualitas kode dan stabilitas platform.
+
+---
+
+# Standard Workflow
+
+Planning
+
+↓
+
+Architecture Review (ChatGPT)
+
+↓
+
+Implementation (Qwen)
+
+↓
+
+Code Review
+
+↓
+
+Local Testing
+
+↓
+
+TypeScript Check
+
+↓
+
+Production Build
+
+↓
+
+Git Commit
+
+↓
+
+GitHub Push
+
+↓
+
+Vercel Deployment
+
+↓
+
+Documentation Update (Mintlify)
+
+---
+
+# Responsibilities
+
+## ChatGPT
+
+- Product Planning
+- System Architecture
+- Technical Review
+- QA Review
+- Documentation
+- Sprint Planning
+
+---
+
+## Qwen
+
+- Feature Development
+- Refactoring
+- UI Implementation
+- Bug Fix
+- Code Optimization
+
+---
+
+# Development Rules
+
+Semua task wajib mengikuti urutan berikut:
+
+1. Planning
+2. Review Architecture
+3. Coding
+4. Build
+5. Runtime QA
+6. Documentation
+7. Merge
+
+Tidak boleh langsung merge tanpa Build PASS.
+
+---
+
+# Build Checklist
+
+Sebelum commit:
+
+- TypeScript PASS
+- ESLint PASS
+- Production Build PASS
+
+Perintah:
+
+```bash
+npm run build
+```
+
+Jika gagal:
+
+Merge dibatalkan.
+
+---
+
+# Git Workflow
+
+```bash
+git add .
+
+git commit -m "feat: description"
+
+git push origin main
+```
+
+---
+
+# Deployment Workflow
+
+GitHub
+
+↓
+
+Vercel
+
+↓
+
+Production Verification
+
+↓
+
+Mintlify Documentation Update
+
+---
+
+# Documentation Rule
+
+Mintlify adalah dokumentasi resmi.
+
+Dokumen lokal hanya digunakan sementara bila diperlukan.
+
+Semua perubahan besar harus diperbarui di Mintlify.
+
+---
+
+# Quality Principles
+
+- Build First
+- Review Before Merge
+- No Duplicate Logic
+- Modular Components
+- Strong TypeScript
+- Supabase as Source of Truth
+
+---
+
+# End of Workflow
