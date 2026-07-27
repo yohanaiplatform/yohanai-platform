@@ -160,14 +160,14 @@ export default function LoginForm() {
               </div>
             </div>
             <div className="flex items-center justify-end">
-              <button
+              <Button
+                variant="link"
                 type="button"
-                disabled
-                className="text-sm font-medium text-muted-foreground cursor-not-allowed transition-colors"
-                aria-disabled="true"
+                className="h-auto p-0 text-sm"
+                onClick={() => router.push("/forgot-password")}
               >
-                Forgot Password?
-              </button>
+                  Forgot Password?
+              </Button>
             </div>
             <Button
               type="submit"
@@ -187,15 +187,18 @@ export default function LoginForm() {
             </Button>
           </form>
           <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don&apos;t have an account? </span>
-            <button
+            <span className="text-muted-foreground">
+               Don&apos;t have an account?{" "}
+            </span>
+
+            <Button
+              variant="link"
               type="button"
-              disabled
-              className="font-medium text-muted-foreground cursor-not-allowed"
-              aria-disabled="true"
+              className="h-auto p-0"
+              onClick={() => router.push("/register")}
             >
-              Create Account
-            </button>
+               Create Account
+            </Button>
           </div>
         </div>
       </div>
