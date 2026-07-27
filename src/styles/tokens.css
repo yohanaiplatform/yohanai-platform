@@ -1,0 +1,54 @@
+/* src/styles/tokens.css */
+:root {
+  --brand: #D90429;
+  --brand-hover: #b90323;
+  --brand-light: #fef2f4;
+  --brand-dark: #8a0219;
+
+  --primary: #09090b;
+  --primary-foreground: #fafafa;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #D90429;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --brand: #ef4444;
+  --brand-hover: #dc2626;
+  --brand-light: #450a0e;
+  --brand-dark: #b91c1c;
+
+  --primary: #fafafa;
+  --primary-foreground: #09090b;
+
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #ef4444;
+}
