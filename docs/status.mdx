@@ -17,7 +17,7 @@ description: Current development status of Yohan.AI Platform
 
 # Current Sprint
 
-**Sprint 009**
+**Sprint 011**
 
 ---
 
@@ -29,7 +29,7 @@ description: Current development status of Yohan.AI Platform
 
 # Overall Progress
 
-**≈ 52%**
+**≈ 55%**
 
 ---
 
@@ -37,16 +37,13 @@ description: Current development status of Yohan.AI Platform
 
 ## Priority 1
 
-Dashboard Runtime QA
+Authentication Audit & Bug Fix (Google OAuth)
 
 Target:
 
-- Dashboard Cards
-- Recent Leads
-- Recent Chats
-- AI Insight
-- Empty State
-- Error State
+- Google OAuth Login — root cause ditemukan (production belum menjalankan build terbaru), sudah di-fix (commit + push selesai)
+- Google OAuth Register — bug ditemukan di `RegisterForm.tsx` (redirect melewati `/callback`), fix sudah diterapkan
+- Re-test Login & Register with Google di production setelah deploy Vercel selesai
 
 Semua menggunakan data Supabase.
 
@@ -54,6 +51,10 @@ Semua menggunakan data Supabase.
 
 ## Next Priority
 
+- Facebook Login — belum diaudit
+- Forgot Password — perlu dikerjakan ulang
+- Register (email) — perlu dikerjakan ulang
+- Email Verification — perlu dikerjakan ulang
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -91,7 +92,7 @@ Semua menggunakan data Supabase.
 | Module | Status |
 |---------|--------|
 | Landing Page | ✅ Complete |
-| Authentication | ✅ Complete |
+| Authentication | 🟡 In Progress (OAuth audit & fix) |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
 | Property | 🟡 In Progress |
@@ -109,18 +110,23 @@ Semua menggunakan data Supabase.
 
 ## Medium
 
-- Dashboard Runtime QA
+- Re-test Login & Register with Google di production
+- Forgot Password belum dikerjakan ulang
+- Register (email) belum dikerjakan ulang
+- Email Verification belum dikerjakan ulang
+- Facebook Login belum diaudit
 
 ## Low
 
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
+- Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
 
 ---
 
 # Next Milestone
 
-CRM Foundation
+Authentication Stabilization (semua metode login/register selesai diaudit dan diperbaiki)
 
 ---
 
@@ -140,24 +146,25 @@ Sebelum merge:
 ---
 ## Active Sprint
 
-Sprint 010
+Sprint 011
 
 ### Current Task
 
 Task 001
 
-Dashboard Runtime QA
+Google OAuth Login & Register — Audit dan Bug Fix
 
 ### Next Task
 
 Task 002
 
-CRM Foundation
+Audit Forgot Password, Register (email), Email Verification
+
 ---
 
 # Last Updated
 
-24 July 2026
+31 July 2026
 
 ---
 
