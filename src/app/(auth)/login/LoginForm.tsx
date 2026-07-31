@@ -44,7 +44,7 @@ export default function LoginForm() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/callback?redirect=/dashboard`,
       },
     });
     if (oauthError) {
@@ -54,10 +54,10 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
+    <div className="w-full max-w-md">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <Logo />
+          <Logo variant="light" className="h-14" />
           <h1 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             Welcome Back
           </h1>

@@ -15,10 +15,12 @@ import {
 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "./Logo";
+import { Button } from "@/components/ui/button";
 
 type SidebarProps = {
   isMobile?: boolean;
-  onClose?: () => void;
+  onClose?: () =>void;
 };
 
 const navigation = [
@@ -44,13 +46,11 @@ export function Sidebar({
   async function handleLogout() {
     try {
       setIsLoggingOut(true);
-
       await supabase.auth.signOut();
-
       router.replace("/login");
       router.refresh();
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error(error);
     } finally {
       setIsLoggingOut(false);
     }
@@ -59,7 +59,7 @@ export function Sidebar({
   return (
     <aside className="flex h-full w-64 flex-col border-r bg-background">
       <div className="flex h-16 items-center border-b px-6">
-        <span className="text-lg font-semibold">Yohan.AI</span>
+        <Logo variant="light" className="h-8" />
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -70,23 +70,31 @@ export function Sidebar({
             <Link
               key={item.name}
               href={item.href}
-              onClick={() => {
-                if (isMobile) {
-                  onClose?.();
-                }
-              }}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              onClick={() => isMobile && onClose?.()}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-brand text-white"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-5 w-5" />
               <span>{item.name}</span>
             </Link>
           );
         })}
       </nav>
+
+      <div className="border-t p-3">
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          {isLoggingOut ? "Signing out..." : "Logout"}
+        </Button>
+      </div>
     </aside>
   );
 }
