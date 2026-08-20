@@ -29,7 +29,7 @@ description: Current development status of Yohan.AI Platform
 
 # Overall Progress
 
-**≈ 55%**
+**≈ 60%**
 
 ---
 
@@ -37,13 +37,15 @@ description: Current development status of Yohan.AI Platform
 
 ## Priority 1
 
-Authentication Audit & Bug Fix (Google OAuth)
+Authentication Stabilization — hampir selesai
 
 Target:
 
-- Google OAuth Login — root cause ditemukan (production belum menjalankan build terbaru), sudah di-fix (commit + push selesai)
-- Google OAuth Register — bug ditemukan di `RegisterForm.tsx` (redirect melewati `/callback`), fix sudah diterapkan
-- Re-test Login & Register with Google di production setelah deploy Vercel selesai
+- Google OAuth Login — ✅ Confirmed jalan di production (root cause: client secret salah + duplicate redirect URI, sudah diperbaiki)
+- Google OAuth Register — ✅ Confirmed jalan di production
+- Forgot Password — ✅ Fixed & confirmed. Root cause: SMTP Username di Supabase salah diisi (Google OAuth Client ID, bukan alamat Gmail). Diperbaiki + App Password Gmail diterapkan
+- Register (email) & Email Verification — ✅ Confirmed jalan end-to-end setelah SMTP diperbaiki
+- Profile Page dummy data — ✅ Fixed. Halaman `/profile` sebelumnya hardcode data statis (peninggalan Sprint 008). Sekarang fetch data real dari `auth_ext.profiles`, dengan trigger otomatis `handle_new_user()` agar user baru selalu dapat row profile
 
 Semua menggunakan data Supabase.
 
@@ -52,9 +54,7 @@ Semua menggunakan data Supabase.
 ## Next Priority
 
 - Facebook Login — belum diaudit
-- Forgot Password — perlu dikerjakan ulang
-- Register (email) — perlu dikerjakan ulang
-- Email Verification — perlu dikerjakan ulang
+- Profile: 3 tombol (Edit Profile, Change Password, Notification Preferences) masih disabled — direncanakan sprint mendatang
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -81,7 +81,7 @@ Semua menggunakan data Supabase.
 | Component | Status |
 |-----------|--------|
 | GitHub | ✅ |
-| Supabase | ✅ |
+| Supabase | ✅ (Free tier — auto-pause setelah ~1 minggu tanpa aktivitas, perlu diwaspadai) |
 | Vercel | ✅ |
 | Mintlify | ✅ |
 
@@ -92,7 +92,8 @@ Semua menggunakan data Supabase.
 | Module | Status |
 |---------|--------|
 | Landing Page | ✅ Complete |
-| Authentication | 🟡 In Progress (OAuth audit & fix) |
+| Authentication | 🟢 Stable (Google OAuth, Email/Password, Forgot Password, Email Verification semua confirmed jalan; Facebook belum diaudit) |
+| Profile | 🟡 Data real sudah terhubung; Edit/Change Password/Notification masih disabled |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
 | Property | 🟡 In Progress |
@@ -110,23 +111,23 @@ Semua menggunakan data Supabase.
 
 ## Medium
 
-- Re-test Login & Register with Google di production
-- Forgot Password belum dikerjakan ulang
-- Register (email) belum dikerjakan ulang
-- Email Verification belum dikerjakan ulang
 - Facebook Login belum diaudit
+- Supabase masih di Free tier — risiko auto-pause berulang sebelum go-live; pertimbangkan upgrade plan
+- SMTP masih pakai Gmail personal — rawan rate limit untuk volume user besar; pertimbangkan Resend/SendGrid sebelum production sungguhan
 
 ## Low
 
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
+- Profile: 3 tombol Account Actions masih disabled (by design, direncanakan sprint mendatang)
+- OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
 
 ---
 
 # Next Milestone
 
-Authentication Stabilization (semua metode login/register selesai diaudit dan diperbaiki)
+CRM Foundation (Authentication Stabilization sudah hampir tuntas, tinggal Facebook Login)
 
 ---
 
@@ -152,19 +153,19 @@ Sprint 011
 
 Task 001
 
-Google OAuth Login & Register — Audit dan Bug Fix
+Authentication Stabilization — Facebook Login masih tersisa
 
 ### Next Task
 
 Task 002
 
-Audit Forgot Password, Register (email), Email Verification
+CRM Foundation
 
 ---
 
 # Last Updated
 
-31 July 2026
+20 August 2026
 
 ---
 
