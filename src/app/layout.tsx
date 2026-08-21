@@ -81,6 +81,10 @@ export const metadata: Metadata = {
       "Property Buyer Behavior Intelligence System untuk agen properti Indonesia.",
     images: ["/images/og/og-image.png"],
   },
+  
+  other: {
+    "facebook-domain-verification": "83t9ydmak9gh82i24f1wc3ijvfuo24",
+  },
 };
 
 export default function RootLayout({
