@@ -29,7 +29,7 @@ description: Current development status of Yohan.AI Platform
 
 # Overall Progress
 
-**≈ 60%**
+**≈ 65%**
 
 ---
 
@@ -37,15 +37,17 @@ description: Current development status of Yohan.AI Platform
 
 ## Priority 1
 
-Authentication Stabilization — hampir selesai
+Authentication Stabilization — Selesai secara teknis, menunggu approval eksternal
 
 Target:
 
-- Google OAuth Login — ✅ Confirmed jalan di production (root cause: client secret salah + duplicate redirect URI, sudah diperbaiki)
-- Google OAuth Register — ✅ Confirmed jalan di production
-- Forgot Password — ✅ Fixed & confirmed. Root cause: SMTP Username di Supabase salah diisi (Google OAuth Client ID, bukan alamat Gmail). Diperbaiki + App Password Gmail diterapkan
-- Register (email) & Email Verification — ✅ Confirmed jalan end-to-end setelah SMTP diperbaiki
-- Profile Page dummy data — ✅ Fixed. Halaman `/profile` sebelumnya hardcode data statis (peninggalan Sprint 008). Sekarang fetch data real dari `auth_ext.profiles`, dengan trigger otomatis `handle_new_user()` agar user baru selalu dapat row profile
+- Google OAuth Login & Register — ✅ Confirmed jalan di production
+- Forgot Password — ✅ Fixed & confirmed (SMTP Gmail App Password)
+- Register (email) & Email Verification — ✅ Confirmed jalan end-to-end
+- Profile Page dummy data — ✅ Fixed, fetch data real dari `auth_ext.profiles`
+- Facebook Login — ✅ Berfungsi secara teknis (tombol ditambahkan di Login & Register, provider dikonfigurasi benar, berhasil login & auto-linked ke akun existing berdasarkan email). App Facebook masih status **Unpublished**, menunggu **Meta Business Verification** (submitted, in review, ETA ~2 hari kerja). Selama belum publish, cuma Admin/Tester yang terdaftar di app yang bisa login — user publik belum bisa pakai tombol ini sampai verification selesai.
+- Domain Verification untuk Facebook — ✅ Selesai (`facebook-domain-verification` meta tag ditambahkan ke `layout.tsx`)
+- Privacy Policy & Data Deletion pages — ✅ Dibuat (`/privacy-policy`, `/data-deletion`), dipakai untuk App Review Facebook
 
 Semua menggunakan data Supabase.
 
@@ -53,8 +55,7 @@ Semua menggunakan data Supabase.
 
 ## Next Priority
 
-- Facebook Login — belum diaudit
-- Profile: 3 tombol (Edit Profile, Change Password, Notification Preferences) masih disabled — direncanakan sprint mendatang
+- Menunggu Meta Business Verification selesai → lanjut submit App Review Facebook (permission `email`, `public_profile`) → Publish app
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -84,6 +85,7 @@ Semua menggunakan data Supabase.
 | Supabase | ✅ (Free tier — auto-pause setelah ~1 minggu tanpa aktivitas, perlu diwaspadai) |
 | Vercel | ✅ |
 | Mintlify | ✅ |
+| Meta / Facebook App | 🟡 Unpublished — Business Verification in review |
 
 ---
 
@@ -92,7 +94,7 @@ Semua menggunakan data Supabase.
 | Module | Status |
 |---------|--------|
 | Landing Page | ✅ Complete |
-| Authentication | 🟢 Stable (Google OAuth, Email/Password, Forgot Password, Email Verification semua confirmed jalan; Facebook belum diaudit) |
+| Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification, Facebook semua confirmed jalan; Facebook masih menunggu publish untuk publik) |
 | Profile | 🟡 Data real sudah terhubung; Edit/Change Password/Notification masih disabled |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
@@ -111,7 +113,7 @@ Semua menggunakan data Supabase.
 
 ## Medium
 
-- Facebook Login belum diaudit
+- Meta Business Verification masih "In review" — Facebook Login belum bisa dipakai user publik sampai ini selesai + App Review disetujui
 - Supabase masih di Free tier — risiko auto-pause berulang sebelum go-live; pertimbangkan upgrade plan
 - SMTP masih pakai Gmail personal — rawan rate limit untuk volume user besar; pertimbangkan Resend/SendGrid sebelum production sungguhan
 
@@ -122,12 +124,13 @@ Semua menggunakan data Supabase.
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
 - Profile: 3 tombol Account Actions masih disabled (by design, direncanakan sprint mendatang)
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
+- Security Centre Meta memberi rekomendasi (bukan wajib): 1 user dengan public email domain di Business Manager — opsional untuk ditindaklanjuti
 
 ---
 
 # Next Milestone
 
-CRM Foundation (Authentication Stabilization sudah hampir tuntas, tinggal Facebook Login)
+CRM Foundation (Authentication Stabilization sudah tuntas secara teknis; publish Facebook App tinggal menunggu proses eksternal Meta)
 
 ---
 
@@ -153,7 +156,7 @@ Sprint 011
 
 Task 001
 
-Authentication Stabilization — Facebook Login masih tersisa
+Authentication Stabilization — selesai secara teknis, menunggu Meta Business Verification
 
 ### Next Task
 
@@ -165,7 +168,7 @@ CRM Foundation
 
 # Last Updated
 
-20 August 2026
+22 August 2026
 
 ---
 
