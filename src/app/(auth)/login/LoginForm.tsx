@@ -15,11 +15,14 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
   const redirect = searchParams.get("redirect") ?? "/dashboard";
+
+  const isAnyLoading = isSigningIn || isGoogleLoading || isFacebookLoading;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -53,6 +56,21 @@ export default function LoginForm() {
     }
   };
 
+  const handleFacebookLogin = async () => {
+    setIsFacebookLoading(true);
+    setError(null);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo: `${window.location.origin}/callback?redirect=/dashboard`,
+      },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setIsFacebookLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
       <div className="w-full max-w-md space-y-8">
@@ -76,7 +94,7 @@ export default function LoginForm() {
             variant="outline"
             className="w-full"
             onClick={handleGoogleLogin}
-            disabled={isGoogleLoading || isSigningIn}
+            disabled={isAnyLoading}
             aria-label="Continue with Google"
           >
             {isGoogleLoading ? (
@@ -102,6 +120,26 @@ export default function LoginForm() {
               </svg>
             )}
             Continue with Google
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleFacebookLogin}
+            disabled={isAnyLoading}
+            aria-label="Continue with Facebook"
+          >
+            {isFacebookLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                <path
+                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                  fill="#1877F2"
+                />
+              </svg>
+            )}
+            Continue with Facebook
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -173,7 +211,7 @@ export default function LoginForm() {
               type="submit"
               variant="brand"
               className="w-full"
-              disabled={isSigningIn || isGoogleLoading}
+              disabled={isAnyLoading}
               aria-label="Sign in"
             >
               {isSigningIn ? (

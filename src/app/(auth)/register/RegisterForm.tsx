@@ -11,6 +11,7 @@ import { AuthFooter } from "@/components/auth/AuthFooter";
 import { AuthError } from "@/components/auth/AuthError";
 import { AuthLoading } from "@/components/auth/AuthLoading";
 import { GoogleButton } from "@/components/auth/GoogleButton";
+import { FacebookButton } from "@/components/auth/FacebookButton";
 import { PasswordField } from "@/components/auth/PasswordField";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function RegisterForm() {
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [facebookLoading, setFacebookLoading] = useState(false);
 
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +79,24 @@ export function RegisterForm() {
     }
   }
 
+  async function handleFacebookLogin() {
+    setFacebookLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo: `${window.location.origin}/callback?redirect=/dashboard`,
+      },
+    });
+
+    setFacebookLoading(false);
+
+    if (error) {
+      setError(error.message);
+    }
+  }
+
   if (success) {
     return (
       <AuthCard>
@@ -105,6 +125,11 @@ export function RegisterForm() {
         <GoogleButton
           loading={googleLoading}
           onClick={handleGoogleLogin}
+        />
+
+        <FacebookButton
+          loading={facebookLoading}
+          onClick={handleFacebookLogin}
         />
 
         <div className="relative">
