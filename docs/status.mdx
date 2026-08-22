@@ -29,7 +29,7 @@ description: Current development status of Yohan.AI Platform
 
 # Overall Progress
 
-**≈ 65%**
+**≈ 68%**
 
 ---
 
@@ -37,7 +37,7 @@ description: Current development status of Yohan.AI Platform
 
 ## Priority 1
 
-Authentication Stabilization — Selesai secara teknis, menunggu approval eksternal
+Authentication Stabilization — Selesai secara teknis, Facebook Login menunggu approval Meta
 
 Target:
 
@@ -45,9 +45,11 @@ Target:
 - Forgot Password — ✅ Fixed & confirmed (SMTP Gmail App Password)
 - Register (email) & Email Verification — ✅ Confirmed jalan end-to-end
 - Profile Page dummy data — ✅ Fixed, fetch data real dari `auth_ext.profiles`
-- Facebook Login — ✅ Berfungsi secara teknis (tombol ditambahkan di Login & Register, provider dikonfigurasi benar, berhasil login & auto-linked ke akun existing berdasarkan email). App Facebook masih status **Unpublished**, menunggu **Meta Business Verification** (submitted, in review, ETA ~2 hari kerja). Selama belum publish, cuma Admin/Tester yang terdaftar di app yang bisa login — user publik belum bisa pakai tombol ini sampai verification selesai.
-- Domain Verification untuk Facebook — ✅ Selesai (`facebook-domain-verification` meta tag ditambahkan ke `layout.tsx`)
-- Privacy Policy & Data Deletion pages — ✅ Dibuat (`/privacy-policy`, `/data-deletion`), dipakai untuk App Review Facebook
+- Facebook Login — ✅ Berfungsi secara teknis (tombol di Login & Register, provider dikonfigurasi benar, berhasil login & auto-linked ke akun existing berdasarkan email). App masih **Unpublished**, menunggu **Meta Business Verification**.
+- Meta Business Verification — Sempat ditolak dengan alasan nama legal usaha tidak muncul di website. Diperbaiki dengan menambahkan nama legal (Yohan Benyamin Betty, NIB: 1709210039303) ke Footer dan halaman Privacy Policy. Sudah di-resubmit ke Meta, menunggu hasil review.
+- Domain Verification untuk Facebook — ✅ Selesai (`facebook-domain-verification` meta tag di `layout.tsx`)
+- Privacy Policy & Data Deletion pages — ✅ Dibuat, sekarang juga mencantumkan nama legal usaha
+- Email domain `@yohanai.id` — ✅ Fixed. Root cause: domain `yohanai.id` (DNS dikelola Cloudflare, terhubung ke Vercel untuk web) tidak punya **MX Record** sama sekali, sehingga semua email masuk ke `admin@yohanai.id` (termasuk kode verifikasi Meta) tidak pernah sampai. MX Record ditambahkan mengarah ke `pangulubao.iixcp.rumahweb.net`, terverifikasi jalan via MXToolbox dan email masuk sukses diterima.
 
 Semua menggunakan data Supabase.
 
@@ -55,7 +57,7 @@ Semua menggunakan data Supabase.
 
 ## Next Priority
 
-- Menunggu Meta Business Verification selesai → lanjut submit App Review Facebook (permission `email`, `public_profile`) → Publish app
+- Menunggu hasil Meta Business Verification (resubmitted) → lanjut App Review Facebook → Publish app
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -85,7 +87,8 @@ Semua menggunakan data Supabase.
 | Supabase | ✅ (Free tier — auto-pause setelah ~1 minggu tanpa aktivitas, perlu diwaspadai) |
 | Vercel | ✅ |
 | Mintlify | ✅ |
-| Meta / Facebook App | 🟡 Unpublished — Business Verification in review |
+| Cloudflare DNS | ✅ (MX Record untuk email `@yohanai.id` sudah aktif) |
+| Meta / Facebook App | 🟡 Unpublished — Business Verification resubmitted, menunggu review |
 
 ---
 
@@ -113,9 +116,10 @@ Semua menggunakan data Supabase.
 
 ## Medium
 
-- Meta Business Verification masih "In review" — Facebook Login belum bisa dipakai user publik sampai ini selesai + App Review disetujui
+- Meta Business Verification masih menunggu hasil review (resubmitted) — Facebook Login belum bisa dipakai user publik sampai ini selesai + App Review disetujui
 - Supabase masih di Free tier — risiko auto-pause berulang sebelum go-live; pertimbangkan upgrade plan
-- SMTP masih pakai Gmail personal — rawan rate limit untuk volume user besar; pertimbangkan Resend/SendGrid sebelum production sungguhan
+- SMTP masih pakai Gmail personal untuk sistem auth — rawan rate limit untuk volume user besar; pertimbangkan Resend/SendGrid sebelum production sungguhan
+- Password SMTP `admin@yohanai.id` di Outlook masih salah (`535 Incorrect authentication data`) — perlu direset di cPanel kalau nanti butuh kirim email keluar dari alamat ini
 
 ## Low
 
@@ -124,13 +128,14 @@ Semua menggunakan data Supabase.
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
 - Profile: 3 tombol Account Actions masih disabled (by design, direncanakan sprint mendatang)
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
+- SPF, DKIM, DMARC record belum disetel untuk domain `yohanai.id` — tidak menghalangi apa pun sekarang, tapi perlu sebelum mengirim email keluar secara rutin (notifikasi, broadcast) supaya tidak masuk folder spam penerima
 - Security Centre Meta memberi rekomendasi (bukan wajib): 1 user dengan public email domain di Business Manager — opsional untuk ditindaklanjuti
 
 ---
 
 # Next Milestone
 
-CRM Foundation (Authentication Stabilization sudah tuntas secara teknis; publish Facebook App tinggal menunggu proses eksternal Meta)
+CRM Foundation (Authentication Stabilization tuntas secara teknis; publish Facebook App tinggal menunggu proses eksternal Meta)
 
 ---
 
@@ -156,7 +161,7 @@ Sprint 011
 
 Task 001
 
-Authentication Stabilization — selesai secara teknis, menunggu Meta Business Verification
+Authentication Stabilization — menunggu hasil Meta Business Verification (resubmitted)
 
 ### Next Task
 
