@@ -7,12 +7,16 @@ export default function PrivacyPolicyPage() {
     <div className="mx-auto max-w-3xl px-4 py-12 prose prose-sm sm:prose-base">
       <h1>Privacy Policy</h1>
       <p className="text-muted-foreground">Last updated: August 2026</p>
+      <p className="text-muted-foreground">
+        Operated by Yohan Benyamin Betty (NIB: 1709210039303)
+      </p>
 
       <p>
-        Yohan.AI (&quot;we&quot;, &quot;our&quot;, &quot;the platform&quot;) is a Property Buyer
-        Behavior Intelligence platform. This Privacy Policy explains how we
-        collect, use, and protect your information when you use our
-        services, including when you sign in using Google or Facebook.
+        Yohan.AI (&quot;we&quot;, &quot;our&quot;, &quot;the platform&quot;), operated by
+        Yohan Benyamin Betty, is a Property Buyer Behavior Intelligence
+        platform. This Privacy Policy explains how we collect, use, and
+        protect your information when you use our services, including when
+        you sign in using Google or Facebook.
       </p>
 
       <h2>1. Information We Collect</h2>
@@ -64,7 +68,13 @@ export default function PrivacyPolicyPage() {
         on how to request account and data deletion.
       </p>
 
-      <h2>7. Contact Us</h2>
+      <h2>7. Business Information</h2>
+      <p>
+        Yohan.AI is operated by Yohan Benyamin Betty, a registered business
+        entity in Indonesia (Nomor Induk Berusaha / NIB: 1709210039303).
+      </p>
+
+      <h2>8. Contact Us</h2>
       <p>
         If you have questions about this Privacy Policy or how your data is
         handled, contact us at{" "}
