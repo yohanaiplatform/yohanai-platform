@@ -37,7 +37,7 @@ description: Current development status of Yohan.AI Platform
 
 ## Priority 1
 
-Authentication Stabilization — Selesai secara teknis, Facebook Login menunggu approval Meta
+Authentication Stabilization — Selesai secara teknis (Google OAuth + Email/Password). Facebook Login dibatalkan permanen.
 
 Target:
 
@@ -45,9 +45,7 @@ Target:
 - Forgot Password — ✅ Fixed & confirmed (kini via Resend SMTP, sebelumnya Gmail App Password)
 - Register (email) & Email Verification — ✅ Confirmed jalan end-to-end
 - Profile Page dummy data — ✅ Fixed, fetch data real dari `auth_ext.profiles`
-- Facebook Login — ✅ Berfungsi secara teknis (tombol di Login & Register, provider dikonfigurasi benar, berhasil login & auto-linked ke akun existing berdasarkan email). App masih **Unpublished**, menunggu **Meta Business Verification** (status: **In Review**).
-- Meta Business Verification — Sempat ditolak dengan alasan nama legal usaha tidak muncul di website. Diperbaiki dengan menambahkan nama legal (Yohan Benyamin Betty, NIB: 1709210039303) ke Footer dan halaman Privacy Policy. Sudah di-resubmit ke Meta, saat ini berstatus **In Review**.
-- Domain Verification untuk Facebook — ✅ Selesai (`facebook-domain-verification` meta tag di `layout.tsx`)
+- **Facebook Login — ❌ Dibatalkan (bukan sekadar ditunda).** Meta menolak Business Verification karena dokumen legal usaha (NIB) terdaftar atas nama usaha pribadi Yohan, sedangkan "YohanAI" adalah brand yang berada di bawah naungan usaha tersebut — mismatch nama legal ini membuat verifikasi otomatis Meta terus gagal meski dokumen sudah benar formatnya. Diputuskan tidak worth effort untuk dikejar lebih lanjut; Google OAuth + Email/Password dianggap cukup untuk kebutuhan login user. Sudah dibersihkan penuh dari codebase: `FacebookButton.tsx` dihapus, referensi di `LoginForm.tsx` & `RegisterForm.tsx` dihapus, provider Facebook di Supabase Authentication dimatikan (toggle off).
 - Privacy Policy & Data Deletion pages — ✅ Dibuat, sekarang juga mencantumkan nama legal usaha
 - Email domain `@yohanai.id` — ✅ Fixed. Root cause: domain `yohanai.id` (DNS dikelola Cloudflare, terhubung ke Vercel untuk web) tidak punya **MX Record** sama sekali, sehingga semua email masuk ke `admin@yohanai.id` (termasuk kode verifikasi Meta) tidak pernah sampai. MX Record ditambahkan mengarah ke `pangulubao.iixcp.rumahweb.net`, terverifikasi jalan via MXToolbox dan email masuk sukses diterima.
 - **SMTP outbound (auth emails)** — ✅ Migrasi dari Gmail personal ke **Resend**. Password SMTP `admin@yohanai.id` di cPanel juga sudah diperbaiki sebagai langkah awal sebelum migrasi. Domain `yohanai.id` diverifikasi di Resend dengan subdomain khusus `send.yohanai.id` (memakai MX & TXT terpisah), sehingga email masuk existing di `yohanai.id` (via rumahweb) tidak terganggu. Supabase Authentication → SMTP Settings sudah dikonfigurasi ke `smtp.resend.com` (port 465). Tested end-to-end via flow Forgot Password — email diterima langsung di Focused Inbox (bukan Spam) pada percobaan pertama.
@@ -60,7 +58,6 @@ Semua menggunakan data Supabase.
 
 ## Next Priority
 
-- Menunggu hasil Meta Business Verification (status: In Review) → lanjut App Review Facebook → Publish app
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -92,7 +89,7 @@ Semua menggunakan data Supabase.
 | Mintlify | ✅ |
 | Cloudflare DNS | ✅ (MX Record `@yohanai.id`, SPF, DKIM, DMARC semua aktif) |
 | Resend (SMTP outbound) | ✅ Domain `yohanai.id` (subdomain `send.yohanai.id`) verified, terhubung ke Supabase Auth SMTP |
-| Meta / Facebook App | 🟡 Unpublished — Business Verification In Review |
+| Meta / Facebook App | ⚫ Tidak digunakan — Facebook Login dibatalkan permanen |
 
 ---
 
@@ -101,7 +98,7 @@ Semua menggunakan data Supabase.
 | Module | Status |
 |---------|--------|
 | Landing Page | ✅ Complete |
-| Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification, Facebook semua confirmed jalan; SMTP kini via Resend; Facebook masih menunggu publish untuk publik) |
+| Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | 🟡 Data real sudah terhubung; Edit/Change Password/Notification masih disabled |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
@@ -120,7 +117,6 @@ Semua menggunakan data Supabase.
 
 ## Medium
 
-- Meta Business Verification masih menunggu hasil review (status: In Review) — Facebook Login belum bisa dipakai user publik sampai ini selesai + App Review disetujui
 - Supabase masih di Free tier — auto-pause dimitigasi via GitHub Actions, tapi tetap perlu dipantau (cek log workflow secara berkala); pertimbangkan upgrade plan kalau traffic mulai signifikan
 
 ## Low
@@ -136,7 +132,7 @@ Semua menggunakan data Supabase.
 
 # Next Milestone
 
-CRM Foundation (Authentication Stabilization tuntas secara teknis; publish Facebook App tinggal menunggu proses eksternal Meta)
+CRM Foundation (Authentication Stabilization tuntas secara teknis dan final — Google OAuth + Email/Password; Facebook Login dibatalkan permanen)
 
 ---
 
@@ -162,7 +158,7 @@ Sprint 011
 
 Task 001
 
-Authentication Stabilization — menunggu hasil Meta Business Verification (status: In Review)
+Authentication Stabilization — ✅ Selesai (Google OAuth + Email/Password; Facebook Login dibatalkan permanen)
 
 ### Next Task
 
