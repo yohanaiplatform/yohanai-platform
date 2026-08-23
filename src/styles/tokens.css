@@ -23,7 +23,10 @@
   --border: #e4e4e7;
   --input: #e4e4e7;
   --ring: #D90429;
-  
+
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
   --radius: 0.5rem;
 }
 
@@ -51,4 +54,7 @@
   --border: #27272a;
   --input: #27272a;
   --ring: #ef4444;
+
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { WilayahSelector, type WilayahValue } from "@/components/WilayahSelector";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ const FIELD_INPUT_TYPE: Record<string, FieldInputType> = {
 // =====================================================================
 export function EditProfileForm({ userId }: { userId: string }) {
   const supabase = createClient();
+  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,7 +139,8 @@ export function EditProfileForm({ userId }: { userId: string }) {
       if (!active) return;
 
       if (profileErr) {
-        console.error("Gagal memuat profile:", profileErr.message);
+        console.error("Gagal memuat profile (full error object):", profileErr);
+        console.error("Gagal memuat profile - detail:", JSON.stringify(profileErr, null, 2));
       } else if (profile) {
         setBusinessRoleId(profile.business_role_id);
         setFirstName(profile.first_name ?? "");
@@ -146,7 +149,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
         setAvatarUrl(profile.avatar_url ?? "");
         setFacebookUrl(profile.facebook_url ?? "");
         setInstagramUrl(profile.instagram_url ?? "");
-        setRoleDetails((profile.role_details as Record<string, string>) ?? {});
+        setRoleDetails((profile.role_details as unknown as Record<string, string>) ?? {});
       }
 
       // Nomor telepon & status verifikasi datang dari session auth,
@@ -154,7 +157,8 @@ export function EditProfileForm({ userId }: { userId: string }) {
       setPhoneConfirmedAt(authUser?.user?.phone_confirmed_at ?? null);
 
       if (rolesErr) {
-        console.error("Gagal memuat business_roles:", rolesErr.message);
+        console.error("Gagal memuat business_roles (full error object):", rolesErr);
+        console.error("Gagal memuat business_roles - detail:", JSON.stringify(rolesErr, null, 2));
         setSaveError(
           "Tidak bisa memuat daftar role bisnis. Cek apakah schema 'core' sudah di-expose di Supabase API settings."
         );
@@ -165,7 +169,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
       if (rulesErr2) {
         console.error("Gagal memuat completeness rules:", rulesErr2.message);
       } else {
-        setRules((rulesData as CompletenessRule[]) ?? []);
+        setRules((rulesData as unknown as CompletenessRule[]) ?? []);
       }
 
       setLoading(false);
@@ -192,8 +196,8 @@ export function EditProfileForm({ userId }: { userId: string }) {
         p_tier: 2,
       }),
     ]);
-    setCompletenessTier1((t1 as CompletenessResult) ?? null);
-    setCompletenessTier2((t2 as CompletenessResult) ?? null);
+    setCompletenessTier1((t1 as unknown as CompletenessResult) ?? null);
+    setCompletenessTier2((t2 as unknown as CompletenessResult) ?? null);
   }, [supabase, userId]);
 
   useEffect(() => {
@@ -267,6 +271,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
 
     setSaveMessage("Perubahan tersimpan.");
     refreshCompleteness();
+    router.refresh(); // supaya card "User Information" di atas ikut ter-update
   };
 
   if (loading) {
@@ -300,8 +305,9 @@ export function EditProfileForm({ userId }: { userId: string }) {
         <div className="space-y-2">
           <Label htmlFor="business-role">Anda seorang...</Label>
           <Select
-            value={businessRoleId ?? undefined}
+            value={businessRoleId ?? ""}
             onValueChange={(v) => {
+              if (!v) return;
               setBusinessRoleId(v);
               // Reset role_details saat ganti role, supaya tidak
               // menyimpan field dari role lama yang sudah tidak relevan.
@@ -309,7 +315,9 @@ export function EditProfileForm({ userId }: { userId: string }) {
             }}
           >
             <SelectTrigger id="business-role">
-              <SelectValue placeholder="Pilih role" />
+              <SelectValue placeholder="Pilih role">
+                {businessRoles.find((r) => r.id === businessRoleId)?.name}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {businessRoles.length === 0 ? (

@@ -62,6 +62,14 @@ export function WilayahSelector({
     "provinsi" | "kabupaten" | "kecamatan" | "desa" | null
   >("provinsi");
 
+  // Label yang benar-benar ditampilkan di trigger Select. Dihitung manual,
+  // TIDAK mengandalkan auto-display dari library Select (versi Select di
+  // project ini tidak selalu menampilkan teks SelectItem secara otomatis).
+  const provinsiLabel = provinsiList.find((p) => p.id === provinsiId)?.name;
+  const kabupatenLabel = kabupatenList.find((k) => k.id === kabupatenId)?.name;
+  const kecamatanLabel = kecamatanList.find((k) => k.id === kecamatanId)?.name;
+  const desaLabel = desaList.find((d) => d.id === desaId)?.name;
+
   // -------------------------------------------------------------
   // Load provinsi sekali saat mount
   // -------------------------------------------------------------
@@ -247,8 +255,10 @@ export function WilayahSelector({
       <div className="space-y-2">
         <Label htmlFor="wilayah-provinsi">Provinsi</Label>
         <Select
-          value={provinsiId ?? undefined}
-          onValueChange={handleProvinsiChange}
+          value={provinsiId ?? ""}
+          onValueChange={(value) => {
+            if (value) handleProvinsiChange(value);
+          }}
           disabled={disabled || loadingLevel === "provinsi"}
         >
           <SelectTrigger id="wilayah-provinsi">
@@ -256,7 +266,9 @@ export function WilayahSelector({
               placeholder={
                 loadingLevel === "provinsi" ? "Memuat..." : "Pilih provinsi"
               }
-            />
+            >
+              {provinsiLabel}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {provinsiList.length === 0 && loadingLevel !== "provinsi" ? (
@@ -277,8 +289,10 @@ export function WilayahSelector({
       <div className="space-y-2">
         <Label htmlFor="wilayah-kabupaten">Kabupaten/Kota</Label>
         <Select
-          value={kabupatenId ?? undefined}
-          onValueChange={handleKabupatenChange}
+          value={kabupatenId ?? ""}
+          onValueChange={(value) => {
+            if (value) handleKabupatenChange(value);
+          }}
           disabled={disabled || !provinsiId || loadingLevel === "kabupaten"}
         >
           <SelectTrigger id="wilayah-kabupaten">
@@ -290,7 +304,9 @@ export function WilayahSelector({
                   ? "Memuat..."
                   : "Pilih kabupaten/kota"
               }
-            />
+            >
+              {kabupatenLabel}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {kabupatenList.length === 0 && loadingLevel !== "kabupaten" ? (
@@ -311,8 +327,10 @@ export function WilayahSelector({
       <div className="space-y-2">
         <Label htmlFor="wilayah-kecamatan">Kecamatan</Label>
         <Select
-          value={kecamatanId ?? undefined}
-          onValueChange={handleKecamatanChange}
+          value={kecamatanId ?? ""}
+          onValueChange={(value) => {
+            if (value) handleKecamatanChange(value);
+          }}
           disabled={disabled || !kabupatenId || loadingLevel === "kecamatan"}
         >
           <SelectTrigger id="wilayah-kecamatan">
@@ -324,7 +342,9 @@ export function WilayahSelector({
                   ? "Memuat..."
                   : "Pilih kecamatan"
               }
-            />
+            >
+              {kecamatanLabel}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {kecamatanList.length === 0 && loadingLevel !== "kecamatan" ? (
@@ -345,8 +365,10 @@ export function WilayahSelector({
       <div className="space-y-2">
         <Label htmlFor="wilayah-desa">Desa/Kelurahan</Label>
         <Select
-          value={desaId ?? undefined}
-          onValueChange={handleDesaChange}
+          value={desaId ?? ""}
+          onValueChange={(value) => {
+            if (value) handleDesaChange(value);
+          }}
           disabled={disabled || !kecamatanId || loadingLevel === "desa"}
         >
           <SelectTrigger id="wilayah-desa">
@@ -358,7 +380,9 @@ export function WilayahSelector({
                   ? "Memuat..."
                   : "Pilih desa/kelurahan"
               }
-            />
+            >
+              {desaLabel}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {desaList.length === 0 && loadingLevel !== "desa" ? (
