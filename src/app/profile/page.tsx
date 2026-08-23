@@ -4,6 +4,7 @@ import { AccountActions } from "@/components/profile/account-actions";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { SystemInfo } from "@/components/profile/system-info";
+import { EditProfileForm } from "@/components/EditProfileForm";
 
 const EMPTY = "—";
 
@@ -82,6 +83,11 @@ export default async function ProfilePage() {
         <div className="flex flex-col gap-6">
           <AccountActions />
         </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Edit Profil</h2>
+        <EditProfileForm userId={user.id} />
       </div>
     </div>
   );

@@ -16,150 +16,75 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          address_line: string | null
           avatar_url: string | null
+          business_role_id: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
+          facebook_url: string | null
           first_name: string | null
           id: string
+          instagram_url: string | null
           last_name: string | null
+          linkedin_url: string | null
+          role_details: Json
           role_id: string | null
+          tiktok_url: string | null
+          twitter_x_url: string | null
           updated_at: string
           updated_by: string | null
           user_id: string
+          website_url: string | null
+          wilayah_desa_id: string | null
         }
         Insert: {
+          address_line?: string | null
           avatar_url?: string | null
+          business_role_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          facebook_url?: string | null
           first_name?: string | null
           id?: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
+          role_details?: Json
           role_id?: string | null
+          tiktok_url?: string | null
+          twitter_x_url?: string | null
           updated_at?: string
           updated_by?: string | null
           user_id: string
+          website_url?: string | null
+          wilayah_desa_id?: string | null
         }
         Update: {
+          address_line?: string | null
           avatar_url?: string | null
+          business_role_id?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
+          facebook_url?: string | null
           first_name?: string | null
           id?: string
+          instagram_url?: string | null
           last_name?: string | null
+          linkedin_url?: string | null
+          role_details?: Json
           role_id?: string | null
+          tiktok_url?: string | null
+          twitter_x_url?: string | null
           updated_at?: string
           updated_by?: string | null
           user_id?: string
+          website_url?: string | null
+          wilayah_desa_id?: string | null
         }
         Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  chat: {
-    Tables: {
-      conversations: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          lead_id: string | null
-          metadata: Json
-          status: string
-          title: string | null
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          lead_id?: string | null
-          metadata?: Json
-          status?: string
-          title?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          lead_id?: string | null
-          metadata?: Json
-          status?: string
-          title?: string | null
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          metadata: Json
-          sender_id: string | null
-          sender_type: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          metadata?: Json
-          sender_id?: string | null
-          sender_type: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          metadata?: Json
-          sender_id?: string | null
-          sender_type?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
@@ -216,6 +141,36 @@ export type Database = {
           table_name?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      business_roles: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -383,755 +338,154 @@ export type Database = {
       [_ in never]: never
     }
   }
-  customer: {
+  public: {
     Tables: {
-      contacts: {
+      profile_completeness_rules: {
         Row: {
-          contact_type: string
-          contact_value: string
+          business_role_id: string | null
           created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          is_primary: boolean
-          lead_id: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          contact_type: string
-          contact_value: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_primary?: boolean
-          lead_id: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          contact_type?: string
-          contact_value?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          is_primary?: boolean
-          lead_id?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contacts_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lead_sources: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      leads: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          email: string | null
-          first_name: string
-          id: string
-          last_name: string
-          lead_source_id: string | null
-          metadata: Json
-          phone: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          email?: string | null
-          first_name: string
-          id?: string
-          last_name: string
-          lead_source_id?: string | null
-          metadata?: Json
-          phone?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          email?: string | null
-          first_name?: string
-          id?: string
-          last_name?: string
-          lead_source_id?: string | null
-          metadata?: Json
-          phone?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leads_lead_source_id_fkey"
-            columns: ["lead_source_id"]
-            isOneToOne: false
-            referencedRelation: "lead_sources"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  knowledge: {
-    Tables: {
-      articles: {
-        Row: {
-          category_id: string | null
-          content: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          metadata: Json
-          status: string
-          title: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          category_id?: string | null
-          content: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          metadata?: Json
-          status?: string
-          title: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          category_id?: string | null
-          content?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          metadata?: Json
-          status?: string
-          title?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "articles_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      categories: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      chunks: {
-        Row: {
-          article_id: string
-          chunk_text: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          embedding: string | null
-          id: string
-          metadata: Json
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          article_id: string
-          chunk_text: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          embedding?: string | null
-          id?: string
-          metadata?: Json
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          article_id?: string
-          chunk_text?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          embedding?: string | null
-          id?: string
-          metadata?: Json
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chunks_article_id_fkey"
-            columns: ["article_id"]
-            isOneToOne: false
-            referencedRelation: "articles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  marketing: {
-    Tables: {
-      campaigns: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          end_date: string | null
-          id: string
-          metadata: Json
-          name: string
-          start_date: string | null
-          status: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          end_date?: string | null
-          id?: string
-          metadata?: Json
-          name: string
-          start_date?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          end_date?: string | null
-          id?: string
-          metadata?: Json
-          name?: string
-          start_date?: string | null
-          status?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      templates: {
-        Row: {
-          body: string
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          id: string
-          name: string
-          subject: string | null
-          type: string
-          updated_at: string
-          updated_by: string | null
-          variables: Json
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          name: string
-          subject?: string | null
-          type: string
-          updated_at?: string
-          updated_by?: string | null
-          variables?: Json
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          id?: string
-          name?: string
-          subject?: string | null
-          type?: string
-          updated_at?: string
-          updated_by?: string | null
-          variables?: Json
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  property: {
-    Tables: {
-      categories: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      listings: {
-        Row: {
-          address: string | null
-          category_id: string | null
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          metadata: Json
-          price: number
-          title: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          address?: string | null
-          category_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          metadata?: Json
-          price: number
-          title: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          address?: string | null
-          category_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          metadata?: Json
-          price?: number
-          title?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "listings_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  reporting: {
-    Tables: {
-      dashboards: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          description: string | null
-          id: string
-          is_public: boolean
-          layout: Json
-          name: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          layout?: Json
-          name: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          deleted_at?: string | null
-          description?: string | null
-          id?: string
-          is_public?: boolean
-          layout?: Json
-          name?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
-      metrics: {
-        Row: {
-          chart_type: string | null
-          config: Json
-          created_at: string
-          created_by: string | null
-          dashboard_id: string
-          deleted_at: string | null
-          id: string
-          name: string
-          query: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          chart_type?: string | null
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          dashboard_id: string
-          deleted_at?: string | null
-          id?: string
-          name: string
-          query: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          chart_type?: string | null
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          dashboard_id?: string
-          deleted_at?: string | null
-          id?: string
-          name?: string
-          query?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "metrics_dashboard_id_fkey"
-            columns: ["dashboard_id"]
-            isOneToOne: false
-            referencedRelation: "dashboards"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  workflow: {
-    Tables: {
-      definitions: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          definition: Json
-          deleted_at: string | null
-          description: string | null
+          depends_on_field_key: string | null
+          depends_on_value: string | null
+          field_key: string
           id: string
           is_active: boolean
-          name: string
-          trigger_event: string | null
+          label: string
+          source: string
+          tier: number
           updated_at: string
-          updated_by: string | null
         }
         Insert: {
+          business_role_id?: string | null
           created_at?: string
-          created_by?: string | null
-          definition?: Json
-          deleted_at?: string | null
-          description?: string | null
+          depends_on_field_key?: string | null
+          depends_on_value?: string | null
+          field_key: string
           id?: string
           is_active?: boolean
-          name: string
-          trigger_event?: string | null
+          label: string
+          source: string
+          tier: number
           updated_at?: string
-          updated_by?: string | null
         }
         Update: {
+          business_role_id?: string | null
           created_at?: string
-          created_by?: string | null
-          definition?: Json
-          deleted_at?: string | null
-          description?: string | null
+          depends_on_field_key?: string | null
+          depends_on_value?: string | null
+          field_key?: string
           id?: string
           is_active?: boolean
-          name?: string
-          trigger_event?: string | null
+          label?: string
+          source?: string
+          tier?: number
           updated_at?: string
-          updated_by?: string | null
         }
         Relationships: []
       }
-      executions: {
+      wilayah_desa: {
         Row: {
-          created_at: string
-          created_by: string | null
-          definition_id: string
-          deleted_at: string | null
           id: string
-          result: Json
-          status: string
-          target_id: string | null
-          updated_at: string
-          updated_by: string | null
+          kecamatan_id: string
+          name: string
         }
         Insert: {
-          created_at?: string
-          created_by?: string | null
-          definition_id: string
-          deleted_at?: string | null
-          id?: string
-          result?: Json
-          status?: string
-          target_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          id: string
+          kecamatan_id: string
+          name: string
         }
         Update: {
-          created_at?: string
-          created_by?: string | null
-          definition_id?: string
-          deleted_at?: string | null
           id?: string
-          result?: Json
-          status?: string
-          target_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          kecamatan_id?: string
+          name?: string
         }
         Relationships: [
           {
-            foreignKeyName: "executions_definition_id_fkey"
-            columns: ["definition_id"]
+            foreignKeyName: "wilayah_desa_kecamatan_id_fkey"
+            columns: ["kecamatan_id"]
             isOneToOne: false
-            referencedRelation: "definitions"
+            referencedRelation: "wilayah_kecamatan"
             referencedColumns: ["id"]
           },
         ]
       }
-      steps: {
+      wilayah_kabupaten: {
         Row: {
-          action_type: string
-          config: Json
-          created_at: string
-          created_by: string | null
-          definition_id: string
-          deleted_at: string | null
           id: string
-          step_order: number
-          updated_at: string
-          updated_by: string | null
+          name: string
+          provinsi_id: string
         }
         Insert: {
-          action_type: string
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          definition_id: string
-          deleted_at?: string | null
-          id?: string
-          step_order: number
-          updated_at?: string
-          updated_by?: string | null
+          id: string
+          name: string
+          provinsi_id: string
         }
         Update: {
-          action_type?: string
-          config?: Json
-          created_at?: string
-          created_by?: string | null
-          definition_id?: string
-          deleted_at?: string | null
           id?: string
-          step_order?: number
-          updated_at?: string
-          updated_by?: string | null
+          name?: string
+          provinsi_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "steps_definition_id_fkey"
-            columns: ["definition_id"]
+            foreignKeyName: "wilayah_kabupaten_provinsi_id_fkey"
+            columns: ["provinsi_id"]
             isOneToOne: false
-            referencedRelation: "definitions"
+            referencedRelation: "wilayah_provinsi"
             referencedColumns: ["id"]
           },
         ]
+      }
+      wilayah_kecamatan: {
+        Row: {
+          id: string
+          kabupaten_id: string
+          name: string
+        }
+        Insert: {
+          id: string
+          kabupaten_id: string
+          name: string
+        }
+        Update: {
+          id?: string
+          kabupaten_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wilayah_kecamatan_kabupaten_id_fkey"
+            columns: ["kabupaten_id"]
+            isOneToOne: false
+            referencedRelation: "wilayah_kabupaten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wilayah_provinsi: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_profile_completeness: {
+        Args: { p_tier: number; p_user_id: string }
+        Returns: Json
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never
@@ -1263,28 +617,10 @@ export const Constants = {
   auth_ext: {
     Enums: {},
   },
-  chat: {
-    Enums: {},
-  },
   core: {
     Enums: {},
   },
-  customer: {
-    Enums: {},
-  },
-  knowledge: {
-    Enums: {},
-  },
-  marketing: {
-    Enums: {},
-  },
-  property: {
-    Enums: {},
-  },
-  reporting: {
-    Enums: {},
-  },
-  workflow: {
+  public: {
     Enums: {},
   },
 } as const
