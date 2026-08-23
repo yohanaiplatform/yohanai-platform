@@ -56,8 +56,31 @@ Semua menggunakan data Supabase.
 
 ---
 
+## Priority 2
+
+Edit Profile Feature — Fungsional end-to-end, tervalidasi. Sisa 2 item kecil sebelum ditutup penuh.
+
+Target:
+
+- **Migration `001_edit_profile_schema.sql`** — ✅ Selesai (Bagian 1–5): `core.business_roles` (4 role), 4 tabel `wilayah_provinsi/kabupaten/kecamatan/desa`, kolom baru `auth_ext.profiles` (`business_role_id`, `address_line`, `wilayah_desa_id`, social media URLs, `role_details` JSONB), tabel `profile_completeness_rules` (table-driven, dengan UNIQUE constraint + dukungan conditional field), function RPC `check_profile_completeness()` (dengan `REVOKE`/`GRANT` eksplisit).
+- **Seed data wilayah** — ✅ Selesai. Dataset `cahyadsn/wilayah` diparse & divalidasi silang dengan angka resmi (38 provinsi, 514 kab/kota, 7.285 kecamatan, 83.762 desa/kelurahan — cocok persis), diimport via CSV ke 4 tabel wilayah dengan 0 baris yatim (FK integrity bersih).
+- **`WilayahSelector.tsx`** (cascading dropdown Provinsi → Kabupaten → Kecamatan → Desa) — ✅ Selesai & jalan. Query per-level (bukan fetch semua 83rb baris sekaligus), resolve mundur otomatis untuk mode edit, empty state eksplisit.
+- **`EditProfileForm.tsx`** — ✅ Selesai & jalan. Field wajib dibaca dari `profile_completeness_rules` (table-driven, bukan hardcode), field kondisional (mis. No. Sertifikat Broker) muncul/hilang otomatis berdasar `depends_on_field_key`, progress bar Tier 1 & Tier 2 real-time dari RPC.
+- **Debugging infrastruktur yang ditemukan selama development** — ✅ Selesai, 3 root cause tersolusi:
+  1. Schema `auth_ext`, `core`, `customer`, `chat`, `property` belum ter-expose di Data API Settings (cuma `public` + `graphql_public` aktif) — sudah ditambahkan semua.
+  2. `GRANT SELECT/UPDATE` belum diberikan ke role `authenticated` untuk `auth_ext.profiles` dan `core.business_roles` (RLS policy sudah benar, tapi grant dasar di bawahnya belum ada — dua lapisan berbeda di Postgres).
+  3. CSS variable `--popover`/`--popover-foreground` tidak pernah didefinisikan di `tokens.css` project, menyebabkan semua dropdown dari komponen Select (shadcn/Base UI) tampil transparan/tembus pandang — sudah ditambahkan.
+- **Twilio Verify (Phone provider)** — ⏸️ **Sengaja ditunda.** Yohan masih tahap trial/testing, belum siap upgrade ke akun Twilio berbayar. Konsekuensi: rule Tier 1 `phone_confirmed_at` akan selalu tampil "belum lengkap" sampai Twilio aktif — ini expected, bukan bug. Rencana resume saat sudah butuh volume user besar / mendekati go-live.
+- **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker, direncanakan sebagai peningkatan terpisah setelah item di bawah ini selesai.
+- **Keputusan "System Information" di Profile page** — ⏳ Perlu keputusan Yohan: hapus total, atau sembunyikan kondisional (cuma tampil untuk `role_id` admin/super_admin). Saat ini tampil ke semua user termasuk detail environment/build — berpotensi bocor info internal.
+
+---
+
 ## Next Priority
 
+- Change Password (fitur baru, beda dari Forgot Password)
+- Notification Preferences
+- Upload foto profil (Storage bucket + picker)
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -90,6 +113,8 @@ Semua menggunakan data Supabase.
 | Cloudflare DNS | ✅ (MX Record `@yohanai.id`, SPF, DKIM, DMARC semua aktif) |
 | Resend (SMTP outbound) | ✅ Domain `yohanai.id` (subdomain `send.yohanai.id`) verified, terhubung ke Supabase Auth SMTP |
 | Meta / Facebook App | ⚫ Tidak digunakan — Facebook Login dibatalkan permanen |
+| Supabase Data API — Exposed Schemas | ✅ `public`, `graphql_public`, `auth_ext`, `core`, `customer`, `chat`, `property` (7 dari 12) |
+| Twilio Verify (Phone provider) | ⏸️ Belum di-setup, sengaja ditunda sampai butuh volume user besar |
 
 ---
 
@@ -99,7 +124,7 @@ Semua menggunakan data Supabase.
 |---------|--------|
 | Landing Page | ✅ Complete |
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
-| Profile | 🟡 Data real sudah terhubung; Edit/Change Password/Notification masih disabled |
+| Profile | 🟢 Edit Profile (role bisnis, data dasar, wilayah, completeness table-driven) confirmed jalan end-to-end; Change Password & Notification Preferences masih disabled; upload foto profil masih URL manual |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
 | Property | 🟡 In Progress |
@@ -118,21 +143,25 @@ Semua menggunakan data Supabase.
 ## Medium
 
 - Supabase masih di Free tier — auto-pause dimitigasi via GitHub Actions, tapi tetap perlu dipantau (cek log workflow secara berkala); pertimbangkan upgrade plan kalau traffic mulai signifikan
+- Twilio Verify belum di-setup — semua user akan selalu tampil "belum lengkap" di Tier 1 completeness sampai ini aktif; sengaja ditunda, bukan lupa
 
 ## Low
 
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
-- Profile: 3 tombol Account Actions masih disabled (by design, direncanakan sprint mendatang)
+- Profile: Change Password & Notification Preferences masih disabled (by design, direncanakan sprint mendatang)
+- Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
+- "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
 - Security Centre Meta memberi rekomendasi (bukan wajib): 1 user dengan public email domain di Business Manager — opsional untuk ditindaklanjuti
+- `role_id` (role akses/permission sistem, terpisah dari `business_role_id`) belum pernah di-assign untuk akun admin platform sendiri — badge Profile masih tampil "No Role Assigned"
 
 ---
 
 # Next Milestone
 
-CRM Foundation (Authentication Stabilization tuntas secara teknis dan final — Google OAuth + Email/Password; Facebook Login dibatalkan permanen)
+CRM Foundation (menunggu Change Password & Notification Preferences selesai terlebih dahulu, melengkapi Priority 2 — Edit Profile Feature)
 
 ---
 
@@ -140,10 +169,10 @@ CRM Foundation (Authentication Stabilization tuntas secara teknis dan final — 
 
 Sebelum merge:
 
-- [ ] TypeScript PASS
-- [ ] ESLint PASS
-- [ ] Build PASS
-- [ ] Runtime QA PASS
+- [x] TypeScript PASS
+- [x] ESLint PASS
+- [x] Build PASS
+- [x] Runtime QA PASS
 - [ ] Review PASS
 - [ ] Git Commit
 - [ ] Git Push
@@ -160,9 +189,13 @@ Task 001
 
 Authentication Stabilization — ✅ Selesai (Google OAuth + Email/Password; Facebook Login dibatalkan permanen)
 
+Task 002
+
+Edit Profile Feature — ✅ Selesai secara fungsional (role bisnis, data dasar, cascading wilayah, completeness table-driven). Sisa: Change Password, Notification Preferences, upload foto profil.
+
 ### Next Task
 
-Task 002
+Task 003
 
 CRM Foundation
 
@@ -170,7 +203,7 @@ CRM Foundation
 
 # Last Updated
 
-22 August 2026
+24 August 2026
 
 ---
 
