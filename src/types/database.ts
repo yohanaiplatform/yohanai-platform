@@ -10,10 +10,49 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   auth_ext: {
     Tables: {
+      notification_preferences: {
+        Row: {
+          created_at: string
+          marketing_email: boolean
+          message_email: boolean
+          message_inapp: boolean
+          new_lead_email: boolean
+          new_lead_inapp: boolean
+          property_update_email: boolean
+          property_update_inapp: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          marketing_email?: boolean
+          message_email?: boolean
+          message_inapp?: boolean
+          new_lead_email?: boolean
+          new_lead_inapp?: boolean
+          property_update_email?: boolean
+          property_update_inapp?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          marketing_email?: boolean
+          message_email?: boolean
+          message_inapp?: boolean
+          new_lead_email?: boolean
+          new_lead_inapp?: boolean
+          property_update_email?: boolean
+          property_update_inapp?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address_line: string | null

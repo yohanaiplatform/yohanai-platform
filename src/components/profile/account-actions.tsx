@@ -23,6 +23,7 @@ const actions: ActionItem[] = [
   {
     label: "Notification Preferences",
     description: "Manage how and when you receive notifications.",
+    href: "/notification-preferences",
   },
 ];
 
