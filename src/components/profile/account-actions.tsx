@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ActionItem {
   label: string;
   description: string;
+  href?: string;
 }
 
 const actions: ActionItem[] = [
@@ -16,6 +18,7 @@ const actions: ActionItem[] = [
   {
     label: "Change Password",
     description: "Update your account password for better security.",
+    href: "/change-password",
   },
   {
     label: "Notification Preferences",
@@ -24,6 +27,8 @@ const actions: ActionItem[] = [
 ];
 
 export function AccountActions() {
+  const router = useRouter();
+
   return (
     <Card>
       <CardHeader>
@@ -45,7 +50,12 @@ export function AccountActions() {
                 {action.description}
               </p>
             </div>
-            <Button variant="outline" disabled className="shrink-0">
+            <Button
+              variant="outline"
+              className="shrink-0"
+              disabled={!action.href}
+              onClick={action.href ? () => router.push(action.href!) : undefined}
+            >
               {action.label}
             </Button>
           </div>
