@@ -58,7 +58,7 @@ Semua menggunakan data Supabase.
 
 ## Priority 2
 
-Edit Profile Feature — Fungsional end-to-end, tervalidasi. Sisa item kecil sebelum ditutup penuh.
+Edit Profile Feature — ✅ **Selesai.** Semua sub-task inti tuntas dan tervalidasi end-to-end. Sisa 2 item kecil (upload foto profil, keputusan System Information) dipindah ke backlog terpisah, tidak lagi memblokir milestone berikutnya.
 
 Target:
 
@@ -71,17 +71,20 @@ Target:
   2. `GRANT SELECT/UPDATE` belum diberikan ke role `authenticated` untuk `auth_ext.profiles` dan `core.business_roles` (RLS policy sudah benar, tapi grant dasar di bawahnya belum ada — dua lapisan berbeda di Postgres).
   3. CSS variable `--popover`/`--popover-foreground` tidak pernah didefinisikan di `tokens.css` project, menyebabkan semua dropdown dari komponen Select (shadcn/Base UI) tampil transparan/tembus pandang — sudah ditambahkan.
 - **Change Password** — ✅ Selesai & tervalidasi end-to-end. Route baru `/change-password`, terpisah dari Forgot Password. Wajib re-autentikasi pakai password lama (`signInWithPassword`) sebelum boleh `updateUser` ke password baru — mencegah orang yang cuma mencuri session (tanpa tahu password asli) bisa ganti password dan mengunci pemilik akun keluar. Deteksi otomatis user yang daftar via Google OAuth (`user.identities`) — tidak ditampilkan form password sama sekali untuk akun Google-only, diganti pesan penjelasan. Toggle show/hide (icon mata) di ketiga field. Test akhir: ganti password lewat form, logout, login ulang pakai password baru — berhasil, konfirmasi perubahan benar-benar tersimpan di Supabase Auth, bukan cuma sukses di UI.
+- **Notification Preferences** — ✅ Selesai & tervalidasi end-to-end. Route baru `/notification-preferences`. Tabel `auth_ext.notification_preferences` (flat per user, bukan table-driven — kategori notifikasi tetap/fixed, bukan dinamis per role), RLS + GRANT dibuat idempotent sejak awal (`DROP POLICY IF EXISTS` + `GRANT` eksplisit langsung di migration, menerapkan lesson learned dari Edit Profile tanpa perlu kena error dulu). 4 kategori toggle (New Lead Alert, Pesan/Chat, Update Properti — masing-masing Email & Dalam Aplikasi; Marketing/Promo — Email saja) plus 1 kategori "Keamanan Akun" yang sengaja **tidak** punya toggle (selalu aktif, tidak bisa dimatikan user). Upsert `onConflict: user_id` untuk baris yang belum pernah ada. Test akhir: matikan sebagian toggle, simpan, refresh halaman — nilai tetap tersimpan, konfirmasi data masuk database bukan cuma state React.
 - **Twilio Verify (Phone provider)** — ⏸️ **Sengaja ditunda.** Yohan masih tahap trial/testing, belum siap upgrade ke akun Twilio berbayar. Konsekuensi: rule Tier 1 `phone_confirmed_at` akan selalu tampil "belum lengkap" sampai Twilio aktif — ini expected, bukan bug. Rencana resume saat sudah butuh volume user besar / mendekati go-live.
-- **Notification Preferences** — ⏳ Belum dikerjakan. Next task setelah ini.
-- **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker, direncanakan sebagai peningkatan terpisah.
+
+---
+
+## Backlog (tidak memblokir milestone berikutnya)
+
+- **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker.
 - **Keputusan "System Information" di Profile page** — ⏳ Perlu keputusan Yohan: hapus total, atau sembunyikan kondisional (cuma tampil untuk `role_id` admin/super_admin). Saat ini tampil ke semua user termasuk detail environment/build — berpotensi bocor info internal.
 
 ---
 
 ## Next Priority
 
-- Notification Preferences
-- Upload foto profil (Storage bucket + picker)
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -125,7 +128,7 @@ Target:
 |---------|--------|
 | Landing Page | ✅ Complete |
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
-| Profile | 🟢 Edit Profile (role bisnis, data dasar, wilayah, completeness table-driven) dan Change Password (re-auth, deteksi Google-only, show/hide toggle) confirmed jalan end-to-end; Notification Preferences masih disabled; upload foto profil masih URL manual |
+| Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
 | Property | 🟡 In Progress |
@@ -151,7 +154,6 @@ Target:
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
-- Profile: Notification Preferences masih disabled (by design, direncanakan sprint mendatang)
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
@@ -162,7 +164,7 @@ Target:
 
 # Next Milestone
 
-CRM Foundation (menunggu Notification Preferences selesai terlebih dahulu, melengkapi Priority 2 — Edit Profile Feature)
+**CRM Foundation** — siap dimulai. Edit Profile Feature (Priority 2) tuntas semua sub-task inti; 2 item backlog kecil (upload foto, System Information) tidak memblokir.
 
 ---
 
@@ -192,7 +194,7 @@ Authentication Stabilization — ✅ Selesai (Google OAuth + Email/Password; Fac
 
 Task 002
 
-Edit Profile Feature — 🟢 Hampir selesai. Sub-task selesai: role bisnis, data dasar, cascading wilayah, completeness table-driven, **Change Password** (baru selesai, tervalidasi end-to-end). Sisa: Notification Preferences, upload foto profil.
+Edit Profile Feature — ✅ **Selesai.** Role bisnis, data dasar, cascading wilayah, completeness table-driven, Change Password, Notification Preferences — semua tervalidasi end-to-end. Upload foto profil & keputusan System Information dipindah ke backlog terpisah.
 
 ### Next Task
 
