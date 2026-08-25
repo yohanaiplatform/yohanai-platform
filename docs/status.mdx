@@ -58,7 +58,7 @@ Semua menggunakan data Supabase.
 
 ## Priority 2
 
-Edit Profile Feature — Fungsional end-to-end, tervalidasi. Sisa 2 item kecil sebelum ditutup penuh.
+Edit Profile Feature — Fungsional end-to-end, tervalidasi. Sisa item kecil sebelum ditutup penuh.
 
 Target:
 
@@ -70,15 +70,16 @@ Target:
   1. Schema `auth_ext`, `core`, `customer`, `chat`, `property` belum ter-expose di Data API Settings (cuma `public` + `graphql_public` aktif) — sudah ditambahkan semua.
   2. `GRANT SELECT/UPDATE` belum diberikan ke role `authenticated` untuk `auth_ext.profiles` dan `core.business_roles` (RLS policy sudah benar, tapi grant dasar di bawahnya belum ada — dua lapisan berbeda di Postgres).
   3. CSS variable `--popover`/`--popover-foreground` tidak pernah didefinisikan di `tokens.css` project, menyebabkan semua dropdown dari komponen Select (shadcn/Base UI) tampil transparan/tembus pandang — sudah ditambahkan.
+- **Change Password** — ✅ Selesai & tervalidasi end-to-end. Route baru `/change-password`, terpisah dari Forgot Password. Wajib re-autentikasi pakai password lama (`signInWithPassword`) sebelum boleh `updateUser` ke password baru — mencegah orang yang cuma mencuri session (tanpa tahu password asli) bisa ganti password dan mengunci pemilik akun keluar. Deteksi otomatis user yang daftar via Google OAuth (`user.identities`) — tidak ditampilkan form password sama sekali untuk akun Google-only, diganti pesan penjelasan. Toggle show/hide (icon mata) di ketiga field. Test akhir: ganti password lewat form, logout, login ulang pakai password baru — berhasil, konfirmasi perubahan benar-benar tersimpan di Supabase Auth, bukan cuma sukses di UI.
 - **Twilio Verify (Phone provider)** — ⏸️ **Sengaja ditunda.** Yohan masih tahap trial/testing, belum siap upgrade ke akun Twilio berbayar. Konsekuensi: rule Tier 1 `phone_confirmed_at` akan selalu tampil "belum lengkap" sampai Twilio aktif — ini expected, bukan bug. Rencana resume saat sudah butuh volume user besar / mendekati go-live.
-- **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker, direncanakan sebagai peningkatan terpisah setelah item di bawah ini selesai.
+- **Notification Preferences** — ⏳ Belum dikerjakan. Next task setelah ini.
+- **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker, direncanakan sebagai peningkatan terpisah.
 - **Keputusan "System Information" di Profile page** — ⏳ Perlu keputusan Yohan: hapus total, atau sembunyikan kondisional (cuma tampil untuk `role_id` admin/super_admin). Saat ini tampil ke semua user termasuk detail environment/build — berpotensi bocor info internal.
 
 ---
 
 ## Next Priority
 
-- Change Password (fitur baru, beda dari Forgot Password)
 - Notification Preferences
 - Upload foto profil (Storage bucket + picker)
 - CRM Foundation
@@ -124,7 +125,7 @@ Target:
 |---------|--------|
 | Landing Page | ✅ Complete |
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
-| Profile | 🟢 Edit Profile (role bisnis, data dasar, wilayah, completeness table-driven) confirmed jalan end-to-end; Change Password & Notification Preferences masih disabled; upload foto profil masih URL manual |
+| Profile | 🟢 Edit Profile (role bisnis, data dasar, wilayah, completeness table-driven) dan Change Password (re-auth, deteksi Google-only, show/hide toggle) confirmed jalan end-to-end; Notification Preferences masih disabled; upload foto profil masih URL manual |
 | Dashboard Foundation | ✅ Complete |
 | CRM | 🟡 In Progress |
 | Property | 🟡 In Progress |
@@ -150,7 +151,7 @@ Target:
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
 - Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
-- Profile: Change Password & Notification Preferences masih disabled (by design, direncanakan sprint mendatang)
+- Profile: Notification Preferences masih disabled (by design, direncanakan sprint mendatang)
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
@@ -161,7 +162,7 @@ Target:
 
 # Next Milestone
 
-CRM Foundation (menunggu Change Password & Notification Preferences selesai terlebih dahulu, melengkapi Priority 2 — Edit Profile Feature)
+CRM Foundation (menunggu Notification Preferences selesai terlebih dahulu, melengkapi Priority 2 — Edit Profile Feature)
 
 ---
 
@@ -191,7 +192,7 @@ Authentication Stabilization — ✅ Selesai (Google OAuth + Email/Password; Fac
 
 Task 002
 
-Edit Profile Feature — ✅ Selesai secara fungsional (role bisnis, data dasar, cascading wilayah, completeness table-driven). Sisa: Change Password, Notification Preferences, upload foto profil.
+Edit Profile Feature — 🟢 Hampir selesai. Sub-task selesai: role bisnis, data dasar, cascading wilayah, completeness table-driven, **Change Password** (baru selesai, tervalidasi end-to-end). Sisa: Notification Preferences, upload foto profil.
 
 ### Next Task
 
@@ -203,7 +204,7 @@ CRM Foundation
 
 # Last Updated
 
-24 August 2026
+25 August 2026
 
 ---
 
