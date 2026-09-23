@@ -68,6 +68,8 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS dan GRANT itu dua lapisan berbeda.** Policy RLS yang benar tetap tidak berguna kalau role `authenticated` belum diberi `GRANT SELECT/UPDATE` pada tabelnya. Pernah menghabiskan satu sesi penuh di Edit Profile. Tulis `GRANT` eksplisit di migration sejak awal, bersama `DROP POLICY IF EXISTS` supaya idempotent.
 
+**Fungsi SECURITY DEFINER tidak boleh mempercayai parameter identitas dari client.** Ambil identitas dari `auth.uid()` — nilai dari JWT yang tidak bisa dipalsukan — dan tolak parameter yang menunjuk user lain. `check_profile_completeness` dulu menerima `p_user_id` apa adanya, sehingga user yang login bisa mengintip kelengkapan profil orang lain. Diperbaiki di `030`.
+
 **Mengunci EXECUTE fungsi perlu dua pencabutan, bukan satu.** `CREATE FUNCTION` otomatis memberi EXECUTE ke `PUBLIC`, dan Supabase menambahkan hak eksplisit ke `anon` serta `authenticated` lewat default privileges. Mencabut dari salah satunya saja menyisakan yang lain — sudah dua kali salah di project ini (`025` cabut dari PUBLIC saja, `028` cabut dari anon saja). Pola benar: `REVOKE ... FROM PUBLIC`, lalu `GRANT` eksplisit hanya ke role yang perlu, lalu verifikasi dengan `has_function_privilege()`.
 
 **Jangan cabut EXECUTE `core.is_authenticated()`.** Fungsi ini dipanggil dari policy RLS seluruh tabel domain dan bersifat SECURITY INVOKER, jadi dievaluasi memakai hak role pemanggil. Mencabutnya melumpuhkan RLS di seluruh database sekaligus, sementara imbalannya nol — fungsi itu hanya mengembalikan boolean tentang sesi pemanggil sendiri.

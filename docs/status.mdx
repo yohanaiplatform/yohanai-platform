@@ -39,7 +39,7 @@ Fase sebelumnya: 🚀 Feature Development (Sprint 011) — dilanjutkan saat lock
 
 # Audit Skema Database — 23 September 2026
 
-Seluruh riwayat migration kini **utuh, `001`–`027`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
+Seluruh riwayat migration kini **utuh, `001`–`030`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
 
 **Masalah yang dibereskan.** Perubahan skema Sprint 011 (Edit Profile dan Notification Preferences) dulu dijalankan langsung lewat Supabase SQL Editor dan tidak pernah tercatat sebagai migration maupun di-commit — database tidak bisa dibangun ulang dari nol. Seluruh objeknya ditarik ulang dari struktur database hidup menjadi migration `022`–`026`, ditulis idempotent, lalu diterapkan dengan `supabase db push`.
 
@@ -50,6 +50,18 @@ Seluruh riwayat migration kini **utuh, `001`–`027`, tanpa celah**, dan terveri
 2. **Tabel `customer.*` punya policy RLS tapi tanpa GRANT sama sekali.** Policy `authenticated_all` sudah benar, tapi role `authenticated` tidak pernah diberi hak akses dasar — query ditolak Postgres sebelum RLS sempat dievaluasi. Ini akan memblokir modul CRM dan integrasi lead intake. Diperbaiki di `027`.
 
 3. **Hak tulis berlebih pada tabel referensi di schema `public`.** Supabase memberi GRANT ALL ke `anon` dan `authenticated` secara default, sehingga tabel wilayah dan `profile_completeness_rules` ikut membawa hak INSERT, UPDATE, DELETE, bahkan TRUNCATE yang tidak pernah diniatkan. Dicabut di `027`, disisakan SELECT untuk `authenticated` saja.
+
+**Empat temuan lanjutan dari database linter Supabase** (`028`–`030`):
+
+4. **`check_profile_completeness` bisa dipanggil tanpa login.** Fungsi `SECURITY DEFINER` ini terbuka untuk role `anon`, sehingga siapa pun tanpa akun bisa menanyakan kelengkapan profil user mana pun lewat REST. Ditutup di `028`.
+
+5. **`search_path` empat fungsi `core` tidak dikunci**, termasuk `is_authenticated()` yang dipakai policy RLS di seluruh tabel domain. Dikunci di `028`, dan diverifikasi fungsinya tetap berjalan sehingga RLS tidak lumpuh.
+
+6. **Mengunci EXECUTE ternyata butuh dua pencabutan.** Postgres memberi EXECUTE ke `PUBLIC` saat `CREATE FUNCTION`, sementara Supabase menambahkan grant eksplisit ke `anon` dan `authenticated`. Mencabut salah satunya saja menyisakan yang lain — kesalahan ini terjadi dua kali secara bergantian sebelum tertutup di `029`.
+
+7. **Fungsi `SECURITY DEFINER` mempercayai parameter identitas dari client.** `check_profile_completeness` menerima `p_user_id` apa adanya, sehingga setelah celah `anon` ditutup pun, sesama user yang sudah login masih bisa saling mengintip kelengkapan profil. Diperbaiki di `030`: identitas kini diambil dari `auth.uid()` dan parameter yang menunjuk user lain ditolak.
+
+**Yang sengaja dibiarkan:** EXECUTE `core.is_authenticated()` dari `PUBLIC` tidak dicabut — fungsi itu dievaluasi di dalam policy RLS memakai hak role pemanggil, sehingga mencabutnya melumpuhkan RLS di seluruh database tanpa imbalan keamanan apa pun. Lima ekstensi di schema `public` (`vector`, `pg_trgm`, `btree_gist`, `btree_gin`, `moddatetime`) juga dibiarkan karena memindahkannya berisiko memecah index dan tipe kolom yang memakainya.
 
 **Pelajaran yang dicatat permanen di `AGENTS.md`:** isi repository bukan cermin isi database. Policy RLS untuk seluruh schema domain ternyata ada di database tapi tidak ada di `017_rls.sql` — kesimpulan soal keadaan database tidak boleh diambil hanya dari membaca file migration.
 
