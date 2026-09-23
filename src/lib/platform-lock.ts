@@ -22,6 +22,9 @@ export const LOCK_NOTICE_PATH = '/under-development'
  * - /callback: OAuth Google harus bisa mendarat sebelum sesi terbentuk.
  * - Halaman legal: URL-nya terdaftar di Google OAuth consent screen dan harus
  *   tetap bisa dibuka, kalau tidak verifikasi provider bisa bermasalah.
+ * - /api/leads/intake: dipanggil Apps Script (mesin, bukan browser), tidak
+ *   pernah punya sesi login. Diamankan sendiri lewat secret header
+ *   (LEADS_INTAKE_SECRET), bukan lewat gate ini.
  */
 const PUBLIC_PATHS = [
   LOCK_NOTICE_PATH,
@@ -32,6 +35,7 @@ const PUBLIC_PATHS = [
   '/privacy-policy',
   '/data-deletion',
   '/api/health',
+  '/api/leads/intake',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */
