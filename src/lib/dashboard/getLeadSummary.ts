@@ -3,8 +3,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { LeadSummary } from "@/types/dashboard";
-import { LEAD_STATUS } from "@/constants/dashboard";
 
+/**
+ * "Temperature" (Hot/Warm/Cold) BUKAN kolom leads.status (itu pipeline
+ * new/contacted/.../won/lost). Untuk lead dari Google Form legacy,
+ * temperature aslinya ada di metadata->>status_funnel_awal (field
+ * "Status Funnel" di form: Cold/Warm/Hot/Closing). leads.status selalu
+ * "new" untuk lead hasil intake Fase 1 -- filter ke kolom itu akan
+ * selalu menghasilkan 0.
+ */
 export async function getLeadSummary(
   supabase: SupabaseClient<Database>
 ): Promise<LeadSummary> {
@@ -32,21 +39,21 @@ export async function getLeadSummary(
       .schema("customer")
       .from("leads")
       .select("id", { count: "exact", head: true })
-      .eq("status", LEAD_STATUS.HOT)
+      .ilike("metadata->>status_funnel_awal", "hot")
       .is("deleted_at", null),
 
     supabase
       .schema("customer")
       .from("leads")
       .select("id", { count: "exact", head: true })
-      .eq("status", LEAD_STATUS.WARM)
+      .ilike("metadata->>status_funnel_awal", "warm")
       .is("deleted_at", null),
 
     supabase
       .schema("customer")
       .from("leads")
       .select("id", { count: "exact", head: true })
-      .eq("status", LEAD_STATUS.COLD)
+      .ilike("metadata->>status_funnel_awal", "cold")
       .is("deleted_at", null),
   ]);
 

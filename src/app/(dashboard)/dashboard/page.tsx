@@ -51,6 +51,8 @@ export default async function DashboardPage() {
         <StatCard title="Today's New Leads" value={stats.todayLeads.toString()} description="Leads generated today" />
       </div>
 
+      <LeadFunnel data={leadSummary} />
+
       <div className="grid gap-6 md:grid-cols-2">
         <RecentLeads data={recentLeadsRes.data} error={recentLeadsRes.error} />
         <RecentChats data={recentChatsRes.data} error={recentChatsRes.error} />
@@ -58,10 +60,7 @@ export default async function DashboardPage() {
 
       <AIInsightPanel data={insights} error={false} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <PropertySummary data={propertySummary} />
-        <LeadFunnel data={leadSummary} />
-      </div>
+      <PropertySummary data={propertySummary} />
 
       <SectionCard title="Quick Actions" description="Frequently used operations">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
