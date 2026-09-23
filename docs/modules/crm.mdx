@@ -31,6 +31,42 @@ Sampai 23 September 2026 ketiga tabel itu punya policy RLS tapi **tanpa GRANT sa
 
 Yang tersisa murni pekerjaan aplikasi: jalur masuk data dan antarmukanya.
 
+---
+
+# Rencana Lead Intake dari Google Form
+
+Dibahas 23 September 2026. **Belum dikerjakan** — menunggu detail kolom Google Form, isi Apps Script, dan struktur spreadsheet dari Yohan.
+
+## Prinsip: jangan buang Google Form-nya
+
+Google Form sudah bekerja dan calon lead sudah terbiasa memakainya. Membangun ulang form di dalam platform berarti mengambil risiko tanpa mendapat apa pun — form tetaplah form.
+
+Yang berubah bukan form-nya, melainkan **ke mana datanya pergi**. Sekarang: Form → Spreadsheet, dan spreadsheet itu sumber kebenaran. Nanti: Form → Spreadsheet **dan** → YohanAI, dengan database sebagai sumber kebenaran dan spreadsheet turun pangkat jadi cadangan.
+
+## Tiga bagian yang perlu dibangun
+
+**1. Pintu masuk** — route handler `POST /api/leads/intake`. Menerima JSON dari Apps Script, memvalidasi, menyimpan ke `customer.leads`. Diamankan dengan secret header, bukan sesi login, karena pemanggilnya mesin.
+
+Route ini **wajib ditambahkan ke `PUBLIC_PATHS`** di `src/lib/platform-lock.ts`. Selama platform terkunci, semua route dibelokkan ke `/under-development` — tanpa pengecualian ini, Apps Script hanya akan menerima redirect, bukan respons.
+
+**2. Kurir di Apps Script** — trigger `onFormSubmit` yang memanggil endpoint lewat `UrlFetchApp.fetch()`. Tambahkan dua kolom di spreadsheet: `synced_at` dan `yohanai_lead_id`, supaya baris yang gagal terkirim bisa dilihat dan dikirim ulang, bukan ditebak.
+
+**3. Kunci anti-duplikat** — simpan Form Response ID ke `customer.leads.metadata`, dan tolak bila ID-nya sudah ada. Trigger Apps Script bisa berjalan dua kali saat jaringan bermasalah; tanpa ini satu lead bisa masuk dua kali.
+
+## Urutan yang disarankan
+
+| Fase | Isi | Alasan |
+|------|-----|--------|
+| 1 | Endpoint + Apps Script + backfill data lama | Spreadsheet tetap jalan. Kalau jembatannya rusak, tidak ada yang hilang |
+| 2 | Halaman CRM membaca dan mengubah status lead | Di sinilah mulai didapat yang spreadsheet tidak bisa: pipeline, deteksi nomor ganda, pengingat follow-up |
+| 3 | Lepas dari spreadsheet | Hanya setelah benar-benar yakin datanya utuh |
+
+## Yang perlu dipastikan lebih dulu
+
+`lead_sources` belum punya baris untuk Google Form — perlu ditambahkan agar asal lead terlacak rapi.
+
+Dan yang lebih penting: **Apps Script yang ada sekarang bukan sekadar penangan form.** Menurut `docs/migration/migration-blueprint.mdx`, di dalamnya ada AI Processor, Decision Engine, CRM Engine, serta integrasi WAHA/n8n. Sebelum menulis kode apa pun, baca dulu isi Apps Script-nya dan petakan mana yang sekadar memindahkan data dan mana yang mengandung logika bisnis — bagian kedua itu tidak boleh ikut dipindahkan secara membabi buta.
+
 **Halaman `/crm` masih placeholder** berisi empty state, belum tersambung ke database.
 
 ---

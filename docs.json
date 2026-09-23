@@ -25,13 +25,15 @@
           "docs/development/workflow",
           "docs/development/coding-standards",
           "docs/development/qa-checklist",
-          "docs/development/migration"
+          "docs/development/migration",
+          "docs/development/contributing"
         ]
       },
       {
         "group": "Architecture",
         "pages": [
-          "docs/architecture/overview"
+          "docs/architecture/overview",
+          "docs/migration/migration-blueprint"
         ]
       },
       {
@@ -76,6 +78,14 @@
         "group": "Roadmap",
         "pages": [
           "docs/roadmap/v1"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "docs/faq",
+          "docs/glossary",
+          "docs/troubleshooting"
         ]
       }
     ]

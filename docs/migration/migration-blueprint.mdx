@@ -69,25 +69,28 @@ Dashboard
 
 ## Database Mapping
 
-  Legacy          Supabase
-  --------------- ---------------
-  Input Data      customers
-  Listing         properties
-  Listing Inbox   inquiries
-  Chat Log        chat_logs
-  AI Queue        ai_queue
-  AI Analysis     ai_analysis
-  Config          system_config
+Nama tabel di bawah sudah diselaraskan dengan skema yang benar-benar ada di Supabase (diverifikasi 23 September 2026). Versi sebelumnya memetakan ke nama datar seperti `customers` dan `inquiries` yang tidak pernah ada — database memakai schema terpisah per domain.
+
+| Legacy | Supabase |
+|--------|----------|
+| Input Data | `customer.leads` |
+| Listing | `property.listings` |
+| Listing Inbox | `customer.leads` (dibedakan lewat `lead_source_id`) |
+| Chat Log | `chat.conversations` + `chat.messages` |
+| AI Queue | `ai.prompts` |
+| AI Analysis | `ai.interactions` |
+| Config | `core.settings` |
 
 ## API Mapping
 
-  Legacy API         Next.js API
-  ------------------ -------------------
-  customer           /api/customers
-  createCustomer     /api/customers
-  createInboxLead    /api/inquiries
-  createChatLog      /api/chatlogs
-  updateCustomerAI   /api/ai/customers
+Belum ada satu pun yang dibangun. Route yang eksis saat ini hanya `/api/health`.
+
+| Legacy API | Next.js API | Status |
+|------------|-------------|--------|
+| createInboxLead | `/api/leads/intake` | 🔵 Rencana — lihat Rencana Lead Intake di halaman CRM Module |
+| customer, createCustomer | `/api/leads` | 🔵 Rencana |
+| createChatLog | `/api/chatlogs` | 🔵 Rencana |
+| updateCustomerAI | `/api/ai/leads` | 🔵 Rencana |
 
 ## Migration Strategy
 
@@ -99,6 +102,16 @@ Dashboard
 
 ## Current Sprint
 
-Completed - Infrastructure - Supabase Foundation
+Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD.
 
-Next - Database Schema - ERD - CRM Foundation - AI Foundation
+Berikutnya: Lead Intake dari Google Form, lalu CRM Foundation dan AI Foundation.
+
+Catatan penting sebelum migrasi dilanjutkan: **Apps Script legacy bukan sekadar pemindah data.** Di dalamnya ada AI Processor, Decision Engine, dan CRM Engine — logika bisnis yang perlu dipahami dan diputuskan nasibnya satu per satu, bukan diterjemahkan membabi buta ke kode baru.
+
+---
+
+# Last Updated
+
+23 September 2026
+
+Sprint 011 — Platform Hold

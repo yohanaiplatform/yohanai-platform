@@ -20,6 +20,12 @@ Platform terkunci: semua route dibelokkan ke `/under-development`. Detail lengka
 
 Jangan menghapus komponen landing page atau form register selama hold. Keduanya sengaja dibiarkan utuh, cuma tidak terjangkau. Membuka lock = ubah env var, bukan ubah kode.
 
+## Pekerjaan berikutnya
+
+**Lead intake dari Google Form ke `customer.leads`.** Rencana lengkapnya — arsitektur tiga bagian, urutan fase, dan jebakan yang sudah diketahui — ada di `docs/modules/crm.mdx` bagian "Rencana Lead Intake dari Google Form". Baca itu dulu sebelum menulis kode.
+
+Satu hal yang wajib diingat: Apps Script legacy Yohan **bukan sekadar penangan form**. Menurut `docs/migration/migration-blueprint.mdx` di dalamnya ada AI Processor, Decision Engine, CRM Engine, dan integrasi WAHA/n8n. Pisahkan dulu mana yang memindahkan data dan mana yang mengandung logika bisnis sebelum memutuskan apa pun.
+
 ---
 
 # Stack
@@ -45,7 +51,7 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–018 skema dasar, lalu migration bernomor per fitur
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
 ```
@@ -76,7 +82,7 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS aktif tanpa policy = semua akses ditolak, dan gejalanya menipu.** `public.profile_completeness_rules` pernah begini: pembacaan langsung dari client mengembalikan nol baris sehingga daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Fitur tampak hidup padahal separuhnya mati. Sudah diperbaiki di `025`, tapi polanya patut diwaspadai di tempat lain.
 
-**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`027`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
+**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`030`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 
