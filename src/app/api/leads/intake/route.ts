@@ -38,6 +38,22 @@ function normalizePhone(raw: string): string {
   return digits
 }
 
+/**
+ * submittedAt datang dari Apps Script sebagai String(dateObject) --
+ * format Date.prototype.toString() V8, mis. "Wed Jan 14 2026 20:56:02
+ * GMT+0700 (Western Indonesia Time)". new Date() bisa parse ini langsung
+ * karena origin-nya sama-sama V8 (Google Apps Script & Node.js/Vercel).
+ *
+ * created_at HARUS diisi tanggal submit asli, bukan waktu insert --
+ * kalau tidak, backfill data lama bikin semua lead "masuk hari ini"
+ * (created_at default now()), dan filter tanggal jadi tidak berguna.
+ */
+function parseSubmittedAt(value: string | undefined): string | undefined {
+  if (!value) return undefined
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString()
+}
+
 export async function POST(request: Request) {
   const secret = request.headers.get('x-intake-secret')
   if (!secret || secret !== process.env.LEADS_INTAKE_SECRET) {
@@ -83,6 +99,8 @@ export async function POST(request: Request) {
     .eq('name', 'Google Form')
     .maybeSingle()
 
+  const createdAt = parseSubmittedAt(body.submittedAt)
+
   const { data: inserted, error: insertError } = await supabase
     .schema('customer')
     .from('leads')
@@ -92,6 +110,7 @@ export async function POST(request: Request) {
       last_name: '',
       phone: normalizePhone(body.phone as string),
       status: 'new',
+      ...(createdAt ? { created_at: createdAt } : {}),
       metadata: {
         origin: 'google_form_legacy',
         source_row_ref: body.sourceRowRef,

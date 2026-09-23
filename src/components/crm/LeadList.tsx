@@ -46,6 +46,10 @@ export function LeadList({ data, error }: LeadListProps) {
         <tbody>
           {data.map((lead) => {
             const kategori = getLeadMetadataString(lead.metadata, "kategori");
+            const sumberInformasi = getLeadMetadataString(
+              lead.metadata,
+              "sumber_informasi"
+            );
             const nama = `${lead.first_name} ${lead.last_name}`.trim() || "Tanpa Nama";
 
             return (
@@ -58,7 +62,7 @@ export function LeadList({ data, error }: LeadListProps) {
                   {lead.phone ?? lead.email ?? "-"}
                 </td>
                 <td className="px-3 py-3 text-muted-foreground">
-                  {lead.lead_source_name ?? "-"}
+                  {sumberInformasi ?? lead.lead_source_name ?? "-"}
                 </td>
                 <td className="px-3 py-3 text-muted-foreground">
                   {kategori ?? "-"}
