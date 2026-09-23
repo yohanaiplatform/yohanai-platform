@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { IS_PLATFORM_LOCKED } from "@/config/platform";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -188,20 +189,27 @@ export default function LoginForm() {
               )}
             </Button>
           </form>
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">
-               Don&apos;t have an account?{" "}
-            </span>
+          {IS_PLATFORM_LOCKED ? (
+            <div className="text-center text-sm text-muted-foreground">
+              Pendaftaran akun baru sedang ditutup sementara selama platform
+              dalam pengembangan.
+            </div>
+          ) : (
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">
+                 Don&apos;t have an account?{" "}
+              </span>
 
-            <Button
-              variant="link"
-              type="button"
-              className="h-auto p-0"
-              onClick={() => router.push("/register")}
-            >
-               Create Account
-            </Button>
-          </div>
+              <Button
+                variant="link"
+                type="button"
+                className="h-auto p-0"
+                onClick={() => router.push("/register")}
+              >
+                 Create Account
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

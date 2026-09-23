@@ -23,7 +23,41 @@ description: Current development status of Yohan.AI Platform
 
 # Current Phase
 
-🚀 Feature Development
+⏸️ **ON HOLD — Personal Use Phase** (sejak 23 September 2026)
+
+Pengembangan SaaS dihentikan sementara. Platform diturunkan ke mode pemakaian personal dulu; pengembangan fitur SaaS dilanjutkan nanti setelah fase ini selesai.
+
+Konsekuensi teknis (lihat bagian **Platform Lock** di bawah):
+
+- Semua route publik diarahkan ke halaman `/under-development`
+- Pendaftaran akun baru ditutup — di level aplikasi maupun di Supabase Auth
+- Login tetap terbuka untuk akun yang sudah terdaftar (pemakaian personal)
+
+Fase sebelumnya: 🚀 Feature Development (Sprint 011) — dilanjutkan saat lock dibuka.
+
+---
+
+# Platform Lock
+
+Diaktifkan 23 September 2026 saat project masuk hold.
+
+**Cara kerja:** gate di `src/lib/platform-lock.ts`, dipanggil dari `src/proxy.ts` lewat `updateSession()`. Default-nya **terkunci** — platform hanya terbuka kalau env var `PLATFORM_LOCKED` di-set eksplisit ke `false`, supaya deploy tanpa env var tidak diam-diam membuka pendaftaran publik lagi.
+
+| Env var | Fungsi |
+|---------|--------|
+| `PLATFORM_LOCKED` | Sumber kebenaran, dibaca middleware. `false` = platform terbuka |
+| `NEXT_PUBLIC_PLATFORM_LOCKED` | Flag UI saja (menyembunyikan link ke route mati). Set berbarengan |
+| `PLATFORM_ALLOWED_EMAILS` | Daftar email yang boleh masuk selama terkunci, dipisah koma. Kosong = semua akun terdaftar boleh |
+
+**Route yang tetap terbuka selama terkunci:** `/under-development`, `/login`, `/forgot-password`, `/reset-password`, `/callback` (OAuth Google harus bisa mendarat), `/privacy-policy` & `/data-deletion` (URL-nya terdaftar di Google OAuth consent screen), `/api/health`.
+
+**Route yang diblokir total:** `/register` dan `/verify-email` — diblokir di proxy sekaligus di `page.tsx`-nya sebagai lapis kedua.
+
+**Bug yang ketemu saat memasang lock — `middleware.ts` tidak pernah jalan.** File-nya ada di root project, padahal project ini memakai direktori `src/` sehingga Next mencarinya di `src/` (sejajar dengan `app/`). Next mengabaikannya tanpa peringatan apa pun. Terbukti dari dev log: `GET /` balas `200` bukan redirect, dan `/dashboard` juga `200` — yang membelokkan ke login selama ini cuma `AuthGuard` di sisi client. Artinya refresh sesi Supabase lewat middleware tidak pernah aktif sejak awal. Diperbaiki sekaligus ke konvensi Next 16: file dipindah ke `src/proxy.ts` dengan named export `proxy` (Next 16 mendeprecate nama `middleware` menjadi `proxy`; runtime-nya `nodejs`, bukan `edge`). Setelah pindah, gate terverifikasi jalan di dev.
+
+**Penguncian di level Supabase:** toggle *Allow new users to sign up* di Supabase Authentication dimatikan. Ini yang benar-benar mengunci — blokir di aplikasi saja tidak cukup, karena `anon key` ada di bundle browser dan endpoint signup Supabase bisa dipanggil langsung tanpa lewat UI.
+
+**Cara membuka kembali:** set `PLATFORM_LOCKED=false` + `NEXT_PUBLIC_PLATFORM_LOCKED=false` di Vercel, lalu nyalakan lagi toggle signup di Supabase. Tidak ada kode yang perlu diubah — landing page lama, halaman register, dan semua form-nya masih utuh di codebase.
 
 ---
 
@@ -153,7 +187,6 @@ Target:
 
 - Dashboard Insight masih menggunakan dummy data
 - Property Summary masih placeholder
-- Dead code (`useLogin.ts`, `useRegister.ts`) belum dibersihkan
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
