@@ -68,11 +68,9 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS dan GRANT itu dua lapisan berbeda.** Policy RLS yang benar tetap tidak berguna kalau role `authenticated` belum diberi `GRANT SELECT/UPDATE` pada tabelnya. Pernah menghabiskan satu sesi penuh di Edit Profile. Tulis `GRANT` eksplisit di migration sejak awal, bersama `DROP POLICY IF EXISTS` supaya idempotent.
 
-**RLS aktif tanpa policy = semua akses ditolak.** `public.profile_completeness_rules` ada dalam kondisi ini — pembacaan langsung dari client selalu mengembalikan nol baris, sementara RPC `check_profile_completeness()` tetap jalan karena `SECURITY DEFINER`. Gejalanya menipu: fiturnya tampak hidup padahal sebagian diam-diam kosong.
+**RLS aktif tanpa policy = semua akses ditolak, dan gejalanya menipu.** `public.profile_completeness_rules` pernah begini: pembacaan langsung dari client mengembalikan nol baris sehingga daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Fitur tampak hidup padahal separuhnya mati. Sudah diperbaiki di `025`, tapi polanya patut diwaspadai di tempat lain.
 
-**Tabel `customer.*` punya policy tapi tanpa GRANT.** Policy `authenticated_all` sudah ada di database, tetapi role `authenticated` tidak diberi GRANT apa pun — query tetap ditolak sebelum RLS dievaluasi. Harus dibereskan sebelum modul CRM. Perbaikannya sudah ditulis di `supabase/migrations/027_fix_missing_grants.sql`.
-
-**Isi database tidak sama dengan isi repo.** Policy RLS untuk seluruh schema domain ada di database tapi tidak ada di `017_rls.sql`. Jangan pernah menyimpulkan keadaan database hanya dari membaca file migration — verifikasi langsung lewat connector Supabase.
+**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`027`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 

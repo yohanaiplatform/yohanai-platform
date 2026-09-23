@@ -37,6 +37,24 @@ Fase sebelumnya: 🚀 Feature Development (Sprint 011) — dilanjutkan saat lock
 
 ---
 
+# Audit Skema Database — 23 September 2026
+
+Seluruh riwayat migration kini **utuh, `001`–`027`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
+
+**Masalah yang dibereskan.** Perubahan skema Sprint 011 (Edit Profile dan Notification Preferences) dulu dijalankan langsung lewat Supabase SQL Editor dan tidak pernah tercatat sebagai migration maupun di-commit — database tidak bisa dibangun ulang dari nol. Seluruh objeknya ditarik ulang dari struktur database hidup menjadi migration `022`–`026`, ditulis idempotent, lalu diterapkan dengan `supabase db push`.
+
+**Tiga temuan selama audit:**
+
+1. **`public.profile_completeness_rules` punya RLS aktif tanpa satu pun policy.** Query langsung dari client di `EditProfileForm.tsx` selalu mengembalikan nol baris — daftar field wajib diam-diam kosong. Gejalanya menipu: progress bar tetap tampak benar karena dihitung RPC `check_profile_completeness()` yang `SECURITY DEFINER` sehingga menembus RLS. Diperbaiki di `025`, terverifikasi policy-nya kini ada.
+
+2. **Tabel `customer.*` punya policy RLS tapi tanpa GRANT sama sekali.** Policy `authenticated_all` sudah benar, tapi role `authenticated` tidak pernah diberi hak akses dasar — query ditolak Postgres sebelum RLS sempat dievaluasi. Ini akan memblokir modul CRM dan integrasi lead intake. Diperbaiki di `027`.
+
+3. **Hak tulis berlebih pada tabel referensi di schema `public`.** Supabase memberi GRANT ALL ke `anon` dan `authenticated` secara default, sehingga tabel wilayah dan `profile_completeness_rules` ikut membawa hak INSERT, UPDATE, DELETE, bahkan TRUNCATE yang tidak pernah diniatkan. Dicabut di `027`, disisakan SELECT untuk `authenticated` saja.
+
+**Pelajaran yang dicatat permanen di `AGENTS.md`:** isi repository bukan cermin isi database. Policy RLS untuk seluruh schema domain ternyata ada di database tapi tidak ada di `017_rls.sql` — kesimpulan soal keadaan database tidak boleh diambil hanya dari membaca file migration.
+
+---
+
 # Platform Lock
 
 Diaktifkan 23 September 2026 saat project masuk hold.
@@ -177,13 +195,9 @@ Target:
 
 ## High
 
-- **`public.profile_completeness_rules` punya RLS aktif tanpa satu pun policy.** Akibatnya query langsung dari client di `EditProfileForm.tsx` baris 136 selalu mengembalikan nol baris — daftar field wajib diam-diam kosong. Gejalanya menipu karena progress bar tetap tampak benar: angkanya dihitung RPC `check_profile_completeness()` yang `SECURITY DEFINER` sehingga menembus RLS. Policy SELECT-nya sudah disiapkan di `025_profile_completeness.sql`, belum diterapkan.
-
-- **Tabel `customer.*` punya policy RLS tapi tanpa GRANT.** Ketiganya sudah punya policy `authenticated_all`, tetapi role `authenticated` tidak diberi GRANT apa pun sehingga query tetap ditolak sebelum RLS dievaluasi. Memblokir modul CRM dan integrasi lead intake. Perbaikan disiapkan di `027_fix_missing_grants.sql`, belum diterapkan.
+- None
 
 ## Medium
-
-- **Migration Sprint 011 sudah direkonstruksi, belum diterapkan.** Perubahan skema Edit Profile dan Notification Preferences dulu dijalankan langsung di Supabase SQL Editor dan tidak pernah di-commit. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup menjadi `022`–`026` (idempotent). Termasuk juga temuan bahwa policy RLS untuk semua schema domain ada di database tapi tidak ada di `017_rls.sql`. Langkah berikutnya: jalankan `supabase db push` agar riwayat migration kembali sinkron.
 
 - Supabase masih di Free tier — auto-pause dimitigasi via GitHub Actions, tapi tetap perlu dipantau (cek log workflow secara berkala); pertimbangkan upgrade plan kalau traffic mulai signifikan
 - Twilio Verify belum di-setup — semua user akan selalu tampil "belum lengkap" di Tier 1 completeness sampai ini aktif; sengaja ditunda, bukan lupa
@@ -244,7 +258,7 @@ CRM Foundation
 
 # Last Updated
 
-25 August 2026
+23 September 2026
 
 ---
 

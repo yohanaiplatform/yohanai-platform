@@ -21,15 +21,15 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | Production Ready | ❌ Belum |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
 | RLS policy | ✅ Ada (`authenticated_all`) |
-| GRANT | ❌ Belum ada — lihat catatan di bawah |
+| GRANT | ✅ Ada (diperbaiki 23 Sep 2026) |
 | UI | ❌ Masih placeholder |
 | AI Integration | 🔵 Planned |
 
-Dua catatan penting sebelum modul ini dikerjakan:
+**Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
 
-**Skema sudah siap, aksesnya belum.** Migration `007_customer_tables.sql` sudah membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`. Policy RLS-nya juga sudah ada di database.
+Sampai 23 September 2026 ketiga tabel itu punya policy RLS tapi **tanpa GRANT sama sekali**, sehingga query dari aplikasi selalu ditolak Postgres sebelum RLS sempat dievaluasi. Sudah diperbaiki di `027_fix_missing_grants.sql` — `leads` dan `contacts` kini bisa dibaca dan ditulis oleh user yang login, `lead_sources` hanya dibaca.
 
-Yang belum ada adalah **GRANT untuk role `authenticated`** — tidak satu pun dari ketiga tabel itu punya hak akses dasar. Policy benar tapi grant tidak pernah diberikan, jadi query dari aplikasi tetap ditolak Postgres sebelum RLS sempat dievaluasi. Perbaikannya sudah disiapkan di `supabase/migrations/027_fix_missing_grants.sql` dan harus diterapkan lebih dulu, kalau tidak lead yang masuk tidak akan pernah bisa dibaca dari aplikasi.
+Yang tersisa murni pekerjaan aplikasi: jalur masuk data dan antarmukanya.
 
 **Halaman `/crm` masih placeholder** berisi empty state, belum tersambung ke database.
 
