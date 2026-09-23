@@ -68,7 +68,11 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS dan GRANT itu dua lapisan berbeda.** Policy RLS yang benar tetap tidak berguna kalau role `authenticated` belum diberi `GRANT SELECT/UPDATE` pada tabelnya. Pernah menghabiskan satu sesi penuh di Edit Profile. Tulis `GRANT` eksplisit di migration sejak awal, bersama `DROP POLICY IF EXISTS` supaya idempotent.
 
-**RLS aktif tanpa policy = semua akses ditolak.** Tabel `customer.*` saat ini `ENABLE ROW LEVEL SECURITY` tapi `017_rls.sql` belum punya satu pun policy untuk schema itu. Data bisa masuk lewat `service_role` (menembus RLS) tapi tidak akan pernah terbaca dari aplikasi.
+**RLS aktif tanpa policy = semua akses ditolak.** `public.profile_completeness_rules` ada dalam kondisi ini — pembacaan langsung dari client selalu mengembalikan nol baris, sementara RPC `check_profile_completeness()` tetap jalan karena `SECURITY DEFINER`. Gejalanya menipu: fiturnya tampak hidup padahal sebagian diam-diam kosong.
+
+**Tabel `customer.*` punya policy tapi tanpa GRANT.** Policy `authenticated_all` sudah ada di database, tetapi role `authenticated` tidak diberi GRANT apa pun — query tetap ditolak sebelum RLS dievaluasi. Harus dibereskan sebelum modul CRM. Perbaikannya sudah ditulis di `supabase/migrations/027_fix_missing_grants.sql`.
+
+**Isi database tidak sama dengan isi repo.** Policy RLS untuk seluruh schema domain ada di database tapi tidak ada di `017_rls.sql`. Jangan pernah menyimpulkan keadaan database hanya dari membaca file migration — verifikasi langsung lewat connector Supabase.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 

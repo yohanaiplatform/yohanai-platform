@@ -177,9 +177,13 @@ Target:
 
 ## High
 
-- **Migration Sprint 011 tidak ada di repository.** Perubahan skema Edit Profile dan Notification Preferences dijalankan langsung di Supabase SQL Editor dan SQL-nya tidak pernah di-commit. Yang terdampak: `core.business_roles`, empat tabel wilayah beserta seed-nya, kolom baru `auth_ext.profiles`, `profile_completeness_rules`, `auth_ext.notification_preferences`, dan RPC `check_profile_completeness()`. Akibatnya database tidak bisa dibangun ulang dari nol memakai isi repository. Tarik SQL-nya dari Supabase dan masukkan sebagai migration bernomor sebelum modul CRM dimulai.
+- **`public.profile_completeness_rules` punya RLS aktif tanpa satu pun policy.** Akibatnya query langsung dari client di `EditProfileForm.tsx` baris 136 selalu mengembalikan nol baris — daftar field wajib diam-diam kosong. Gejalanya menipu karena progress bar tetap tampak benar: angkanya dihitung RPC `check_profile_completeness()` yang `SECURITY DEFINER` sehingga menembus RLS. Policy SELECT-nya sudah disiapkan di `025_profile_completeness.sql`, belum diterapkan.
+
+- **Tabel `customer.*` punya policy RLS tapi tanpa GRANT.** Ketiganya sudah punya policy `authenticated_all`, tetapi role `authenticated` tidak diberi GRANT apa pun sehingga query tetap ditolak sebelum RLS dievaluasi. Memblokir modul CRM dan integrasi lead intake. Perbaikan disiapkan di `027_fix_missing_grants.sql`, belum diterapkan.
 
 ## Medium
+
+- **Migration Sprint 011 sudah direkonstruksi, belum diterapkan.** Perubahan skema Edit Profile dan Notification Preferences dulu dijalankan langsung di Supabase SQL Editor dan tidak pernah di-commit. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup menjadi `022`–`026` (idempotent). Termasuk juga temuan bahwa policy RLS untuk semua schema domain ada di database tapi tidak ada di `017_rls.sql`. Langkah berikutnya: jalankan `supabase db push` agar riwayat migration kembali sinkron.
 
 - Supabase masih di Free tier — auto-pause dimitigasi via GitHub Actions, tapi tetap perlu dipantau (cek log workflow secara berkala); pertimbangkan upgrade plan kalau traffic mulai signifikan
 - Twilio Verify belum di-setup — semua user akan selalu tampil "belum lengkap" di Tier 1 completeness sampai ini aktif; sengaja ditunda, bukan lupa

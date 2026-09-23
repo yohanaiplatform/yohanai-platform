@@ -144,7 +144,13 @@ Ini sumber kesalahan yang sudah dua kali memakan waktu di project ini.
 
 **Policy RLS yang benar tidak cukup.** Role `authenticated` juga harus diberi `GRANT SELECT/UPDATE` pada tabelnya. Tanpa grant dasar itu, query akan gagal walaupun policy RLS-nya sudah tepat.
 
-**RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** Saat ini seluruh tabel `customer.*` berada dalam kondisi ini — `017_rls.sql` hanya memuat policy untuk schema `core`. Data masih bisa masuk lewat `service_role` yang menembus RLS, tetapi tidak akan pernah terbaca dari aplikasi. Policy dan grant untuk schema `customer` harus ditambahkan sebelum modul CRM dikerjakan.
+**Kondisi nyata per 23 September 2026, diverifikasi langsung ke database:**
+
+Seluruh tabel domain (`customer`, `property`, `chat`, `ai`, `workflow`, `marketing`, `knowledge`, `reporting`) **sudah punya** policy `authenticated_all` berbasis `core.is_authenticated()`. Policy ini ada di database tapi tidak ada di `017_rls.sql` — jadi ini pun termasuk perubahan yang dijalankan di luar migration.
+
+Tetapi ketiga tabel `customer.*` **tidak punya GRANT sama sekali** untuk role `authenticated`. Policy-nya benar, grant dasarnya tidak pernah diberikan, sehingga query dari aplikasi tetap ditolak Postgres sebelum RLS sempat dievaluasi. Harus diperbaiki sebelum modul CRM dikerjakan — diperbaiki di `027_fix_missing_grants.sql`.
+
+**RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** `public.profile_completeness_rules` berada dalam kondisi ini. Akibatnya query langsung dari client di `EditProfileForm.tsx` selalu mengembalikan nol baris — daftar field wajib diam-diam kosong. Progress bar tetap tampak benar karena dihitung RPC `check_profile_completeness()` yang `SECURITY DEFINER` sehingga menembus RLS. Policy SELECT-nya ditambahkan di `025_profile_completeness.sql`.
 
 Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak awal supaya idempotent.
 
@@ -152,7 +158,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Catatan Penting: Migration yang Belum Masuk Repository
 
-Folder `supabase/migrations/` berisi `001`–`018` (skema dasar) ditambah `020` dan `021` (verifikasi). Tetapi perubahan skema dari Sprint 011 **tidak ada di sana** — migration Edit Profile dan Notification Preferences dijalankan langsung di Supabase SQL Editor dan SQL-nya tidak pernah di-commit.
+Folder `supabase/migrations/` berisi `001`–`021` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi lewat `supabase migration list`, 23 September 2026). Tetapi perubahan skema dari Sprint 011 **tidak ada di sana** — migration Edit Profile dan Notification Preferences dijalankan langsung di Supabase SQL Editor sehingga tidak pernah tercatat sebagai migration maupun di-commit.
 
 Yang terdampak:
 

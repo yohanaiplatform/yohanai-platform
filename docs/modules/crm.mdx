@@ -20,13 +20,16 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | Development | 🔵 Belum dimulai |
 | Production Ready | ❌ Belum |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
-| RLS policy | ❌ Belum ada — lihat catatan di bawah |
+| RLS policy | ✅ Ada (`authenticated_all`) |
+| GRANT | ❌ Belum ada — lihat catatan di bawah |
 | UI | ❌ Masih placeholder |
 | AI Integration | 🔵 Planned |
 
 Dua catatan penting sebelum modul ini dikerjakan:
 
-**Skema sudah siap, aksesnya belum.** Migration `007_customer_tables.sql` sudah membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`. Tetapi `017_rls.sql` belum memuat satu pun policy untuk schema `customer`. RLS aktif tanpa policy berarti semua akses ditolak — data bisa masuk lewat `service_role` tapi tidak akan terbaca dari aplikasi. Policy dan `GRANT` harus ditambahkan lebih dulu.
+**Skema sudah siap, aksesnya belum.** Migration `007_customer_tables.sql` sudah membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`. Policy RLS-nya juga sudah ada di database.
+
+Yang belum ada adalah **GRANT untuk role `authenticated`** — tidak satu pun dari ketiga tabel itu punya hak akses dasar. Policy benar tapi grant tidak pernah diberikan, jadi query dari aplikasi tetap ditolak Postgres sebelum RLS sempat dievaluasi. Perbaikannya sudah disiapkan di `supabase/migrations/027_fix_missing_grants.sql` dan harus diterapkan lebih dulu, kalau tidak lead yang masuk tidak akan pernah bisa dibaca dari aplikasi.
 
 **Halaman `/crm` masih placeholder** berisi empty state, belum tersambung ke database.
 
