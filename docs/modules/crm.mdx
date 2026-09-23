@@ -35,7 +35,30 @@ Yang tersisa murni pekerjaan aplikasi: jalur masuk data dan antarmukanya.
 
 # Rencana Lead Intake dari Google Form
 
-Dibahas 23 September 2026. **Belum dikerjakan** — menunggu detail kolom Google Form, isi Apps Script, dan struktur spreadsheet dari Yohan.
+Dibahas 23 September 2026. **Fase 1 sedang dikerjakan.**
+
+## Status Fase 1 — 23 September 2026
+
+Sudah selesai di sisi platform:
+
+- **Audit Apps Script & spreadsheet.** 22 file `.gs`/`.html` diperiksa lewat editor Apps Script langsung (bukan cuma nama file). Ketemu 8 trigger aktif: 2 terikat ke "On form submit" (`onFormSubmitFormatTanggal` — sekadar format tampilan tanggal, dan `onFormSubmit_InputData` — bagian dari alur native Form-ke-Sheet), 6 sisanya time-based untuk AI Processor/Decision Engine/Property Matching Engine.
+- **Peta kolom "Input Data"**: 52 kolom (A–AZ). Hanya A–Q yang data mentah (input form + turunan sederhana seperti Customer ID dan Link WA). R sampai AZ seluruhnya output AI Processor/Decision Engine/Property Matching Engine (AI_Intent, Budget Min/Max, Property Match Score, Lead Score, Priority Rank, Match Reasoning, dll) — **sengaja tidak ikut dikirim ke `customer.leads`**, sesuai peringatan di `docs/migration/migration-blueprint.mdx`.
+- **Migration `031_add_google_form_lead_source.sql`** — baris `Google Form` ditambahkan ke `customer.lead_sources`, diterapkan ke database.
+- **Route `POST /api/leads/intake`** (`src/app/api/leads/intake/route.ts`) — terima JSON dari Apps Script, validasi field wajib (`nama`, `phone`, `sourceRowRef`), dedup lewat `metadata->>source_row_ref`, insert ke `customer.leads` pakai service-role client (`src/lib/supabase/admin.ts`), field non-standar (kategori, permintaan, komentar, status funnel awal, dll) masuk ke `metadata` JSONB.
+- **`/api/leads/intake` ditambahkan ke `PUBLIC_PATHS`** di `src/lib/platform-lock.ts` — diamankan lewat secret header (`LEADS_INTAKE_SECRET`), bukan sesi login.
+- TypeScript PASS, ESLint tidak nambah error, `npm run build` PASS, guard 401/400 route sudah dites jalan di dev server.
+
+Masih menunggu dari Yohan:
+
+- Isi `SUPABASE_SERVICE_ROLE_KEY` (dari Supabase Dashboard → Settings → API) dan `LEADS_INTAKE_SECRET` di `.env.local` (lokal) dan Vercel (produksi).
+- Tempel kode kurir Apps Script (dikirim terpisah, bukan lewat commit — bukan bagian dari repo Next.js) dan pasang trigger "On form submit" baru untuk fungsi tersebut. Ini **trigger tambahan**, tidak mengubah/menghapus 8 trigger yang sudah ada.
+- Tambah 2 kolom header baru di sheet "Input Data": `Synced At` dan `YohanAI Lead ID` (kolom kosong berikutnya setelah AZ, yaitu BA & BB).
+- Jalankan backfill data lama sekali, lalu verifikasi row baru dari form beneran masuk ke `customer.leads` dengan `lead_source_id` yang benar.
+
+## Temuan sampingan (di luar cakupan Fase 1, dicatat saja)
+
+- **2 trigger AI error rate 100%**: `batchDetectConsumerIntent` dan `batchExtractBudget` di project Apps Script "CRM Yohan.AI" sudah gagal terus sejak beberapa waktu. Kolom `AI_Intent`, `Budget Min`, `Budget Max` di spreadsheet kemungkinan besar berhenti terisi karena ini.
+- **API key AI dalam bentuk plaintext** di `YohanAI_Automation.gs` (`AUTO_CONFIG.AI_API_KEY`, endpoint `ai.flaz.id`). Bukan masalah platform Next.js, tapi worth rotate kalau ada waktu.
 
 ## Prinsip: jangan buang Google Form-nya
 

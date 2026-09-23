@@ -149,7 +149,7 @@ Target:
 
 ## Next Priority
 
-- Integrasi lead intake dari Google Form + Apps Script ke `customer.leads` (dibahas 23 Sep 2026, menunggu detail kolom form)
+- **Lead Intake Fase 1 — 🟡 In Progress (23 Sep 2026).** Sisi platform selesai: migration `031` (lead source "Google Form"), route `POST /api/leads/intake`, exception di platform lock, TypeScript/ESLint/build PASS. Menunggu Yohan: isi `SUPABASE_SERVICE_ROLE_KEY` & `LEADS_INTAKE_SECRET` di env, tempel kurir Apps Script (trigger tambahan, tidak sentuh 8 trigger existing), tambah kolom `Synced At`/`YohanAI Lead ID`, jalankan backfill. Detail lengkap di `docs/modules/crm.mdx`.
 - CRM Foundation
 - Property Module
 - Sales Pipeline
