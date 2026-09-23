@@ -55,7 +55,7 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun
 src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
 src/lib/crm/                  getLeads() dan helper CRM Foundation (Fase 2)
 src/components/crm/           Lead List, filter, status badge (Fase 2)
@@ -84,6 +84,8 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS dan GRANT itu dua lapisan berbeda.** Policy RLS yang benar tetap tidak berguna kalau role `authenticated` belum diberi `GRANT SELECT/UPDATE` pada tabelnya. Pernah menghabiskan satu sesi penuh di Edit Profile. Tulis `GRANT` eksplisit di migration sejak awal, bersama `DROP POLICY IF EXISTS` supaya idempotent.
 
+**Policy `authenticated_all` (`USING true`) itu "semua yang login lihat semua data" — jangan pakai untuk tabel yang bisa dipakai lebih dari satu akun.** Baru ketahuan 23 September 2026: kedua ada akun (`admin@yohanai.id` dan rekan Yohan di Griya Indonesia yang daftar sendiri lewat Google OAuth sebelum platform lock aktif), `customer.leads` pakai `authenticated_all` sejak awal — akun kedua otomatis kebagian akses penuh ke 1968 lead tanpa direncanakan siapa pun. Diganti ke `leads_owner_or_admin` di `035`: kolom `assigned_to` + fungsi `core.is_admin_or_above()` (cek `auth_ext.profiles.role_id` ke `core.roles`, pola sama seperti `core.is_authenticated()`) — admin/super_admin lihat semua, role lain cuma lihat `assigned_to = auth.uid()`. `core.roles` (`super_admin`/`admin`/`manager`/`marketing`/`agent`/`customer_service`/`ai_service`) sudah ada dari migration awal tapi baru dipakai sekarang; `core.permissions`/`core.role_permissions` masih 0 baris, sengaja tidak disentuh dulu. **Kalau bikin tabel baru yang datanya sensitif per-user/per-agen, jangan default ke `authenticated_all` — tanya dulu apakah datanya memang boleh dilihat semua akun.** Verifikasi RLS scoped seperti ini paling akurat lewat simulasi langsung: `SET LOCAL role authenticated; SET LOCAL request.jwt.claims = '{"sub":"<uuid>"}';` lalu query — jangan cuma baca kode policy-nya.
+
 **GRANT yang hilang bukan cuma soal `authenticated`+`customer` — polanya berulang di kombinasi role/schema lain, dan kemungkinan masih ada yang belum ketahuan.** Tiga kejadian terpisah, tiga kombinasi berbeda:
 
 1. `authenticated` × `customer.*` — `027`.
@@ -104,7 +106,7 @@ Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di b
 
 **RLS aktif tanpa policy = semua akses ditolak, dan gejalanya menipu.** `public.profile_completeness_rules` pernah begini: pembacaan langsung dari client mengembalikan nol baris sehingga daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Fitur tampak hidup padahal separuhnya mati. Sudah diperbaiki di `025`, tapi polanya patut diwaspadai di tempat lain.
 
-**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`034`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
+**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`035`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 

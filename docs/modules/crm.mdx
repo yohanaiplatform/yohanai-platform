@@ -113,11 +113,13 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 | `032` | `GRANT USAGE` + hak tabel `customer.leads`/`lead_sources` ke `service_role` |
 | `033` | Backfill `created_at` dari `metadata->>submitted_at` untuk lead Google Form |
 | `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
+| `035` | Pemisahan akses lead per akun: kolom `assigned_to`, role `agent` untuk Ramlan, policy `leads_owner_or_admin` (admin lihat semua, role lain cuma lihat miliknya sendiri) — lihat `docs/status.mdx` audit poin 10 |
 
 ## Yang belum dikerjakan (lanjutan Fase 2)
 
 - **Lead Detail page** — klik satu lead di Lead List, lihat semua field + metadata lengkap.
 - **Ubah status dari UI** — saat ini `status` cuma bisa diubah lewat SQL langsung; harus ada dropdown/aksi di Lead Detail atau inline di Lead List.
+- **UI assign lead ke agent** — sejak `035`, `customer.leads` punya kolom `assigned_to`, tapi belum ada UI untuk memilih/memindahkan lead ke agent tertentu. Sekarang cuma bisa lewat SQL langsung. Perlu ada sebelum Ramlan (atau agent lain nanti) benar-benar bisa mulai kerja dari CRM ini — tanpa assignment, dashboard/CRM dia akan tampil kosong terus.
 - **Filter Sumber Informasi** di Lead List (saat ini cuma ditampilkan sebagai kolom, belum jadi filter seperti Kategori).
 - **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah).
 

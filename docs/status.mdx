@@ -39,7 +39,7 @@ Fase sebelumnya: 🚀 Feature Development (Sprint 011) — dilanjutkan saat lock
 
 # Audit Skema Database — 23 September 2026
 
-Seluruh riwayat migration kini **utuh, `001`–`034`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
+Seluruh riwayat migration kini **utuh, `001`–`035`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
 
 **Masalah yang dibereskan.** Perubahan skema Sprint 011 (Edit Profile dan Notification Preferences) dulu dijalankan langsung lewat Supabase SQL Editor dan tidak pernah tercatat sebagai migration maupun di-commit — database tidak bisa dibangun ulang dari nol. Seluruh objeknya ditarik ulang dari struktur database hidup menjadi migration `022`–`026`, ditulis idempotent, lalu diterapkan dengan `supabase db push`.
 
@@ -86,6 +86,15 @@ Seluruh riwayat migration kini **utuh, `001`–`034`, tanpa celah**, dan terveri
 **Implikasi untuk kerja berikutnya:** kalau mulai membangun modul yang menyentuh RBAC (`core.roles`/`permissions`) atau Property Module (`property.listings`), **cek dulu** `has_table_privilege(role, 'schema.table', 'SELECT')` sebelum menulis kode query-nya — jangan asumsikan GRANT otomatis ada hanya karena RLS policy-nya ada. `getPropertySummary.ts` saat ini murni stub (return angka 0 hardcode, parameter `supabase`-nya bahkan tidak dipakai) — bukan diblokir GRANT, memang belum pernah diimplementasikan.
 
 **Catatan operasional:** perintah `GRANT` lewat Supabase MCP (`execute_sql`/`apply_migration`) **selalu ditahan otomatis** oleh classifier permission Claude Code ("Permission Grant"), butuh konfirmasi eksplisit dari Yohan di chat tiap kali — bukan sekali setting lalu selesai. Ini kejadian konsisten sepanjang sesi 23 September (migration `032` dan `034` sama-sama sempat tertahan dulu).
+
+**10. `authenticated_all` di `customer.leads` berarti "semua akun yang login lihat SEMUA data" — bukan cuma milik sendiri.** Baru disadari 23 September 2026 (malam) saat Yohan sadar masih pakai `admin@yohanai.id` padahal ada akun kedua di sistem: `ramlan.hadiansyah@gmail.com` (rekan Yohan di Griya Indonesia, daftar 27 Agustus 2026 lewat Google OAuth, sebelum platform lock aktif). Dengan policy lama, akun itu otomatis bisa melihat semua 1968 lead. Diperbaiki di `035`:
+   - Kolom baru `customer.leads.assigned_to` (kepemilikan CRM).
+   - 1968 lead lama di-assign ke `admin@yohanai.id` (disepakati sebagai data milik bisnis/owner).
+   - Ramlan diberi role `agent` (dari `core.roles`, sudah ada sejak awal tapi baru dipakai sekarang).
+   - Fungsi `core.is_admin_or_above()` + policy baru `leads_owner_or_admin`: admin/super_admin lihat semua, role lain cuma lihat lead yang `assigned_to` dirinya.
+   - Diverifikasi lewat simulasi JWT langsung di database (bukan cuma baca kode): admin lihat 1968, Ramlan lihat 0, Ramlan bisa insert lead miliknya sendiri, Ramlan ditolak insert lead atas nama admin.
+
+**Keputusan yang masih ditunda (disengaja, bukan lupa):** `admin@yohanai.id` untuk sementara tetap dipakai Yohan sehari-hari (develop/testing dengan data asli) sekaligus berperan admin. Pemisahan akun developer murni vs akun bisnis Yohan yang sesungguhnya ditunda sampai strukturnya "firm" — jangan buru-buru memisahkan ini di sesi berikutnya tanpa dikonfirmasi ulang dulu.
 
 ---
 
