@@ -9,22 +9,31 @@ interface LeadListFiltersProps {
   dateFrom?: string;
   dateTo?: string;
   kategori?: string;
+  temperature?: string;
 }
 
 /**
  * Form native (method GET, tanpa JS) supaya filter jalan lewat searchParams
  * biasa -- konsisten dengan pola server component di halaman ini.
+ *
+ * temperature (dari klik tile Lead Funnel di dashboard) dibawa lewat hidden
+ * input supaya tidak hilang saat form ini di-submit ulang.
  */
 export function LeadListFilters({
   dateFrom,
   dateTo,
   kategori,
+  temperature,
 }: LeadListFiltersProps) {
   return (
     <form
       method="GET"
       className="flex flex-wrap items-end gap-3 border-b border-border pb-4"
     >
+      {temperature && (
+        <input type="hidden" name="temperature" value={temperature} />
+      )}
+
       <div className="flex flex-col gap-1">
         <label htmlFor="dateFrom" className="text-xs text-muted-foreground">
           Dari Tanggal

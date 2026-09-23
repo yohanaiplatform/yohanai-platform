@@ -1,14 +1,9 @@
 // src/components/crm/LeadList.tsx
 
-import { MessageCircle } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusBadge } from "@/components/crm/lead-status-badge";
+import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getLeadMetadataString, type LeadListItem } from "@/lib/crm/getLeads";
-
-function buildWhatsAppLink(phone: string, nama: string): string {
-  const text = `Halo ${nama}, saya dari Yohan.AI ingin follow-up permintaan Anda.`;
-  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-}
 
 interface LeadListProps {
   data: LeadListItem[] | null;
@@ -79,19 +74,7 @@ export function LeadList({ data, error }: LeadListProps) {
                   })}
                 </td>
                 <td className="px-3 py-3">
-                  {lead.phone ? (
-                    <a
-                      href={buildWhatsAppLink(lead.phone, nama)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Hubungi lewat WhatsApp"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
+                  <WhatsAppButton phone={lead.phone} nama={nama} />
                 </td>
               </tr>
             );

@@ -30,6 +30,8 @@ export interface LeadFilters {
   dateTo?: string;
   /** Nilai persis metadata->>kategori, lihat LEAD_KATEGORI_OPTIONS. */
   kategori?: string;
+  /** hot | warm | cold | closing | batal -- dari metadata->>status_funnel_awal, dicocokkan tanpa peduli huruf besar/kecil. */
+  temperature?: string;
 }
 
 export async function getLeads(
@@ -57,6 +59,9 @@ export async function getLeads(
   }
   if (filters.kategori) {
     query = query.eq("metadata->>kategori", filters.kategori);
+  }
+  if (filters.temperature) {
+    query = query.ilike("metadata->>status_funnel_awal", filters.temperature);
   }
 
   const [leadsRes, sourcesRes] = await Promise.all([

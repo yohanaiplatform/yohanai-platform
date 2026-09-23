@@ -1,3 +1,5 @@
+import type { Json } from "@/types/database";
+
 export interface DashboardStats {
   totalLeads: number;
   activeChats: number;
@@ -14,6 +16,7 @@ export interface RecentLead {
   lead_source_id: string | null;
   status: string;
   created_at: string;
+  metadata: Json;
 }
 
 export interface RecentActivity {
@@ -35,6 +38,8 @@ export interface LeadSummary {
   hot: number;
   warm: number;
   cold: number;
+  closing: number;
+  batal: number;
 }
 
 export interface PropertySummary {

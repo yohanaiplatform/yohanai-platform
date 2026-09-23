@@ -18,6 +18,7 @@ function buildHref(page: number, filters: LeadFilters): string {
   if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) params.set("dateTo", filters.dateTo);
   if (filters.kategori) params.set("kategori", filters.kategori);
+  if (filters.temperature) params.set("temperature", filters.temperature);
   return `/crm?${params.toString()}`;
 }
 

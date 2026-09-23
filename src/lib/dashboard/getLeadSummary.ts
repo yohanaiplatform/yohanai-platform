@@ -21,6 +21,8 @@ export async function getLeadSummary(
     hotRes,
     warmRes,
     coldRes,
+    closingRes,
+    batalRes,
   ] = await Promise.all([
     supabase
       .schema("customer")
@@ -55,6 +57,20 @@ export async function getLeadSummary(
       .select("id", { count: "exact", head: true })
       .ilike("metadata->>status_funnel_awal", "cold")
       .is("deleted_at", null),
+
+    supabase
+      .schema("customer")
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .ilike("metadata->>status_funnel_awal", "closing")
+      .is("deleted_at", null),
+
+    supabase
+      .schema("customer")
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .ilike("metadata->>status_funnel_awal", "batal")
+      .is("deleted_at", null),
   ]);
 
   const total = totalRes.count ?? 0;
@@ -68,5 +84,7 @@ export async function getLeadSummary(
     hot: hotRes.count ?? 0,
     warm: warmRes.count ?? 0,
     cold: coldRes.count ?? 0,
+    closing: closingRes.count ?? 0,
+    batal: batalRes.count ?? 0,
   };
 }

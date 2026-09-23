@@ -19,7 +19,8 @@ export async function getRecentLeads(
       phone,
       lead_source_id,
       status,
-      created_at
+      created_at,
+      metadata
     `)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
@@ -37,6 +38,7 @@ export async function getRecentLeads(
           lead_source_id: lead.lead_source_id,
           status: lead.status,
           created_at: lead.created_at,
+          metadata: lead.metadata,
         })),
     error: !!res.error,
   };

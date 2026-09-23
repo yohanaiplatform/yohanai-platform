@@ -107,6 +107,8 @@ export class DashboardRepository {
       hot: 0,
       warm: 0,
       cold: 0,
+      closing: 0,
+      batal: 0,
     };
   }
 
