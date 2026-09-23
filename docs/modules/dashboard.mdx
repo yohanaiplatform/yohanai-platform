@@ -58,15 +58,19 @@ Menampilkan daftar lead terbaru dari Supabase.
 
 ## Recent Chats
 
-Menampilkan aktivitas komunikasi terbaru.
+Menampilkan aktivitas komunikasi terbaru. Saat ini selalu kosong ("No Chats") — belum ada integrasi WhatsApp/WAHA yang mengisi `chat.conversations`.
+
+---
+
+## Lead Funnel
+
+✅ **Real, sejak 23 September 2026.** 5 kategori (Hot/Warm/Cold/Closing/Batal, dari `metadata->>status_funnel_awal` tiap lead). Tiap tile bisa diklik, mengarah ke Lead List (`/crm`) yang sudah terfilter ke kategori itu.
 
 ---
 
 ## AI Insight
 
-Saat ini masih menggunakan placeholder.
-
-Pada fase AI Intelligence akan diganti dengan:
+🟡 **Sebagian real, sejak 23 September 2026.** 1 kartu ("Follow-up Backlog") dihitung asli dari database — lead Hot/Warm yang belum di-follow-up >48 jam, bisa diklik ke Lead List terfilter. 2 kartu lain masih contoh ilustratif, ditandai jelas di UI (badge "Segera hadir") — bukan dihapus, supaya gampang diganti begitu AI Foundation sungguhan (page-view tracking, dll) dibangun:
 
 - Buyer Intent
 - Buying Signal
@@ -181,8 +185,9 @@ Dashboard bergantung pada:
 
 # Current Limitations
 
-- AI Insight masih placeholder
-- Property Summary masih placeholder
+- AI Insight 2 dari 3 kartu masih contoh ilustratif (ditandai jelas di UI)
+- Property Summary masih placeholder murni (`getPropertySummary.ts` return 0 hardcode, belum query `property.listings`)
+- Recent Chats selalu kosong — belum ada integrasi WhatsApp/WAHA
 - Runtime QA dengan data produksi masih berjalan
 
 ---
@@ -222,6 +227,6 @@ Predictive Analytics
 
 # Last Updated
 
-24 July 2026
+23 September 2026
 
-Sprint 009
+Sprint 011 — Lead Funnel & 1 AI Insight jadi real, lihat `docs/modules/crm.mdx` untuk detail lengkap

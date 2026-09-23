@@ -51,6 +51,37 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 23 September 2026 — Lead Intake Fase 1 & CRM Foundation Fase 2
+
+Lead intake dari Google Form legacy ke `customer.leads` selesai dan terverifikasi end-to-end di production. CRM Foundation (Lead List, filter, dashboard) menyusul di hari yang sama berdasarkan feedback pemakaian langsung.
+
+### Added
+
+- **`POST /api/leads/intake`** — pintu masuk lead dari Apps Script legacy (`UrlFetchApp.fetch`), diamankan secret header (`LEADS_INTAKE_SECRET`), dedup lewat `metadata->>source_row_ref`. Hanya field mentah form yang diterima — output AI Processor/Decision Engine/Property Matching Engine di spreadsheet legacy sengaja tidak ikut dipindahkan
+- `src/lib/supabase/admin.ts` — service-role client untuk route server-to-server tanpa sesi login
+- **CRM Lead List** (`/crm`) — baca `customer.leads` asli, pagination, filter tanggal/kategori/temperature/search (nama atau nomor HP), tombol WhatsApp langsung per lead (`wa.me` + pesan pembuka)
+- **Lead Funnel** di dashboard — 5 kategori (Hot/Warm/Cold/Closing/Batal, dari `metadata->>status_funnel_awal`), tiap tile bisa diklik dan mengarah ke Lead List terfilter
+- **AI Intelligence — 1 insight nyata**: "Follow-up Backlog" (lead Hot/Warm belum di-follow-up >48 jam, dihitung asli dari database, bisa diklik). 2 kartu contoh lain dipertahankan di kode tapi ditandai `isPlaceholder` + badge "Segera hadir", supaya gampang dikembalikan begitu AI Foundation sungguhan dibangun
+- Kolom `customer.leads.assigned_to` — kepemilikan CRM per lead, terpisah dari `created_by`/`updated_by` (audit trail)
+- Fungsi `core.is_admin_or_above()` dan role `agent` (dari `core.roles`, pertama kali dipakai) untuk kontrol akses bertingkat
+
+### Fixed
+
+- **`service_role` tidak pernah diberi `GRANT USAGE` ke schema `customer`** — endpoint intake sempat balas `permission denied for schema customer` sebelum diperbaiki. Scope grant sengaja dipersempit ke `customer` saja, bukan semua schema domain
+- **Lead Funnel selalu 0% untuk semua temperature** — query lama memfilter `leads.status = 'hot'/'warm'/'cold'`, padahal kolom itu pipeline (`new`/.../`won`/`lost`) yang CHECK constraint-nya menolak nilai itu. Temperature asli ada di `metadata->>status_funnel_awal`
+- **`created_at` hasil backfill = waktu insert, bukan tanggal submit form asli** — membuat "Today's New Leads" di dashboard selalu sama dengan Total Leads, dan filter tanggal tidak berguna. Diperbaiki di endpoint (parse `submittedAt` jadi `created_at` eksplisit) dan dibenahi retroaktif untuk 1968 lead yang sudah terlanjur masuk
+- Kolom "Sumber" di Lead List menampilkan nama lead source (selalu "Google Form", tidak informatif) — diganti `metadata->>sumber_informasi` (Iklan/Baliho/Referral/dll, sesuai data form asli)
+- **`authenticated` tidak pernah diberi GRANT ke `chat.conversations`/`chat.messages`** — widget "Recent Chats" selalu balas Error, bukan tampilan kosong yang jujur
+- **Policy `authenticated_all` di `customer.leads` membuat SEMUA akun yang login melihat SEMUA lead**, tanpa kecuali. Ditemukan saat sadar ada akun kedua (kolega Yohan di Griya Indonesia) yang otomatis kebagian akses penuh ke 1968 lead. Diganti kebijakan baru: admin/super_admin tetap lihat semua (oversight bisnis), role lain cuma lihat lead yang `assigned_to` dirinya sendiri
+
+### Changed
+
+- Dashboard: Lead Funnel dipindah ke atas (sebelum Recent Leads/Chats), sesuai kebutuhan lihat status follow-up sekilas
+- Recent Leads: baris "Source ID" diganti Kategori lead; badge status "new" diganti tombol WhatsApp
+- `customer.lead_sources` bertambah satu baris: "Google Form"
+
+---
+
 ## 23 September 2026 — Platform Hold
 
 Project dihentikan sementara dari pengembangan SaaS dan diturunkan ke mode pemakaian personal.
@@ -161,8 +192,8 @@ Date
 
 Planned
 
-- Integrasi lead intake dari Google Form dan Apps Script ke `customer.leads`
-- CRM UI
+- ✅ Integrasi lead intake dari Google Form dan Apps Script ke `customer.leads` — selesai, lihat Unreleased
+- 🟡 CRM UI — Lead List (baca, filter, WA) selesai; Lead Detail, ubah status, UI assign ke agent masih planned
 - Property UI
 - Sales Pipeline
 - Runtime QA

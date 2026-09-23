@@ -64,15 +64,17 @@ Jejak aktivitas sistem.
 
 ### leads
 
-Tabel inti CRM. Berisi identitas calon pembeli, `lead_source_id`, kolom `metadata` JSONB bebas isi, serta `status` dengan pipeline tetap:
+Tabel inti CRM. Berisi identitas calon pembeli, `lead_source_id`, `assigned_to` (kepemilikan CRM — lihat bagian akses di bawah), kolom `metadata` JSONB bebas isi, serta `status` dengan pipeline tetap:
 
 ```
 new → contacted → qualified → proposal → negotiation → won → lost
 ```
 
+**"Temperature" (Hot/Warm/Cold/Closing/Batal) BUKAN kolom `status`.** Untuk lead dari Google Form legacy, itu ada di `metadata->>status_funnel_awal`. Dua konsep berbeda — jangan disamakan.
+
 ### lead_sources
 
-Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search.
+Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search, **Google Form** (ditambahkan 23 September 2026, migration `031`).
 
 ### contacts
 
@@ -140,31 +142,44 @@ Hampir seluruh tabel memakai pola yang sama:
 
 # RLS dan GRANT adalah Dua Lapisan Berbeda
 
-Ini sumber kesalahan yang sudah dua kali memakan waktu di project ini.
+Ini sumber kesalahan yang sudah berkali-kali memakan waktu di project ini — di kombinasi role/schema yang berbeda-beda tiap kali.
 
-**Policy RLS yang benar tidak cukup.** Role `authenticated` juga harus diberi `GRANT SELECT/UPDATE` pada tabelnya. Tanpa grant dasar itu, query akan gagal walaupun policy RLS-nya sudah tepat.
+**Policy RLS yang benar tidak cukup.** Role apa pun (`authenticated`, `service_role`, dll) juga harus diberi `GRANT USAGE` ke schema dan `GRANT SELECT/INSERT/UPDATE` ke tabelnya. `BYPASSRLS` yang dipunya `service_role` cuma melewati evaluasi RLS policy, bukan pengganti GRANT dasar. Tanpa grant, query gagal duluan di level Postgres sebelum RLS sempat relevan.
 
 **Kondisi nyata per 23 September 2026, diverifikasi langsung ke database:**
 
-Seluruh tabel domain (`customer`, `property`, `chat`, `ai`, `workflow`, `marketing`, `knowledge`, `reporting`) **sudah punya** policy `authenticated_all` berbasis `core.is_authenticated()`. Policy ini ada di database tapi tidak ada di `017_rls.sql` — jadi ini pun termasuk perubahan yang dijalankan di luar migration.
+Seluruh tabel domain (`customer`, `property`, `chat`, `ai`, `workflow`, `marketing`, `knowledge`, `reporting`) **sudah punya** policy berbasis `core.is_authenticated()`. Beberapa policy ini ada di database tapi tidak ada di `017_rls.sql` — jadi ini pun termasuk perubahan yang dijalankan di luar migration.
 
-Ketiga tabel `customer.*` sempat **tidak punya GRANT sama sekali** untuk role `authenticated` — policy benar, grant dasarnya tidak pernah diberikan, sehingga query dari aplikasi ditolak Postgres sebelum RLS sempat dievaluasi. Diperbaiki di `027_fix_missing_grants.sql`: `leads` dan `contacts` kini SELECT/INSERT/UPDATE/DELETE, `lead_sources` SELECT saja.
+**Empat kejadian GRANT hilang, ditemukan terpisah:**
+
+1. `authenticated` × `customer.leads`/`contacts` — diperbaiki `027`.
+2. `service_role` × schema `customer` — `service_role` cuma otomatis dapat `USAGE` di `public`, sama sekali tidak di schema domain manapun. Diperbaiki **cuma untuk `customer`** di `032` (belum untuk `auth_ext`/`chat`/`core`/`property` — sengaja ditunda sampai ada kode yang butuh).
+3. `authenticated` × `chat.conversations`/`chat.messages` — diperbaiki `034`.
+4. Beberapa tabel `core.*` (RBAC) dan `property.*` masih belum punya GRANT `authenticated` sama sekali per hari ini — **cek dulu** `has_table_privilege()` sebelum membangun fitur yang menyentuhnya.
 
 **RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** `public.profile_completeness_rules` sempat berada dalam kondisi ini, sehingga query langsung dari client di `EditProfileForm.tsx` selalu mengembalikan nol baris — daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Policy SELECT-nya ditambahkan di `025_profile_completeness.sql`.
 
-Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak awal supaya idempotent.
+**Policy `USING true` (semua-yang-login-lihat-semua) itu sendiri bisa jadi bug kalau tabelnya dipakai lebih dari satu akun.** `customer.leads` pakai policy seperti ini sejak awal — begitu ada akun kedua terdaftar (bukan cuma Yohan), akun itu otomatis kebagian akses penuh ke seluruh data lead, tanpa direncanakan siapa pun. Diganti di `035` jadi policy `leads_owner_or_admin`: kolom `assigned_to` + fungsi `core.is_admin_or_above()` — role admin/super_admin lihat semua, role lain cuma lihat lead miliknya sendiri. **Jangan default ke policy semacam ini untuk tabel data sensitif per-user/per-agen.**
+
+Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak awal supaya idempotent. Verifikasi policy scoped paling akurat lewat simulasi JWT langsung (`SET LOCAL request.jwt.claims = '{"sub":"<uuid>"}'`), bukan cuma baca definisi policy-nya.
 
 ---
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`027` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi lewat `supabase migration list`, 23 September 2026).
+Folder `supabase/migrations/` berisi `001`–`035` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026).
 
 | Rentang | Isi |
 |---------|-----|
 | `001`–`021` | Skema dasar, RLS awal, seed, storage, dan validasi pasca-deployment |
 | `022`–`026` | Objek Sprint 011: `core.business_roles`, empat tabel wilayah, perluasan `auth_ext.profiles`, `profile_completeness_rules` beserta RPC-nya, dan `auth_ext.notification_preferences` |
 | `027` | Perbaikan GRANT `customer.*` dan pencabutan hak tulis berlebih di schema `public` |
+| `028`–`030` | Temuan database linter: tutup akses `anon` ke `check_profile_completeness`, kunci `search_path` fungsi `core`, cabut EXECUTE `PUBLIC`+`anon` (dua langkah), identitas fungsi dari `auth.uid()` bukan parameter client |
+| `031` | Tambah "Google Form" ke `customer.lead_sources` (Lead Intake Fase 1) |
+| `032` | `GRANT USAGE` + hak tabel `customer.leads`/`lead_sources` ke `service_role` |
+| `033` | Backfill `created_at` dari `metadata->>submitted_at` untuk lead Google Form |
+| `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
+| `035` | Kolom `assigned_to`, fungsi `core.is_admin_or_above()`, policy `leads_owner_or_admin` — pemisahan akses lead per akun |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
