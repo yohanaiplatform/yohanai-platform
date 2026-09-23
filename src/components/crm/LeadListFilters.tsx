@@ -10,6 +10,7 @@ interface LeadListFiltersProps {
   dateTo?: string;
   kategori?: string;
   temperature?: string;
+  search?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ export function LeadListFilters({
   dateTo,
   kategori,
   temperature,
+  search,
 }: LeadListFiltersProps) {
   return (
     <form
@@ -33,6 +35,20 @@ export function LeadListFilters({
       {temperature && (
         <input type="hidden" name="temperature" value={temperature} />
       )}
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="search" className="text-xs text-muted-foreground">
+          Cari Nama / No. HP
+        </label>
+        <Input
+          id="search"
+          name="search"
+          type="text"
+          placeholder="mis. Budi atau 0812..."
+          defaultValue={search ?? ""}
+          className="w-56"
+        />
+      </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="dateFrom" className="text-xs text-muted-foreground">

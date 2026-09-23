@@ -16,6 +16,7 @@ interface CRMPageProps {
     dateTo?: string;
     kategori?: string;
     temperature?: string;
+    search?: string;
   }>;
 }
 
@@ -28,6 +29,7 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
     dateTo: params.dateTo || undefined,
     kategori: params.kategori || undefined,
     temperature: params.temperature || undefined,
+    search: params.search || undefined,
   };
 
   const supabase = await createClient();
@@ -62,6 +64,7 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
             dateTo={filters.dateTo}
             kategori={filters.kategori}
             temperature={filters.temperature}
+            search={filters.search}
           />
           <LeadList data={data} error={error} />
           {!error && (

@@ -36,6 +36,8 @@ export interface LeadFilters {
    * dipisah koma (mis. "hot,warm").
    */
   temperature?: string;
+  /** Cari lead berdasarkan nama (substring) atau nomor HP (digit saja). */
+  search?: string;
 }
 
 export async function getLeads(
@@ -73,6 +75,22 @@ export async function getLeads(
         values.map((v) => `metadata->>status_funnel_awal.ilike.${v}`).join(",")
       );
     }
+  }
+  if (filters.search) {
+    // Buang karakter yang berarti khusus di sintaks .or() PostgREST
+    // (koma, kurung) supaya nama dengan karakter itu tidak merusak query.
+    const namePattern = `%${filters.search.trim().replace(/[%,()]/g, "")}%`;
+    const digits = filters.search.replace(/[^0-9]/g, "");
+    const phoneDigits = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
+
+    const orParts = [
+      `first_name.ilike.${namePattern}`,
+      `last_name.ilike.${namePattern}`,
+    ];
+    if (phoneDigits) {
+      orParts.push(`phone.ilike.%${phoneDigits}%`);
+    }
+    query = query.or(orParts.join(","));
   }
 
   const [leadsRes, sourcesRes] = await Promise.all([
