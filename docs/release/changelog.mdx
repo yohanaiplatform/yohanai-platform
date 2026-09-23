@@ -45,11 +45,84 @@ Keterangan:
 v0.1.0-alpha
 ```
 
+Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat di bawah **Unreleased** dan belum masuk versi rilis mana pun. Penomoran versi berikutnya diputuskan saat platform hold dibuka.
+
 ---
 
-# Changelog
+# Unreleased
 
-## v0.1.0-alpha
+## 23 September 2026 — Platform Hold
+
+Project dihentikan sementara dari pengembangan SaaS dan diturunkan ke mode pemakaian personal.
+
+### Added
+
+- Halaman `/under-development` sebagai wajah publik selama hold, dengan `robots: noindex`
+- Platform lock (`src/lib/platform-lock.ts`) — gate yang membelokkan seluruh route ke halaman under-development, kecuali login, recovery password, `/callback`, halaman legal, dan `/api/health`
+- Env var `PLATFORM_LOCKED`, `NEXT_PUBLIC_PLATFORM_LOCKED`, `PLATFORM_ALLOWED_EMAILS`. Default **terkunci** — platform hanya terbuka bila di-set eksplisit ke `false`
+- Blokir registrasi dua lapis: di proxy sekaligus di `register/page.tsx`
+
+### Fixed
+
+- **`middleware.ts` tidak pernah dieksekusi Next.** File berada di root project, padahal project memakai direktori `src/` sehingga Next mencarinya di `src/` sejajar dengan `app/`. Diabaikan tanpa peringatan, akibatnya `updateSession()` tidak pernah jalan dan refresh sesi Supabase lewat middleware tidak pernah aktif sejak awal. Dipindah ke `src/proxy.ts` mengikuti konvensi Next 16 yang mengganti nama `middleware` menjadi `proxy`
+
+### Changed
+
+- Halaman login menampilkan keterangan pendaftaran ditutup, menggantikan tautan Create Account
+- Signup dimatikan di level Supabase Auth — lapis aplikasi saja tidak cukup karena `anon key` ada di bundle browser
+
+---
+
+## Sprint 011 — 20–25 Agustus 2026
+
+Fokus: stabilisasi autentikasi dan penyelesaian modul Profile.
+
+### Added
+
+- **Edit Profile** — form table-driven yang membaca field wajib dari tabel `profile_completeness_rules`, bukan hardcode. Field kondisional muncul otomatis berdasarkan `depends_on_field_key`
+- **Cascading wilayah selector** — Provinsi → Kabupaten → Kecamatan → Desa, query per level. Seed 38 provinsi, 514 kabupaten/kota, 7.285 kecamatan, 83.762 desa, tervalidasi silang dengan angka resmi dan nol baris yatim
+- **Change Password** — route terpisah dari Forgot Password, wajib re-autentikasi dengan password lama sebelum boleh mengganti. Mencegah pencuri sesi mengunci pemilik akun keluar. Akun Google-only terdeteksi otomatis dan tidak ditampilkan form password
+- **Notification Preferences** — tabel `auth_ext.notification_preferences`, empat kategori toggle plus kategori Keamanan Akun yang sengaja tidak bisa dimatikan
+- Halaman Privacy Policy dan Data Deletion, mencantumkan nama legal usaha dan NIB
+- GitHub Actions scheduled workflow untuk ping Supabase tiap 3 hari, mencegah auto-pause free tier
+- Migration `001_edit_profile_schema.sql` — `core.business_roles`, empat tabel wilayah, kolom baru di `auth_ext.profiles`, tabel `profile_completeness_rules`, dan RPC `check_profile_completeness()`
+
+### Fixed
+
+- Profile page mengambil data asli dari `auth_ext.profiles`, menggantikan dummy data Sprint 008
+- Schema `auth_ext`, `core`, `customer`, `chat`, `property` belum ter-expose di Supabase Data API — sebelumnya hanya `public` dan `graphql_public` yang aktif
+- `GRANT SELECT/UPDATE` untuk role `authenticated` belum diberikan pada `auth_ext.profiles` dan `core.business_roles`. Policy RLS sudah benar, tapi grant dasar di bawahnya belum ada — dua lapisan berbeda di Postgres
+- CSS variable `--popover` dan `--popover-foreground` tidak pernah didefinisikan di `tokens.css`, membuat seluruh dropdown komponen Select tampil transparan
+- MX Record domain `yohanai.id` tidak pernah ada, sehingga semua email masuk ke `admin@yohanai.id` tidak pernah sampai
+
+### Changed
+
+- **SMTP outbound migrasi dari Gmail personal ke Resend.** Domain diverifikasi lewat subdomain khusus `send.yohanai.id` agar email masuk existing via rumahweb tidak terganggu
+- SPF, DKIM, dan DMARC aktif untuk `yohanai.id`. DMARC masih mode monitoring (`p=none`)
+
+### Removed
+
+- **Facebook Login dibatalkan permanen.** Meta menolak Business Verification karena NIB terdaftar atas nama usaha pribadi sedangkan "YohanAI" adalah brand di bawahnya. Dibersihkan penuh: `FacebookButton.tsx` dihapus, referensi di form login dan register dihapus, provider dimatikan di Supabase
+- Dead code `useLogin.ts` dan `useRegister.ts`
+
+---
+
+## Sprint 010 — 27–31 Juli 2026
+
+Fokus: fondasi autentikasi.
+
+### Added
+
+- Alur autentikasi email lengkap beserta verifikasi
+- Integrasi design token dan fondasi UI login
+
+### Fixed
+
+- Google register dirutekan melalui callback exchange
+
+---
+
+# v0.1.0-alpha
 
 Date
 
@@ -88,6 +161,7 @@ Date
 
 Planned
 
+- Integrasi lead intake dari Google Form dan Apps Script ke `customer.leads`
 - CRM UI
 - Property UI
 - Sales Pipeline
@@ -140,6 +214,6 @@ Sebelum membuat release baru:
 
 # Last Updated
 
-24 July 2026
+23 September 2026
 
-Sprint 009
+Sprint 011 — Platform Hold

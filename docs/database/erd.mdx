@@ -24,13 +24,29 @@ ERD mengikuti domain CRM, Property, Conversation, AI, Workflow, Knowledge Base, 
 ```text
 auth.users
     │
-    └──────────────► auth_ext.profiles
-                          │
-                          └────────► core.roles
-                                         │
-                                         └────────► core.role_permissions
-                                                       │
-                                                       └────────► core.permissions
+    ├──────────────► auth_ext.profiles
+    │                     │
+    │                     ├────────► core.roles
+    │                     │              │
+    │                     │              └────────► core.role_permissions
+    │                     │                              │
+    │                     │                              └────────► core.permissions
+    │                     │
+    │                     ├────────► core.business_roles
+    │                     │
+    │                     └────────► wilayah_desa
+    │                                     │
+    │                                     └────────► wilayah_kecamatan
+    │                                                      │
+    │                                                      └────────► wilayah_kabupaten
+    │                                                                       │
+    │                                                                       └────────► wilayah_provinsi
+    │
+    └──────────────► auth_ext.notification_preferences
+
+profile_completeness_rules
+        │
+        └────────► dibaca RPC check_profile_completeness()
 
 property.categories
         │
@@ -72,3 +88,11 @@ reporting.dashboards
         │
         └────────► reporting.metrics
 ```
+
+---
+
+# Last Updated
+
+23 September 2026
+
+Sprint 011 — Platform Hold

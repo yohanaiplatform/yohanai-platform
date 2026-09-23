@@ -1,47 +1,174 @@
+---
+title: Database Schema
+description: Daftar schema dan tabel database Yohan.AI
+---
+
 # Database Schema
 
-## Core Tables
+Yohan.AI memakai PostgreSQL 17 di Supabase dengan **schema terpisah per domain**, bukan satu schema `public` berisi semua tabel. Setiap tabel selalu dirujuk lengkap dengan nama schema-nya, misalnya `customer.leads`, bukan `leads`.
 
-### users
+---
 
-Authentication and user management.
+# Schema yang Digunakan
 
-### customers
+| Schema | Isi |
+|--------|-----|
+| `auth_ext` | Perluasan data user di luar `auth.users` bawaan Supabase |
+| `core` | Tabel sistem: role, permission, setting, audit |
+| `customer` | Lead dan kontak — inti modul CRM |
+| `property` | Katalog dan listing properti |
+| `chat` | Percakapan dan pesan |
+| `ai` | Model, prompt, dan hasil interaksi AI |
+| `workflow` | Definisi dan eksekusi otomasi |
+| `marketing` | Campaign dan template |
+| `knowledge` | Basis pengetahuan untuk AI |
+| `reporting` | Dashboard dan metrik |
 
-Customer master database.
+## Exposed Schemas
 
-### properties
+Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara default. Schema `auth_ext`, `core`, `customer`, `chat`, dan `property` sudah ditambahkan manual di **Settings → Data API**. Schema yang belum ter-expose tidak akan bisa diakses dari aplikasi sama sekali, sekalipun RLS dan GRANT-nya sudah benar.
 
-Property inventory.
+---
 
-### listings
+# Tabel per Schema
 
-Published property listings.
+## auth_ext
 
-### customer_interactions
+### profiles
 
-Chat, calls, follow-up history.
+Profil pengguna: nama, kontak, alamat, `business_role_id`, tautan media sosial, dan `role_details` JSONB. Terhubung satu-satu ke `auth.users`.
 
-### ai_analysis
+### notification_preferences
 
-AI analysis results.
+Preferensi notifikasi per user, satu baris per user. Empat kategori toggle; kategori Keamanan Akun sengaja tidak punya toggle dan selalu aktif.
 
-### ai_queue
+## core
 
-AI processing queue.
+### roles, permissions, role_permissions
 
-### documents
+Role-based access control.
 
-Generated documents.
+### business_roles
 
-### workflows
+Peran bisnis pengguna di industri properti, dipakai Edit Profile untuk menentukan field wajib.
 
-Workflow automation.
+### settings
 
-### notifications
-
-Notification queue.
+Konfigurasi sistem.
 
 ### audit_logs
 
-System activity logs.
+Jejak aktivitas sistem.
+
+## customer
+
+### leads
+
+Tabel inti CRM. Berisi identitas calon pembeli, `lead_source_id`, kolom `metadata` JSONB bebas isi, serta `status` dengan pipeline tetap:
+
+```
+new → contacted → qualified → proposal → negotiation → won → lost
+```
+
+### lead_sources
+
+Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search.
+
+### contacts
+
+Riwayat kontak per lead.
+
+## property
+
+### categories, listings
+
+Kategori dan listing properti.
+
+## chat
+
+### conversations, messages
+
+Percakapan dan pesan per lead.
+
+## ai
+
+### models, prompts, interactions
+
+Konfigurasi model AI, prompt, dan riwayat interaksi.
+
+## workflow
+
+### definitions, steps, executions
+
+Definisi otomasi, langkah-langkahnya, dan riwayat eksekusi.
+
+## marketing
+
+### campaigns, templates
+
+## knowledge
+
+### categories, articles, chunks
+
+Basis pengetahuan beserta potongan teks untuk pencarian AI.
+
+## reporting
+
+### dashboards, metrics
+
+## Tabel referensi wilayah
+
+`wilayah_provinsi`, `wilayah_kabupaten`, `wilayah_kecamatan`, dan `wilayah_desa` — dataset wilayah administratif Indonesia berkode Kemendagri. Terisi 38 provinsi, 514 kabupaten/kota, 7.285 kecamatan, dan 83.762 desa/kelurahan, tervalidasi silang dengan angka resmi tanpa baris yatim. Dipakai cascading selector di Edit Profile, di-query per level — bukan diambil sekaligus.
+
+### profile_completeness_rules
+
+Aturan kelengkapan profil yang bersifat table-driven: field wajib dibaca dari tabel ini, bukan di-hardcode di form. Mendukung field kondisional lewat `depends_on_field_key`.
+
+---
+
+# Konvensi Tabel
+
+Hampir seluruh tabel memakai pola yang sama:
+
+- Primary key `UUID` dengan `gen_random_uuid()`
+- `created_at`, `updated_at`, `deleted_at` — penghapusan bersifat soft delete
+- `created_by`, `updated_by` merujuk `auth.users(id)`
+- Trigger `core.update_updated_at_column()` untuk menjaga `updated_at`
+- `ENABLE ROW LEVEL SECURITY` pada semua tabel
+
+---
+
+# RLS dan GRANT adalah Dua Lapisan Berbeda
+
+Ini sumber kesalahan yang sudah dua kali memakan waktu di project ini.
+
+**Policy RLS yang benar tidak cukup.** Role `authenticated` juga harus diberi `GRANT SELECT/UPDATE` pada tabelnya. Tanpa grant dasar itu, query akan gagal walaupun policy RLS-nya sudah tepat.
+
+**RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** Saat ini seluruh tabel `customer.*` berada dalam kondisi ini — `017_rls.sql` hanya memuat policy untuk schema `core`. Data masih bisa masuk lewat `service_role` yang menembus RLS, tetapi tidak akan pernah terbaca dari aplikasi. Policy dan grant untuk schema `customer` harus ditambahkan sebelum modul CRM dikerjakan.
+
+Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak awal supaya idempotent.
+
+---
+
+# Catatan Penting: Migration yang Belum Masuk Repository
+
+Folder `supabase/migrations/` berisi `001`–`018` (skema dasar) ditambah `020` dan `021` (verifikasi). Tetapi perubahan skema dari Sprint 011 **tidak ada di sana** — migration Edit Profile dan Notification Preferences dijalankan langsung di Supabase SQL Editor dan SQL-nya tidak pernah di-commit.
+
+Yang terdampak:
+
+- `core.business_roles`
+- Empat tabel wilayah beserta seed data-nya
+- Kolom baru pada `auth_ext.profiles`
+- `profile_completeness_rules`
+- `auth_ext.notification_preferences`
+- Function RPC `check_profile_completeness()`
+
+Konsekuensinya: repository tidak lagi bisa dipakai untuk membangun ulang database dari nol. Sebelum modul CRM dimulai, SQL tersebut sebaiknya ditarik dari Supabase dan dimasukkan sebagai migration bernomor supaya riwayat skema kembali utuh.
+
+---
+
+# Last Updated
+
+23 September 2026
+
+Sprint 011 — Platform Hold

@@ -92,6 +92,8 @@ Tidak boleh membuat schema lokal yang berbeda.
 
 # Current Architecture
 
+Selama platform hold (sejak 23 September 2026), seluruh alur di bawah ini berada di belakang platform lock. Pengunjung publik hanya sampai di `/under-development`; hanya akun yang sudah terdaftar yang bisa masuk lewat Login.
+
 Landing Page
 
 ↓
@@ -124,11 +126,11 @@ Planning
 
 ↓
 
-Architecture Review (ChatGPT)
+Architecture Review
 
 ↓
 
-Implementation (Qwen)
+Implementation (Claude Code)
 
 ↓
 
@@ -196,33 +198,24 @@ Jika salah satu gagal, task dianggap belum selesai.
 
 # AI Roles
 
-## ChatGPT
+Sejak Agustus 2026 seluruh implementasi dikerjakan dengan **Claude Code**, menggantikan pembagian peran ChatGPT dan Qwen pada fase awal project. Dokumen arsip dari era tersebut ada di `project-docs/` dan bersifat historis saja.
 
-Bertanggung jawab untuk:
+Claude Code bertanggung jawab untuk:
 
-- System Architecture
-- Technical Review
-- Quality Assurance
-- Documentation
-- Planning
-- Product Design
+- Implementation, refactoring, dan bug fixing
+- Technical review dan quality assurance
+- Migration database
+- Pemeliharaan dokumentasi
 
-## Qwen
-
-Bertanggung jawab untuk:
-
-- Coding
-- Refactoring
-- UI Implementation
-- Bug Fixing
+Keputusan produk, arsitektur tingkat tinggi, dan prioritas tetap di tangan Yohan.
 
 ---
 
 # Documentation Strategy
 
-Mintlify adalah **Single Source of Truth** untuk seluruh dokumentasi proyek.
+Mintlify adalah **Single Source of Truth** untuk seluruh dokumentasi proyek, dipublikasikan di `docs.yohanai.id`. Sumbernya adalah berkas `.mdx` di folder `docs/` pada repository ini — push ke `main` otomatis men-deploy Vercel dan Mintlify sekaligus.
 
-Dokumen lokal tidak lagi digunakan sebagai dokumentasi utama.
+Satu pengecualian: `AGENTS.md` di root repository. Berkas itu bukan dokumentasi produk melainkan konteks teknis yang dibaca otomatis oleh AI setiap memulai sesi, sehingga harus tetap berada di root.
 
 ---
 
@@ -230,7 +223,10 @@ Dokumen lokal tidak lagi digunakan sebagai dokumentasi utama.
 
 Setiap memulai sesi baru, AI wajib membaca:
 
-1. Project Context
-2. Project Status
+1. `AGENTS.md` di root repository
+2. Project Context
+3. Project Status
+
+Tidak perlu membuat dokumen handoff baru setiap pindah sesi. Perbarui ketiga dokumen di atas.
 
 Setelah itu langsung melanjutkan task tanpa investigasi ulang yang tidak diperlukan.

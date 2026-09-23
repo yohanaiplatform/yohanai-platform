@@ -119,6 +119,7 @@ Target:
 
 ## Next Priority
 
+- Integrasi lead intake dari Google Form + Apps Script ke `customer.leads` (dibahas 23 Sep 2026, menunggu detail kolom form)
 - CRM Foundation
 - Property Module
 - Sales Pipeline
@@ -176,7 +177,7 @@ Target:
 
 ## High
 
-- None
+- **Migration Sprint 011 tidak ada di repository.** Perubahan skema Edit Profile dan Notification Preferences dijalankan langsung di Supabase SQL Editor dan SQL-nya tidak pernah di-commit. Yang terdampak: `core.business_roles`, empat tabel wilayah beserta seed-nya, kolom baru `auth_ext.profiles`, `profile_completeness_rules`, `auth_ext.notification_preferences`, dan RPC `check_profile_completeness()`. Akibatnya database tidak bisa dibangun ulang dari nol memakai isi repository. Tarik SQL-nya dari Supabase dan masukkan sebagai migration bernomor sebelum modul CRM dimulai.
 
 ## Medium
 

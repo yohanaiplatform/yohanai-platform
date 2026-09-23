@@ -17,11 +17,18 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 
 | Item | Status |
 |------|--------|
-| Development | 🟡 In Progress |
-| Production Ready | 🟡 Foundation |
-| Backend | ✅ Available |
-| UI | 🟡 In Progress |
+| Development | 🔵 Belum dimulai |
+| Production Ready | ❌ Belum |
+| Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
+| RLS policy | ❌ Belum ada — lihat catatan di bawah |
+| UI | ❌ Masih placeholder |
 | AI Integration | 🔵 Planned |
+
+Dua catatan penting sebelum modul ini dikerjakan:
+
+**Skema sudah siap, aksesnya belum.** Migration `007_customer_tables.sql` sudah membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`. Tetapi `017_rls.sql` belum memuat satu pun policy untuk schema `customer`. RLS aktif tanpa policy berarti semua akses ditolak — data bisa masuk lewat `service_role` tapi tidak akan terbaca dari aplikasi. Policy dan `GRANT` harus ditambahkan lebih dulu.
+
+**Halaman `/crm` masih placeholder** berisi empty state, belum tersambung ke database.
 
 ---
 
@@ -221,6 +228,6 @@ Automation
 
 # Last Updated
 
-24 July 2026
+23 September 2026
 
-Sprint 009
+Sprint 011 — Platform Hold
