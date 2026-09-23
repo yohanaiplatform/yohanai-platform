@@ -48,9 +48,12 @@ Sudah selesai di sisi platform:
 - **`/api/leads/intake` ditambahkan ke `PUBLIC_PATHS`** di `src/lib/platform-lock.ts` — diamankan lewat secret header (`LEADS_INTAKE_SECRET`), bukan sesi login.
 - TypeScript PASS, ESLint tidak nambah error, `npm run build` PASS, guard 401/400 route sudah dites jalan di dev server.
 
+**Endpoint sudah diverifikasi hidup di production** (24 September 2026): `SUPABASE_SERVICE_ROLE_KEY` dan `LEADS_INTAKE_SECRET` sudah terisi di Vercel, dan tes end-to-end lewat `curl` ke `https://yohanai.id/api/leads/intake` sukses — insert masuk ke `customer.leads`, dedup lewat `metadata->>source_row_ref` jalan (kirim payload sama dua kali → row kedua ditandai `duplicate: true` dengan `leadId` yang sama), `lead_source_id` benar mengarah ke "Google Form", nomor HP ternormalisasi ke format `62...`. Baris uji sudah dihapus lagi dari database.
+
+Sempat ketemu bug tambahan saat verifikasi ini: `service_role` ternyata belum pernah diberi `GRANT USAGE` ke schema `customer` (baru ketahuan sekarang karena baru sekarang ada fitur pertama yang pakai service-role key) — endpoint sempat balas `permission denied for schema customer`. Diperbaiki di migration `032_grant_service_role_customer_schema.sql`. Detail pola masalahnya sudah dicatat di `AGENTS.md` bagian jebakan.
+
 Masih menunggu dari Yohan:
 
-- Isi `SUPABASE_SERVICE_ROLE_KEY` (dari Supabase Dashboard → Settings → API) dan `LEADS_INTAKE_SECRET` di `.env.local` (lokal) dan Vercel (produksi).
 - Tempel kode kurir Apps Script (dikirim terpisah, bukan lewat commit — bukan bagian dari repo Next.js) dan pasang trigger "On form submit" baru untuk fungsi tersebut. Ini **trigger tambahan**, tidak mengubah/menghapus 8 trigger yang sudah ada.
 - Tambah 2 kolom header baru di sheet "Input Data": `Synced At` dan `YohanAI Lead ID` (kolom kosong berikutnya setelah AZ, yaitu BA & BB).
 - Jalankan backfill data lama sekali, lalu verifikasi row baru dari form beneran masuk ke `customer.leads` dengan `lead_source_id` yang benar.

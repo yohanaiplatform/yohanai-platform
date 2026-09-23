@@ -149,7 +149,7 @@ Target:
 
 ## Next Priority
 
-- **Lead Intake Fase 1 — 🟡 In Progress (23 Sep 2026).** Sisi platform selesai: migration `031` (lead source "Google Form"), route `POST /api/leads/intake`, exception di platform lock, TypeScript/ESLint/build PASS. Menunggu Yohan: isi `SUPABASE_SERVICE_ROLE_KEY` & `LEADS_INTAKE_SECRET` di env, tempel kurir Apps Script (trigger tambahan, tidak sentuh 8 trigger existing), tambah kolom `Synced At`/`YohanAI Lead ID`, jalankan backfill. Detail lengkap di `docs/modules/crm.mdx`.
+- **Lead Intake Fase 1 — 🟡 In Progress (24 Sep 2026).** Sisi platform selesai dan **terverifikasi end-to-end di production**: migration `031` (lead source "Google Form"), migration `032` (fix `service_role` belum punya GRANT ke schema `customer` — ketemu saat tes runtime), route `POST /api/leads/intake`, exception di platform lock, TypeScript/ESLint/build PASS, tes `curl` production sukses insert + dedup. Menunggu Yohan: tempel kurir Apps Script (trigger tambahan, tidak sentuh 8 trigger existing), tambah kolom `Synced At`/`YohanAI Lead ID`, jalankan backfill. Detail lengkap di `docs/modules/crm.mdx`.
 - CRM Foundation
 - Property Module
 - Sales Pipeline
