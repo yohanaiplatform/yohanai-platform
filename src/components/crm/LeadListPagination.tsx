@@ -3,17 +3,29 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { LeadFilters } from "@/lib/crm/getLeads";
 
 interface LeadListPaginationProps {
   page: number;
   pageSize: number;
   totalCount: number;
+  filters: LeadFilters;
+}
+
+function buildHref(page: number, filters: LeadFilters): string {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
+  if (filters.dateTo) params.set("dateTo", filters.dateTo);
+  if (filters.kategori) params.set("kategori", filters.kategori);
+  return `/crm?${params.toString()}`;
 }
 
 export function LeadListPagination({
   page,
   pageSize,
   totalCount,
+  filters,
 }: LeadListPaginationProps) {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const hasPrev = page > 1;
@@ -28,7 +40,7 @@ export function LeadListPagination({
       </p>
       <div className="flex gap-2">
         <Link
-          href={`/crm?page=${page - 1}`}
+          href={buildHref(page - 1, filters)}
           aria-disabled={!hasPrev}
           tabIndex={hasPrev ? undefined : -1}
           className={cn(
@@ -39,7 +51,7 @@ export function LeadListPagination({
           Sebelumnya
         </Link>
         <Link
-          href={`/crm?page=${page + 1}`}
+          href={buildHref(page + 1, filters)}
           aria-disabled={!hasNext}
           tabIndex={hasNext ? undefined : -1}
           className={cn(

@@ -1,8 +1,14 @@
 // src/components/crm/LeadList.tsx
 
+import { MessageCircle } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusBadge } from "@/components/crm/lead-status-badge";
 import { getLeadMetadataString, type LeadListItem } from "@/lib/crm/getLeads";
+
+function buildWhatsAppLink(phone: string, nama: string): string {
+  const text = `Halo ${nama}, saya dari Yohan.AI ingin follow-up permintaan Anda.`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
 
 interface LeadListProps {
   data: LeadListItem[] | null;
@@ -39,21 +45,20 @@ export function LeadList({ data, error }: LeadListProps) {
             <th className="px-3 py-2 font-medium">Kategori</th>
             <th className="px-3 py-2 font-medium">Status</th>
             <th className="px-3 py-2 font-medium">Tanggal Masuk</th>
+            <th className="px-3 py-2 font-medium">Aksi</th>
           </tr>
         </thead>
         <tbody>
           {data.map((lead) => {
             const kategori = getLeadMetadataString(lead.metadata, "kategori");
+            const nama = `${lead.first_name} ${lead.last_name}`.trim() || "Tanpa Nama";
 
             return (
               <tr
                 key={lead.id}
                 className="border-b border-border last:border-0"
               >
-                <td className="px-3 py-3 font-medium">
-                  {`${lead.first_name} ${lead.last_name}`.trim() ||
-                    "Tanpa Nama"}
-                </td>
+                <td className="px-3 py-3 font-medium">{nama}</td>
                 <td className="px-3 py-3 text-muted-foreground">
                   {lead.phone ?? lead.email ?? "-"}
                 </td>
@@ -72,6 +77,21 @@ export function LeadList({ data, error }: LeadListProps) {
                     month: "short",
                     year: "numeric",
                   })}
+                </td>
+                <td className="px-3 py-3">
+                  {lead.phone ? (
+                    <a
+                      href={buildWhatsAppLink(lead.phone, nama)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Hubungi lewat WhatsApp"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
                 </td>
               </tr>
             );

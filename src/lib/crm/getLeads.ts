@@ -23,24 +23,44 @@ export interface GetLeadsResult {
   error: boolean;
 }
 
+export interface LeadFilters {
+  /** Tanggal awal, format YYYY-MM-DD (dari input type=date). */
+  dateFrom?: string;
+  /** Tanggal akhir, format YYYY-MM-DD (dari input type=date), inklusif. */
+  dateTo?: string;
+  /** Nilai persis metadata->>kategori, lihat LEAD_KATEGORI_OPTIONS. */
+  kategori?: string;
+}
+
 export async function getLeads(
   supabase: SupabaseClient<Database>,
-  page: number
+  page: number,
+  filters: LeadFilters = {}
 ): Promise<GetLeadsResult> {
   const from = (page - 1) * LEADS_PAGE_SIZE;
   const to = from + LEADS_PAGE_SIZE - 1;
 
+  let query = supabase
+    .schema("customer")
+    .from("leads")
+    .select(
+      "id, first_name, last_name, email, phone, status, created_at, metadata, lead_source_id",
+      { count: "exact" }
+    )
+    .is("deleted_at", null);
+
+  if (filters.dateFrom) {
+    query = query.gte("created_at", `${filters.dateFrom}T00:00:00.000Z`);
+  }
+  if (filters.dateTo) {
+    query = query.lte("created_at", `${filters.dateTo}T23:59:59.999Z`);
+  }
+  if (filters.kategori) {
+    query = query.eq("metadata->>kategori", filters.kategori);
+  }
+
   const [leadsRes, sourcesRes] = await Promise.all([
-    supabase
-      .schema("customer")
-      .from("leads")
-      .select(
-        "id, first_name, last_name, email, phone, status, created_at, metadata, lead_source_id",
-        { count: "exact" }
-      )
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .range(from, to),
+    query.order("created_at", { ascending: false }).range(from, to),
     supabase.schema("customer").from("lead_sources").select("id, name"),
   ]);
 
