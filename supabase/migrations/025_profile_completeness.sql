@@ -253,6 +253,10 @@ BEGIN
 END;
 $function$;
 
+-- CATATAN: REVOKE dari PUBLIC saja TIDAK cukup. Supabase memberi EXECUTE
+-- secara eksplisit ke role `anon` lewat default privileges, sehingga revoke
+-- dari PUBLIC tidak menyentuhnya. Pencabutan dari `anon` ada di
+-- 028_harden_functions.sql.
 REVOKE ALL ON FUNCTION public.check_profile_completeness(UUID, SMALLINT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.check_profile_completeness(UUID, SMALLINT) TO authenticated;
 
