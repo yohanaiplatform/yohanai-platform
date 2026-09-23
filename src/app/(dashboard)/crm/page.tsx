@@ -43,9 +43,11 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
           {filters.temperature && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Filter aktif:</span>
-              <Badge variant="secondary" className="capitalize">
-                {filters.temperature}
-              </Badge>
+              {filters.temperature.split(",").map((t) => (
+                <Badge key={t} variant="secondary" className="capitalize">
+                  {t.trim()}
+                </Badge>
+              ))}
               <Link
                 href="/crm"
                 className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"

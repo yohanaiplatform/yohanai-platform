@@ -68,6 +68,15 @@ export interface Insight {
   category: string;
   priority: "high" | "medium" | "low";
   created_at: string;
+  /** Kalau ada, kartu bisa diklik dan mengarah ke sini (mis. Lead List terfilter). */
+  href?: string;
+  /**
+   * true = contoh ilustratif, BUKAN dihitung dari data asli. Dipakai
+   * untuk insight yang butuh infrastruktur AI/tracking yang belum ada
+   * (page-view tracking, competitor scraping). Ganti ke false/hapus
+   * flag ini begitu logika aslinya sudah jalan.
+   */
+  isPlaceholder?: boolean;
 }
 
 export interface DashboardData {

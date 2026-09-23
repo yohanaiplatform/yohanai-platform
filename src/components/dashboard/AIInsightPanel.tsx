@@ -1,5 +1,6 @@
 // src/components/dashboard/AIInsightPanel.tsx
 
+import Link from "next/link";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { Insight } from "@/types/dashboard";
@@ -52,14 +53,22 @@ export function AIInsightPanel({ data, error }: AIInsightPanelProps) {
                 ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                 : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
 
-          return (
+          const cardContent = (
             <div
-              key={insight.id}
-              className="rounded-xl border bg-card p-4 shadow-sm"
+              className={`rounded-xl border bg-card p-4 shadow-sm ${
+                insight.isPlaceholder ? "border-dashed opacity-60" : ""
+              } ${insight.href ? "transition-opacity hover:opacity-80" : ""}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h4 className="font-semibold">{insight.title}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-semibold">{insight.title}</h4>
+                    {insight.isPlaceholder && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        Segera hadir -- belum aktif
+                      </span>
+                    )}
+                  </div>
 
                   <p className="mt-1 text-sm text-muted-foreground">
                     {insight.description}
@@ -78,6 +87,14 @@ export function AIInsightPanel({ data, error }: AIInsightPanelProps) {
                 </span>
               </div>
             </div>
+          );
+
+          return insight.href ? (
+            <Link key={insight.id} href={insight.href}>
+              {cardContent}
+            </Link>
+          ) : (
+            <div key={insight.id}>{cardContent}</div>
           );
         })}
       </div>

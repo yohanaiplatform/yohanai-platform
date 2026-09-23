@@ -30,7 +30,11 @@ export interface LeadFilters {
   dateTo?: string;
   /** Nilai persis metadata->>kategori, lihat LEAD_KATEGORI_OPTIONS. */
   kategori?: string;
-  /** hot | warm | cold | closing | batal -- dari metadata->>status_funnel_awal, dicocokkan tanpa peduli huruf besar/kecil. */
+  /**
+   * hot | warm | cold | closing | batal -- dari metadata->>status_funnel_awal,
+   * dicocokkan tanpa peduli huruf besar/kecil. Bisa lebih dari satu,
+   * dipisah koma (mis. "hot,warm").
+   */
   temperature?: string;
 }
 
@@ -61,7 +65,14 @@ export async function getLeads(
     query = query.eq("metadata->>kategori", filters.kategori);
   }
   if (filters.temperature) {
-    query = query.ilike("metadata->>status_funnel_awal", filters.temperature);
+    const values = filters.temperature.split(",").map((v) => v.trim()).filter(Boolean);
+    if (values.length === 1) {
+      query = query.ilike("metadata->>status_funnel_awal", values[0]);
+    } else if (values.length > 1) {
+      query = query.or(
+        values.map((v) => `metadata->>status_funnel_awal.ilike.${v}`).join(",")
+      );
+    }
   }
 
   const [leadsRes, sourcesRes] = await Promise.all([

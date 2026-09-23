@@ -34,7 +34,7 @@ export default async function DashboardPage() {
     getRecentChats(supabase),
     getLeadSummary(supabase),
     getPropertySummary(supabase),
-    getDashboardInsights(),
+    getDashboardInsights(supabase),
   ]);
 
   return (
