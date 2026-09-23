@@ -22,9 +22,13 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 ## Pekerjaan berikutnya
 
-**Lead intake dari Google Form ke `customer.leads`.** Rencana lengkapnya — arsitektur tiga bagian, urutan fase, dan jebakan yang sudah diketahui — ada di `docs/modules/crm.mdx` bagian "Rencana Lead Intake dari Google Form". Baca itu dulu sebelum menulis kode.
+**Lead Intake Fase 1 sudah SELESAI** (endpoint, migration, dedup, backfill — terverifikasi end-to-end di production 23 September 2026). Jangan bangun ulang, baca dulu `docs/modules/crm.mdx` bagian "Rencana Lead Intake dari Google Form" dan "Fase 2 — CRM Foundation" untuk lihat apa yang sudah ada.
 
-Satu hal yang wajib diingat: Apps Script legacy Yohan **bukan sekadar penangan form**. Menurut `docs/migration/migration-blueprint.mdx` di dalamnya ada AI Processor, Decision Engine, CRM Engine, dan integrasi WAHA/n8n. Pisahkan dulu mana yang memindahkan data dan mana yang mengandung logika bisnis sebelum memutuskan apa pun.
+**Kerjaan sekarang: CRM Foundation Fase 2.** Lead List (baca, filter tanggal/kategori/temperature, tombol WA) sudah live. Sisa: Lead Detail page, ubah status lead dari UI, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx` bagian "Fase 2".
+
+Setelah itu: keputusan WAHA vs Fonnte untuk Communication Automation (belum dibahas sama sekali — jangan mulai bangun integrasi WA apa pun sebelum ini diputuskan eksplisit bareng Yohan), lalu Property Module, lalu AI Foundation (baru ada 1 insight nyata: Follow-up Backlog).
+
+Satu hal yang wajib diingat kalau nanti menyentuh Apps Script legacy Yohan lagi: **bukan sekadar penangan form**. Menurut `docs/migration/migration-blueprint.mdx` di dalamnya ada AI Processor, Decision Engine, CRM Engine, dan integrasi WAHA/n8n — 2 dari trigger AI-nya (`batchDetectConsumerIntent`, `batchExtractBudget`) sudah diketahui error rate 100%, dan API key AI-nya plaintext di kode. Pisahkan dulu mana yang memindahkan data dan mana yang mengandung logika bisnis sebelum memutuskan apa pun. **Hati-hati navigasi keyboard di editor Apps Script web** — tombol seperti "Page Down" bisa kepencet jadi teks literal di kode kalau fokus salah taruh (pernah nyaris mengubah kode production Yohan tanpa sengaja); pakai klik berbasis referensi elemen (`find` + `ref`) atau `ctrl+End`/panah biasa, bukan tombol non-standar.
 
 ---
 
@@ -51,7 +55,11 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation
+src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
+src/lib/crm/                  getLeads() dan helper CRM Foundation (Fase 2)
+src/components/crm/           Lead List, filter, status badge (Fase 2)
+src/components/shared/        WhatsAppButton — dipakai CRM + dashboard
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
 ```
@@ -61,6 +69,8 @@ project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Histo
 # Aturan kerja dengan Yohan
 
 **Selalu berikan perintah untuk dijalankan sendiri, jangan dijalankan untuk dia.** Build, commit, push, install — tulis dalam blok kode siap-copy dengan sintaks **cmd.exe**, satu perintah per blok. Perintah baca-saja untuk diagnosis (git status, lint, typecheck) boleh dijalankan sendiri.
+
+**Kalau ada kode untuk sistem di luar repo ini yang harus ditempel manual oleh Yohan** (Apps Script legacy, dashboard pihak ketiga, dll) — selalu kasih isi file LENGKAP siap copy-paste-save, jangan potongan kode atau instruksi "ganti fungsi X dengan ini". Ditegur eksplisit 24 September 2026 setelah kasih instruksi ganti-satu-fungsi yang berujung Yohan salah paste (nyisa karakter `}` dari kode lama, jadi syntax error). Pengecualian: perbaikan 1 karakter yang lokasinya sudah jelas ditunjuk boleh dijelaskan saja tanpa tulis ulang seluruh file.
 
 Bahasa: Indonesia.
 
@@ -74,7 +84,17 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS dan GRANT itu dua lapisan berbeda.** Policy RLS yang benar tetap tidak berguna kalau role `authenticated` belum diberi `GRANT SELECT/UPDATE` pada tabelnya. Pernah menghabiskan satu sesi penuh di Edit Profile. Tulis `GRANT` eksplisit di migration sejak awal, bersama `DROP POLICY IF EXISTS` supaya idempotent.
 
-**`service_role` juga butuh GRANT eksplisit ke schema domain — tidak otomatis dapat semua.** Baru ketahuan 24 September 2026 saat endpoint pertama yang pakai service-role key (`POST /api/leads/intake`) ditulis: `service_role` cuma otomatis punya `USAGE` di schema `public`, sama sekali tidak di `customer`/`core`/`chat`/`property`/`auth_ext`. `BYPASSRLS` yang dipunya `service_role` cuma bikin lolos dari evaluasi RLS policy — tanpa `GRANT USAGE` + hak tabel dasar, query tetap ditolak Postgres duluan dengan `permission denied for schema x`. Kalau menulis endpoint server-to-server baru yang pakai `createAdminClient()` dan menyentuh schema selain `public`, cek dulu `has_schema_privilege('service_role', '<schema>', 'USAGE')` — jangan asumsikan service role otomatis bisa semua.
+**GRANT yang hilang bukan cuma soal `authenticated`+`customer` — polanya berulang di kombinasi role/schema lain, dan kemungkinan masih ada yang belum ketahuan.** Tiga kejadian terpisah, tiga kombinasi berbeda:
+
+1. `authenticated` × `customer.*` — `027`.
+2. `service_role` × `customer` — `service_role` cuma otomatis punya `USAGE` di schema `public`, sama sekali tidak di `customer`/`core`/`chat`/`property`/`auth_ext`. `BYPASSRLS` yang dipunya `service_role` cuma bikin lolos dari evaluasi RLS policy, bukan pengganti GRANT dasar. Ketemu 23 September 2026 saat endpoint pertama yang pakai service-role key (`POST /api/leads/intake`) ditulis, diperbaiki **cuma untuk schema `customer`** di `032` — `service_role` masih belum punya `USAGE` di `auth_ext`/`chat`/`core`/`property` sampai sekarang, karena belum ada kode yang butuh.
+3. `authenticated` × `chat.conversations`/`chat.messages` — bikin widget "Recent Chats" di dashboard selalu `Error`. Diperbaiki di `034`.
+
+Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di beberapa tabel `core.*` (RBAC: `roles`, `permissions`, `role_permissions`, `settings`, `audit_logs`) dan `property.categories`/`property.listings` — **sengaja belum diperbaiki** karena belum ada kode yang menyentuhnya. **Sebelum menulis kode yang query tabel/schema baru** (terutama RBAC atau Property Module), cek dulu `has_schema_privilege(role, 'schema', 'USAGE')` dan `has_table_privilege(role, 'schema.table', 'SELECT')` — jangan asumsikan GRANT otomatis ada hanya karena RLS policy-nya ada, dan jangan asumsikan schema yang sudah beres untuk satu role otomatis beres untuk role lain.
+
+**Perintah `GRANT` lewat Supabase MCP selalu ditahan classifier permission Claude Code**, apa pun tool-nya (`execute_sql` maupun `apply_migration`) — butuh konfirmasi eksplisit dari Yohan di chat setiap kali, tidak bisa di-allow permanen. Kadang satu `GRANT` tunggal lolos tanpa ditahan (tidak konsisten), tapi jangan andalkan itu — selalu siap untuk berhenti dan minta konfirmasi kalau kena tahan.
+
+**Apps Script mengirim tanggal sebagai `String(dateObject)` (format `Date.prototype.toString()` V8), bukan ISO.** Contoh: `"Wed Jan 14 2026 20:56:02 GMT+0700 (Western Indonesia Time)"`. `new Date(...)` di Node.js/Vercel bisa parse ini langsung (sama-sama V8). Postgres **tidak bisa** cast langsung (`time zone "gmt+0700" not recognized`) — buang bagian `" GMT..."` lewat `regexp_replace(value, ' GMT.*$', '')`, lalu `::timestamp AT TIME ZONE 'Asia/Jakarta'` (WIB selalu UTC+7, tidak kenal DST). Dipakai di migration `033`.
 
 **Fungsi SECURITY DEFINER tidak boleh mempercayai parameter identitas dari client.** Ambil identitas dari `auth.uid()` — nilai dari JWT yang tidak bisa dipalsukan — dan tolak parameter yang menunjuk user lain. `check_profile_completeness` dulu menerima `p_user_id` apa adanya, sehingga user yang login bisa mengintip kelengkapan profil orang lain. Diperbaiki di `030`.
 
@@ -84,7 +104,7 @@ Setiap milestone selesai, perbarui `docs/status.mdx`. Push ke `main` otomatis me
 
 **RLS aktif tanpa policy = semua akses ditolak, dan gejalanya menipu.** `public.profile_completeness_rules` pernah begini: pembacaan langsung dari client mengembalikan nol baris sehingga daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Fitur tampak hidup padahal separuhnya mati. Sudah diperbaiki di `025`, tapi polanya patut diwaspadai di tempat lain.
 
-**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`030`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
+**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`034`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 

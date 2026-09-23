@@ -39,7 +39,7 @@ Fase sebelumnya: 🚀 Feature Development (Sprint 011) — dilanjutkan saat lock
 
 # Audit Skema Database — 23 September 2026
 
-Seluruh riwayat migration kini **utuh, `001`–`030`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
+Seluruh riwayat migration kini **utuh, `001`–`034`, tanpa celah**, dan terverifikasi sinkron antara repository dan database.
 
 **Masalah yang dibereskan.** Perubahan skema Sprint 011 (Edit Profile dan Notification Preferences) dulu dijalankan langsung lewat Supabase SQL Editor dan tidak pernah tercatat sebagai migration maupun di-commit — database tidak bisa dibangun ulang dari nol. Seluruh objeknya ditarik ulang dari struktur database hidup menjadi migration `022`–`026`, ditulis idempotent, lalu diterapkan dengan `supabase db push`.
 
@@ -64,6 +64,28 @@ Seluruh riwayat migration kini **utuh, `001`–`030`, tanpa celah**, dan terveri
 **Yang sengaja dibiarkan:** EXECUTE `core.is_authenticated()` dari `PUBLIC` tidak dicabut — fungsi itu dievaluasi di dalam policy RLS memakai hak role pemanggil, sehingga mencabutnya melumpuhkan RLS di seluruh database tanpa imbalan keamanan apa pun. Lima ekstensi di schema `public` (`vector`, `pg_trgm`, `btree_gist`, `btree_gin`, `moddatetime`) juga dibiarkan karena memindahkannya berisiko memecah index dan tipe kolom yang memakainya.
 
 **Pelajaran yang dicatat permanen di `AGENTS.md`:** isi repository bukan cermin isi database. Policy RLS untuk seluruh schema domain ternyata ada di database tapi tidak ada di `017_rls.sql` — kesimpulan soal keadaan database tidak boleh diambil hanya dari membaca file migration.
+
+**Pola yang sama ketemu lagi 2x, kali ini bukan di `authenticated`+`customer` (`027`), tapi di kombinasi role/schema lain:**
+
+8. **`service_role` tidak pernah diberi `GRANT USAGE` ke schema domain manapun** (`customer`, `core`, `chat`, `property`, `auth_ext`) — cuma otomatis dapat di `public`. Ketemu saat verifikasi runtime `POST /api/leads/intake` di production: `permission denied for schema customer`. `service_role` punya atribut `BYPASSRLS`, tapi itu cuma melewati evaluasi RLS policy, bukan GRANT dasar. Diperbaiki **cuma untuk schema `customer`** di `032` (scope sengaja dipersempit ke yang benar-benar dipakai hari ini).
+
+9. **`authenticated` tidak pernah diberi GRANT ke `chat.conversations`/`chat.messages`.** Policy RLS `authenticated_all` sudah benar, tapi widget "Recent Chats" di dashboard selalu balas `Error: Unable to load conversations` karena GRANT dasarnya tidak ada. Diperbaiki di `034`.
+
+**Audit menyeluruh dilakukan setelah temuan ke-2 ini** (23 September 2026) untuk memetakan celah yang tersisa, supaya sesi berikutnya tidak perlu menemukan ulang satu-satu. Hasilnya:
+
+| Role | Schema tanpa `USAGE` |
+|------|----------------------|
+| `service_role` | `auth_ext`, `chat`, `core`, `property` (customer sudah diperbaiki di `032`) |
+| `authenticated` / `anon` | Tidak ada — `USAGE` sudah ada di semua schema domain |
+
+`USAGE` di level schema saja tidak cukup — perlu dicek juga per tabel. Tabel yang `authenticated` **belum** punya `SELECT`-nya (per 23 September 2026, sebelum ada kebutuhan nyata jadi sengaja belum diperbaiki):
+
+- `core.audit_logs`, `core.permissions`, `core.role_permissions`, `core.roles`, `core.settings`
+- `property.categories`, `property.listings`
+
+**Implikasi untuk kerja berikutnya:** kalau mulai membangun modul yang menyentuh RBAC (`core.roles`/`permissions`) atau Property Module (`property.listings`), **cek dulu** `has_table_privilege(role, 'schema.table', 'SELECT')` sebelum menulis kode query-nya — jangan asumsikan GRANT otomatis ada hanya karena RLS policy-nya ada. `getPropertySummary.ts` saat ini murni stub (return angka 0 hardcode, parameter `supabase`-nya bahkan tidak dipakai) — bukan diblokir GRANT, memang belum pernah diimplementasikan.
+
+**Catatan operasional:** perintah `GRANT` lewat Supabase MCP (`execute_sql`/`apply_migration`) **selalu ditahan otomatis** oleh classifier permission Claude Code ("Permission Grant"), butuh konfirmasi eksplisit dari Yohan di chat tiap kali — bukan sekali setting lalu selesai. Ini kejadian konsisten sepanjang sesi 23 September (migration `032` dan `034` sama-sama sempat tertahan dulu).
 
 ---
 
@@ -149,12 +171,12 @@ Target:
 
 ## Next Priority
 
-- **Lead Intake Fase 1 — 🟡 In Progress (24 Sep 2026).** Sisi platform selesai dan **terverifikasi end-to-end di production**: migration `031` (lead source "Google Form"), migration `032` (fix `service_role` belum punya GRANT ke schema `customer` — ketemu saat tes runtime), route `POST /api/leads/intake`, exception di platform lock, TypeScript/ESLint/build PASS, tes `curl` production sukses insert + dedup. Menunggu Yohan: tempel kurir Apps Script (trigger tambahan, tidak sentuh 8 trigger existing), tambah kolom `Synced At`/`YohanAI Lead ID`, jalankan backfill. Detail lengkap di `docs/modules/crm.mdx`.
-- CRM Foundation
+- **Lead Intake Fase 1 — ✅ Selesai & terverifikasi end-to-end di production (23 Sep 2026).** Endpoint, migration, dedup, normalisasi HP semua tes lolos lewat `curl` langsung ke `https://yohanai.id`. Backfill ~2000 lead lama sedang/sudah berjalan lewat Apps Script (`backfillLeadsToYohanAI()`, dijalankan manual oleh Yohan). Detail lengkap di `docs/modules/crm.mdx`.
+- **CRM Foundation Fase 2 — 🟡 In Progress (23 Sep 2026).** Lead List baca data asli, filter, tombol WA, Lead Funnel nyata & bisa diklik, AI Intelligence sebagian nyata — semua sudah live. Sisa: Lead Detail page, ubah status dari UI, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx`.
 - Property Module
 - Sales Pipeline
-- AI Intelligence
-- Communication Automation
+- AI Intelligence (lanjutan — 1 insight nyata sudah ada, WAHA/Fonnte belum diputuskan)
+- Communication Automation (blocked oleh keputusan WAHA vs Fonnte)
 
 ---
 
@@ -194,12 +216,12 @@ Target:
 | Landing Page | ✅ Complete |
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
-| Dashboard Foundation | ✅ Complete |
-| CRM | 🟡 In Progress |
-| Property | 🟡 In Progress |
+| Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
+| CRM | 🟡 In Progress — Lead List (baca, filter, WA) selesai; Lead Detail & ubah status belum |
+| Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
 | Sales | 🟡 Planned |
-| AI Intelligence | 🔵 Planned |
-| Communication Automation | 🔵 Planned |
+| AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
+| Communication Automation | 🔵 Planned — menunggu keputusan WAHA vs Fonnte |
 
 ---
 
@@ -216,8 +238,9 @@ Target:
 
 ## Low
 
-- Dashboard Insight masih menggunakan dummy data
-- Property Summary masih placeholder
+- 2 dari 3 kartu AI Intelligence masih contoh ilustratif (ditandai jelas "Segera hadir" di UI, tidak dihapus supaya gampang dikembalikan begitu AI Foundation jalan) — lihat `docs/modules/crm.mdx`
+- Property Summary masih placeholder murni (`getPropertySummary.ts` return 0 hardcode, belum query `property.listings` sama sekali)
+- `authenticated` belum punya `SELECT` di `property.listings`/`property.categories` dan beberapa tabel `core.*` (RBAC) — belum jadi masalah karena belum ada kode yang menyentuhnya, tapi cek dulu sebelum mulai Property Module (lihat bagian Audit Skema Database)
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
@@ -228,7 +251,7 @@ Target:
 
 # Next Milestone
 
-**CRM Foundation** — siap dimulai. Edit Profile Feature (Priority 2) tuntas semua sub-task inti; 2 item backlog kecil (upload foto, System Information) tidak memblokir.
+**CRM Foundation** — sedang berjalan. Lead List (baca, filter tanggal/kategori/temperature, tombol WA) sudah live di production. Sisa: halaman Lead Detail, ubah status lead dari UI, filter Sumber Informasi.
 
 ---
 
@@ -260,11 +283,15 @@ Task 002
 
 Edit Profile Feature — ✅ **Selesai.** Role bisnis, data dasar, cascading wilayah, completeness table-driven, Change Password, Notification Preferences — semua tervalidasi end-to-end. Upload foto profil & keputusan System Information dipindah ke backlog terpisah.
 
-### Next Task
-
 Task 003
 
-CRM Foundation
+Lead Intake Fase 1 — ✅ **Selesai & terverifikasi end-to-end di production.** Endpoint `POST /api/leads/intake`, migration `031`-`034`, dedup, normalisasi HP, backfill data lama (Apps Script, dijalankan Yohan). Detail: `docs/modules/crm.mdx`.
+
+### Next Task
+
+Task 004
+
+CRM Foundation Fase 2 — 🟡 **In Progress.** Lead List (baca, filter, WA) selesai; sisa Lead Detail page + ubah status dari UI.
 
 ---
 

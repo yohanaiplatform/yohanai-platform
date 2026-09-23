@@ -83,14 +83,13 @@ Nama tabel di bawah sudah diselaraskan dengan skema yang benar-benar ada di Supa
 
 ## API Mapping
 
-Belum ada satu pun yang dibangun. Route yang eksis saat ini hanya `/api/health`.
-
 | Legacy API | Next.js API | Status |
 |------------|-------------|--------|
-| createInboxLead | `/api/leads/intake` | 🔵 Rencana — lihat Rencana Lead Intake di halaman CRM Module |
+| createInboxLead | `POST /api/leads/intake` | ✅ Selesai, terverifikasi end-to-end di production (23 Sep 2026) — lihat "Rencana Lead Intake" di halaman CRM Module |
 | customer, createCustomer | `/api/leads` | 🔵 Rencana |
 | createChatLog | `/api/chatlogs` | 🔵 Rencana |
 | updateCustomerAI | `/api/ai/leads` | 🔵 Rencana |
+| — | `GET /api/health` | ✅ Selesai (health check) |
 
 ## Migration Strategy
 
@@ -102,11 +101,13 @@ Belum ada satu pun yang dibangun. Route yang eksis saat ini hanya `/api/health`.
 
 ## Current Sprint
 
-Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD.
+Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD, **Lead Intake dari Google Form (Fase 1)**.
 
-Berikutnya: Lead Intake dari Google Form, lalu CRM Foundation dan AI Foundation.
+Sedang jalan: **CRM Foundation (Fase 2)** — Lead List baca/filter/kontak selesai, Lead Detail & ubah status belum.
 
-Catatan penting sebelum migrasi dilanjutkan: **Apps Script legacy bukan sekadar pemindah data.** Di dalamnya ada AI Processor, Decision Engine, dan CRM Engine — logika bisnis yang perlu dipahami dan diputuskan nasibnya satu per satu, bukan diterjemahkan membabi buta ke kode baru.
+Berikutnya: sisa CRM Foundation, lalu Property Module, AI Foundation, dan keputusan WAHA vs Fonnte untuk Communication Automation.
+
+Catatan penting: **Apps Script legacy bukan sekadar pemindah data.** AI Processor, Decision Engine, dan CRM Engine di dalamnya sengaja TIDAK ikut dipindahkan ke `customer.leads` — hanya field mentah (input form) yang dikirim lewat `POST /api/leads/intake`. Detail pemetaan kolom mana yang mentah vs hasil AI ada di `docs/modules/crm.mdx`.
 
 ---
 

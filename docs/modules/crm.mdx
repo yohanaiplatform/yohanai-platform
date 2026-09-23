@@ -17,13 +17,13 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 
 | Item | Status |
 |------|--------|
-| Development | 🔵 Belum dimulai |
-| Production Ready | ❌ Belum |
+| Development | 🟡 In Progress — Lead Intake Fase 1 selesai, CRM Foundation Fase 2 sedang jalan |
+| Production Ready | 🟡 Sebagian — Lead List baca/filter sudah live, Lead Detail & ubah status belum ada |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
 | RLS policy | ✅ Ada (`authenticated_all`) |
-| GRANT | ✅ Ada (diperbaiki 23 Sep 2026) |
-| UI | ❌ Masih placeholder |
-| AI Integration | 🔵 Planned |
+| GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`) |
+| UI | 🟡 Lead List (baca, filter tanggal/kategori/temperature, tombol WA) — Lead Detail & ubah status belum |
+| AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
 
@@ -35,7 +35,7 @@ Yang tersisa murni pekerjaan aplikasi: jalur masuk data dan antarmukanya.
 
 # Rencana Lead Intake dari Google Form
 
-Dibahas 23 September 2026. **Fase 1 sedang dikerjakan.**
+Dibahas 23 September 2026. **Fase 1 selesai dan terverifikasi end-to-end di production.**
 
 ## Status Fase 1 — 23 September 2026
 
@@ -52,16 +52,74 @@ Sudah selesai di sisi platform:
 
 Sempat ketemu bug tambahan saat verifikasi ini: `service_role` ternyata belum pernah diberi `GRANT USAGE` ke schema `customer` (baru ketahuan sekarang karena baru sekarang ada fitur pertama yang pakai service-role key) — endpoint sempat balas `permission denied for schema customer`. Diperbaiki di migration `032_grant_service_role_customer_schema.sql`. Detail pola masalahnya sudah dicatat di `AGENTS.md` bagian jebakan.
 
-Masih menunggu dari Yohan:
+**Status per 23 September 2026, malam:** kurir Apps Script (`YohanAI_LeadIntake.gs`) sudah ditempel Yohan, trigger "On form submit" sudah terpasang (trigger tambahan, tidak mengubah/menghapus 8 trigger legacy yang sudah ada), kolom `Synced At` & `YohanAI Lead ID` sudah ditambahkan di sheet "Input Data". Backfill `backfillLeadsToYohanAI()` sudah/sedang dijalankan Yohan berkali-kali (dibatasi ~6 menit per run oleh Apps Script, jadi wajar butuh beberapa kali klik Run) — total lead di spreadsheet ±1968, per pengecekan terakhir di database sudah masuk 1141+ dan terus bertambah.
 
-- Tempel kode kurir Apps Script (dikirim terpisah, bukan lewat commit — bukan bagian dari repo Next.js) dan pasang trigger "On form submit" baru untuk fungsi tersebut. Ini **trigger tambahan**, tidak mengubah/menghapus 8 trigger yang sudah ada.
-- Tambah 2 kolom header baru di sheet "Input Data": `Synced At` dan `YohanAI Lead ID` (kolom kosong berikutnya setelah AZ, yaitu BA & BB).
-- Jalankan backfill data lama sekali, lalu verifikasi row baru dari form beneran masuk ke `customer.leads` dengan `lead_source_id` yang benar.
+**Kalau mulai sesi baru dan mau tahu progres backfill saat ini**, cek langsung:
+
+```sql
+select count(*) from customer.leads where metadata->>'origin' = 'google_form_legacy';
+```
+
+Bandingkan dengan total di spreadsheet (kartu "Total" di dashboard Apps Script lama). Kalau sudah sama-sama ~1968, backfill selesai — jalankan ulang query di migration `033` sekali lagi (idempotent, aman diulang) untuk membenahi `created_at` baris-baris yang masuk di jeda waktu sebelum perbaikan `route.ts` ter-deploy:
+
+```sql
+UPDATE customer.leads
+SET created_at = (regexp_replace(metadata->>'submitted_at', ' GMT.*$', '')::timestamp AT TIME ZONE 'Asia/Jakarta')
+WHERE metadata->>'origin' = 'google_form_legacy'
+  AND metadata->>'submitted_at' ~ '^[A-Za-z]{3} [A-Za-z]{3} \d{2} \d{4} \d{2}:\d{2}:\d{2} GMT'
+  AND created_at::date = now()::date;
+```
+
+(Filter `created_at::date = now()::date` sengaja dibatasi ke baris yang masih "hari ini" — supaya tidak menyentuh baris yang sudah benar.)
 
 ## Temuan sampingan (di luar cakupan Fase 1, dicatat saja)
 
 - **2 trigger AI error rate 100%**: `batchDetectConsumerIntent` dan `batchExtractBudget` di project Apps Script "CRM Yohan.AI" sudah gagal terus sejak beberapa waktu. Kolom `AI_Intent`, `Budget Min`, `Budget Max` di spreadsheet kemungkinan besar berhenti terisi karena ini.
 - **API key AI dalam bentuk plaintext** di `YohanAI_Automation.gs` (`AUTO_CONFIG.AI_API_KEY`, endpoint `ai.flaz.id`). Bukan masalah platform Next.js, tapi worth rotate kalau ada waktu.
+
+---
+
+# Fase 2 — CRM Foundation (23 September 2026)
+
+Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai halaman `/crm` dan `/dashboard` yang sudah production. **Statusnya "In Progress"** — bagian baca/filter/kontak sudah selesai, bagian ubah data (Lead Detail, ubah status) belum dimulai.
+
+## Yang sudah selesai
+
+**Lead List (`/crm`)** — server component, bukan lagi placeholder:
+
+- `src/lib/crm/getLeads.ts` — query `customer.leads` + join manual ke `customer.lead_sources` (dua query paralel, bukan PostgREST embed, supaya typing simpel), pagination lewat `range()`.
+- `src/components/crm/LeadList.tsx` — tabel: Nama, Kontak, Sumber (dari `metadata->>sumber_informasi`, BUKAN dari `lead_sources.name` — semua lead Fase 1 sama-sama "Google Form" jadi tidak informatif), Kategori, Status, Tanggal Masuk, Aksi (tombol WA).
+- `src/components/crm/lead-status-badge.tsx` — badge warna per status pipeline (`new`/`contacted`/.../`won`/`lost`).
+- Filter (`src/components/crm/LeadListFilters.tsx`): rentang tanggal (`dateFrom`/`dateTo`) dan Kategori/Property (dropdown dari `src/constants/crm.ts`, hardcode dari opsi Google Form asli — belum ada tabel property yang jadi sumber kebenaran). Form native `method="GET"`, tanpa JavaScript, konsisten dengan pola server component di seluruh halaman ini.
+- Filter `temperature` (hot/warm/cold/closing/batal, bisa multi-value dipisah koma mis. `hot,warm`) — dipicu dari klik tile Lead Funnel di dashboard, ditampilkan sebagai chip "Filter aktif" dengan link "Hapus filter".
+- **Tombol WhatsApp** (`src/components/shared/WhatsAppButton.tsx`) — `wa.me/<phone>` + pesan pembuka otomatis, dipakai di Lead List DAN di Recent Leads dashboard (komponen bersama, bukan duplikat).
+
+**Dashboard, tiga perbaikan:**
+
+1. **Lead Funnel dulu selalu 0% semua temperature** — bug: query `getLeadSummary.ts` memfilter `leads.status = 'hot'/'warm'/'cold'`, padahal kolom itu pipeline (`new`/.../`won`/`lost`), CHECK constraint-nya bahkan menolak nilai itu. Temperature asli ada di `metadata->>status_funnel_awal`. Diperbaiki, DAN diperluas dari 3 jadi 5 kategori (Hot/Warm/Cold/Closing/Batal, sesuai 5 status funnel di spreadsheet legacy). Tiap tile sekarang **link ke `/crm?temperature=<x>`** dan dipindah ke atas halaman (sebelum Recent Leads/Chats).
+2. **Recent Leads** — baris "Source ID: `<uuid>`" (tidak berguna) diganti Kategori lead; badge status "new" (selalu sama, tidak informatif — namanya "Recent" pasti baru) diganti tombol WA.
+3. **AI Intelligence** — sebelumnya 100% teks statis/fiktif ("Lead #8821" tidak pernah ada). Diganti **sementara** (bukan dihapus): 1 kartu nyata "Follow-up Backlog" (`src/lib/dashboard/getDashboardInsights.ts`) menghitung lead Hot/Warm yang `metadata->>follow_up_terakhir`-nya kosong atau >48 jam, klik → `/crm?temperature=hot,warm`. 2 kartu lain **tetap ada di kode**, ditandai `isPlaceholder: true` + prefix "(Contoh)" + badge "Segera hadir" di UI — supaya gampang dikembalikan (cabut flag-nya) begitu AI Foundation (page-view tracking, dll) beneran dibangun.
+
+**Bug data terkait, ditemukan & diperbaiki di jalan:**
+
+- **`created_at` semua lead backfill = waktu insert (hari backfill jalan), bukan tanggal submit asli** — bikin "Today's New Leads" di dashboard selalu sama dengan Total Leads, dan filter tanggal di Lead List tidak berguna. `route.ts` sekarang parse `metadata.submittedAt` (format `Date.toString()` V8 dari Apps Script) jadi `created_at` eksplisit saat insert. Migration `033` membenahi retroaktif lead yang sudah kadung masuk. **Sengaja pakai `submitted_at` (tanggal submit form), bukan `follow_up_terakhir`** (tanggal follow-up terakhir/berikutnya) — dua konsep berbeda, jangan disamakan lagi di masa depan.
+- **`authenticated` tidak pernah di-GRANT ke `chat.conversations`/`chat.messages`** — ketemu saat investigasi kenapa "Recent Chats" selalu `Error`. Pola sama persis dengan bug GRANT `service_role`×`customer` yang ditemukan di Fase 1. Diperbaiki di migration `034`. Ini **bukan** integrasi WhatsApp — cuma benerin izin baca tabel kosong, sekarang tampil "No Chats" (jujur) alih-alih Error.
+
+## Migration baru sesi ini
+
+| # | Isi |
+|---|-----|
+| `031` | Tambah "Google Form" ke `customer.lead_sources` |
+| `032` | `GRANT USAGE` + hak tabel `customer.leads`/`lead_sources` ke `service_role` |
+| `033` | Backfill `created_at` dari `metadata->>submitted_at` untuk lead Google Form |
+| `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
+
+## Yang belum dikerjakan (lanjutan Fase 2)
+
+- **Lead Detail page** — klik satu lead di Lead List, lihat semua field + metadata lengkap.
+- **Ubah status dari UI** — saat ini `status` cuma bisa diubah lewat SQL langsung; harus ada dropdown/aksi di Lead Detail atau inline di Lead List.
+- **Filter Sumber Informasi** di Lead List (saat ini cuma ditampilkan sebagai kolom, belum jadi filter seperti Kategori).
+- **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah).
 
 ## Prinsip: jangan buang Google Form-nya
 
@@ -113,13 +171,13 @@ CRM membantu agen untuk:
 
 ## Lead List
 
-Menampilkan seluruh lead dari database.
+✅ **Selesai (Fase 2).** Menampilkan lead dari database, dengan filter tanggal/kategori/temperature, pagination, dan tombol kontak WhatsApp langsung. Lihat `src/app/(dashboard)/crm/page.tsx`.
 
 ---
 
 ## Lead Detail
 
-Informasi lengkap setiap calon pembeli.
+🔵 Belum dikerjakan. Informasi lengkap setiap calon pembeli.
 
 ---
 
@@ -250,10 +308,12 @@ Future
 
 # Current Limitations
 
+- Lead Detail page belum ada — belum bisa lihat satu lead secara penuh
+- Ubah status lead cuma bisa lewat SQL langsung, belum ada UI-nya
 - Timeline belum lengkap
 - Activity belum lengkap
 - Notes belum lengkap
-- AI belum aktif
+- AI baru sebagian aktif (1 insight nyata: Follow-up Backlog)
 - Automation belum aktif
 
 ---
