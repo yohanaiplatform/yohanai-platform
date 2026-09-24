@@ -474,6 +474,16 @@ export type Database = {
     }
     Functions: {
       is_authenticated: { Args: never; Returns: boolean }
+      is_admin_or_above: { Args: never; Returns: boolean }
+      list_assignable_users: {
+        Args: never
+        Returns: {
+          user_id: string
+          display_name: string | null
+          email: string | null
+          role_name: string | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
