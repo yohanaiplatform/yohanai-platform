@@ -16,3 +16,17 @@ export const LEAD_KATEGORI_OPTIONS = [
   "Cari Tanah",
   "Kons. Alam Asri",
 ] as const;
+
+/**
+ * Nilai "Sumber Informasi" persis seperti opsi dropdown di Google Form
+ * legacy -- sama seperti LEAD_KATEGORI_OPTIONS, diambil dari data yang
+ * sudah masuk (bukan tabel sumber kebenaran), jadi perlu disesuaikan
+ * manual kalau Google Form-nya berubah.
+ */
+export const LEAD_SUMBER_OPTIONS = [
+  "Iklan (Meta/Google)",
+  "Ketemu di Lokasi",
+  "Dari Teman/Saudara/Referal",
+  "Lihat Baliho",
+  "Lainnya",
+] as const;

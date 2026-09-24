@@ -15,6 +15,7 @@ interface CRMPageProps {
     dateFrom?: string;
     dateTo?: string;
     kategori?: string;
+    sumber?: string;
     temperature?: string;
     search?: string;
   }>;
@@ -28,6 +29,7 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
     dateFrom: params.dateFrom || undefined,
     dateTo: params.dateTo || undefined,
     kategori: params.kategori || undefined,
+    sumber: params.sumber || undefined,
     temperature: params.temperature || undefined,
     search: params.search || undefined,
   };
@@ -63,6 +65,7 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
             dateFrom={filters.dateFrom}
             dateTo={filters.dateTo}
             kategori={filters.kategori}
+            sumber={filters.sumber}
             temperature={filters.temperature}
             search={filters.search}
           />

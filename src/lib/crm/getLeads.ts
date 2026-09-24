@@ -30,6 +30,8 @@ export interface LeadFilters {
   dateTo?: string;
   /** Nilai persis metadata->>kategori, lihat LEAD_KATEGORI_OPTIONS. */
   kategori?: string;
+  /** Nilai persis metadata->>sumber_informasi, lihat LEAD_SUMBER_OPTIONS. */
+  sumber?: string;
   /**
    * hot | warm | cold | closing | batal -- dari metadata->>status_funnel_awal,
    * dicocokkan tanpa peduli huruf besar/kecil. Bisa lebih dari satu,
@@ -65,6 +67,9 @@ export async function getLeads(
   }
   if (filters.kategori) {
     query = query.eq("metadata->>kategori", filters.kategori);
+  }
+  if (filters.sumber) {
+    query = query.eq("metadata->>sumber_informasi", filters.sumber);
   }
   if (filters.temperature) {
     const values = filters.temperature.split(",").map((v) => v.trim()).filter(Boolean);

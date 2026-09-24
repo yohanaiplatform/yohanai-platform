@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { LEAD_KATEGORI_OPTIONS } from "@/constants/crm";
+import { LEAD_KATEGORI_OPTIONS, LEAD_SUMBER_OPTIONS } from "@/constants/crm";
 
 interface LeadListFiltersProps {
   dateFrom?: string;
   dateTo?: string;
   kategori?: string;
+  sumber?: string;
   temperature?: string;
   search?: string;
 }
@@ -24,6 +25,7 @@ export function LeadListFilters({
   dateFrom,
   dateTo,
   kategori,
+  sumber,
   temperature,
   search,
 }: LeadListFiltersProps) {
@@ -88,6 +90,25 @@ export function LeadListFilters({
         >
           <option value="">Semua Property</option>
           {LEAD_KATEGORI_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="sumber" className="text-xs text-muted-foreground">
+          Sumber Informasi
+        </label>
+        <select
+          id="sumber"
+          name="sumber"
+          defaultValue={sumber ?? ""}
+          className="h-8 w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+        >
+          <option value="">Semua Sumber</option>
+          {LEAD_SUMBER_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
