@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -30,8 +31,20 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background">
+        <Image
+          src="/images/logo/app-icon.png"
+          alt="Yohan.AI"
+          width={80}
+          height={80}
+          priority
+          className="animate-pulse rounded-2xl"
+        />
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 animate-bounce rounded-full bg-brand [animation-delay:-0.3s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-brand [animation-delay:-0.15s]" />
+          <span className="h-2 w-2 animate-bounce rounded-full bg-brand" />
+        </div>
       </div>
     );
   }
