@@ -10,6 +10,7 @@ export interface LeadDetail {
   email: string | null;
   phone: string | null;
   status: string;
+  assigned_to: string | null;
   created_at: string;
   updated_at: string;
   metadata: Json;
@@ -29,7 +30,7 @@ export async function getLeadById(
     .schema("customer")
     .from("leads")
     .select(
-      "id, first_name, last_name, email, phone, status, created_at, updated_at, metadata, lead_source_id"
+      "id, first_name, last_name, email, phone, status, assigned_to, created_at, updated_at, metadata, lead_source_id"
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -61,6 +62,7 @@ export async function getLeadById(
       email: lead.email,
       phone: lead.phone,
       status: lead.status,
+      assigned_to: lead.assigned_to,
       created_at: lead.created_at,
       updated_at: lead.updated_at,
       metadata: lead.metadata,

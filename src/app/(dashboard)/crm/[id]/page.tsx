@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusSelect } from "@/components/crm/LeadStatusSelect";
+import { LeadAssignSelect } from "@/components/crm/LeadAssignSelect";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getLeadById } from "@/lib/crm/getLeadById";
@@ -109,6 +110,10 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       >
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
           <LeadDetailField label="Status" value={<LeadStatusSelect leadId={lead.id} status={lead.status} />} />
+          <LeadDetailField
+            label="Ditugaskan ke"
+            value={<LeadAssignSelect leadId={lead.id} assignedTo={lead.assigned_to} />}
+          />
           <LeadDetailField label="Telepon" value={lead.phone} />
           <LeadDetailField label="Email" value={lead.email} />
           <LeadDetailField
