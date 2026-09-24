@@ -1,5 +1,6 @@
 // src/components/crm/LeadList.tsx
 
+import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusBadge } from "@/components/crm/lead-status-badge";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
@@ -57,7 +58,14 @@ export function LeadList({ data, error }: LeadListProps) {
                 key={lead.id}
                 className="border-b border-border last:border-0"
               >
-                <td className="px-3 py-3 font-medium">{nama}</td>
+                <td className="px-3 py-3 font-medium">
+                  <Link
+                    href={`/crm/${lead.id}`}
+                    className="hover:underline underline-offset-2"
+                  >
+                    {nama}
+                  </Link>
+                </td>
                 <td className="px-3 py-3 text-muted-foreground">
                   {lead.phone ?? lead.email ?? "-"}
                 </td>
