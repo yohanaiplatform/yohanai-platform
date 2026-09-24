@@ -566,6 +566,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          assigned_to: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -581,6 +582,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -596,6 +598,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
