@@ -101,11 +101,9 @@ Nama tabel di bawah sudah diselaraskan dengan skema yang benar-benar ada di Supa
 
 ## Current Sprint
 
-Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD, **Lead Intake dari Google Form (Fase 1)**.
+Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD, **Lead Intake dari Google Form (Fase 1)**, **CRM Foundation (Fase 2)** — Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, filter Sumber Informasi, semua live (25 September 2026).
 
-Sedang jalan: **CRM Foundation (Fase 2)** — Lead List baca/filter/kontak selesai, Lead Detail & ubah status belum.
-
-Berikutnya: sisa CRM Foundation, lalu Property Module, AI Foundation, dan keputusan WAHA vs Fonnte untuk Communication Automation.
+Berikutnya: keputusan WAHA vs Fonnte untuk Communication Automation (belum dibahas sama sekali, jangan mulai bangun integrasi WA apa pun sebelum ini diputuskan eksplisit bareng Yohan), lalu Property Module, lalu AI Foundation.
 
 Catatan penting: **Apps Script legacy bukan sekadar pemindah data.** AI Processor, Decision Engine, dan CRM Engine di dalamnya sengaja TIDAK ikut dipindahkan ke `customer.leads` — hanya field mentah (input form) yang dikirim lewat `POST /api/leads/intake`. Detail pemetaan kolom mana yang mentah vs hasil AI ada di `docs/modules/crm.mdx`.
 
@@ -113,6 +111,6 @@ Catatan penting: **Apps Script legacy bukan sekadar pemindah data.** AI Processo
 
 # Last Updated
 
-23 September 2026
+25 September 2026
 
 Sprint 011 — Platform Hold

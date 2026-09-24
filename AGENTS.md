@@ -22,11 +22,11 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 ## Pekerjaan berikutnya
 
-**Lead Intake Fase 1 sudah SELESAI** (endpoint, migration, dedup, backfill — terverifikasi end-to-end di production 23 September 2026). Jangan bangun ulang, baca dulu `docs/modules/crm.mdx` bagian "Rencana Lead Intake dari Google Form" dan "Fase 2 — CRM Foundation" untuk lihat apa yang sudah ada.
+**Lead Intake Fase 1 dan CRM Foundation Fase 2 sudah SELESAI** (Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, filter Sumber Informasi — semua terverifikasi end-to-end di production, terakhir 25 September 2026). Jangan bangun ulang, baca dulu `docs/modules/crm.mdx` bagian "Rencana Lead Intake dari Google Form" dan "Fase 2 — CRM Foundation" untuk lihat apa yang sudah ada.
 
-**Kerjaan sekarang: CRM Foundation Fase 2.** Lead List (baca, filter tanggal/kategori/temperature, tombol WA) sudah live. Sisa: Lead Detail page, ubah status lead dari UI, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx` bagian "Fase 2".
+**Kerjaan sekarang: keputusan WAHA vs Fonnte untuk Communication Automation.** Belum dibahas sama sekali — jangan mulai bangun integrasi WA apa pun sebelum ini diputuskan eksplisit bareng Yohan.
 
-Setelah itu: keputusan WAHA vs Fonnte untuk Communication Automation (belum dibahas sama sekali — jangan mulai bangun integrasi WA apa pun sebelum ini diputuskan eksplisit bareng Yohan), lalu Property Module, lalu AI Foundation (baru ada 1 insight nyata: Follow-up Backlog).
+Setelah itu: Property Module, lalu AI Foundation (baru ada 1 insight nyata: Follow-up Backlog).
 
 Satu hal yang wajib diingat kalau nanti menyentuh Apps Script legacy Yohan lagi: **bukan sekadar penangan form**. Menurut `docs/migration/migration-blueprint.mdx` di dalamnya ada AI Processor, Decision Engine, CRM Engine, dan integrasi WAHA/n8n — 2 dari trigger AI-nya (`batchDetectConsumerIntent`, `batchExtractBudget`) sudah diketahui error rate 100%, dan API key AI-nya plaintext di kode. Pisahkan dulu mana yang memindahkan data dan mana yang mengandung logika bisnis sebelum memutuskan apa pun. **Hati-hati navigasi keyboard di editor Apps Script web** — tombol seperti "Page Down" bisa kepencet jadi teks literal di kode kalau fokus salah taruh (pernah nyaris mengubah kode production Yohan tanpa sengaja); pakai klik berbasis referensi elemen (`find` + `ref`) atau `ctrl+End`/panah biasa, bukan tombol non-standar.
 
@@ -55,10 +55,11 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users
 src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
-src/lib/crm/                  getLeads() dan helper CRM Foundation (Fase 2)
-src/components/crm/           Lead List, filter, status badge (Fase 2)
+src/app/(dashboard)/crm/[id]/ Lead Detail — lihat, ubah status, assign agent (Fase 2, selesai)
+src/lib/crm/                  getLeads()/getLeadById() dan helper CRM Foundation (Fase 2, selesai)
+src/components/crm/           Lead List, Lead Detail, filter, status/assign select (Fase 2, selesai)
 src/components/shared/        WhatsAppButton — dipakai CRM + dashboard
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
@@ -106,7 +107,9 @@ Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di b
 
 **RLS aktif tanpa policy = semua akses ditolak, dan gejalanya menipu.** `public.profile_completeness_rules` pernah begini: pembacaan langsung dari client mengembalikan nol baris sehingga daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Fitur tampak hidup padahal separuhnya mati. Sudah diperbaiki di `025`, tapi polanya patut diwaspadai di tempat lain.
 
-**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`035`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
+**Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`036`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
+
+**Pola yang sama juga kena `src/types/database.ts`, dan berulang 2x.** Migration `035` menambah kolom `customer.leads.assigned_to` tapi tipe TypeScript-nya tidak pernah di-regenerate — ketemu 24 September saat mulai kerja Lead Detail. Lalu ketemu lagi 25 September: fungsi `is_authenticated()`/`is_admin_or_above()` (dari `034`/`035`) ternyata juga tidak pernah masuk tipe sejak awal dibuat, baru ketahuan pas `list_assignable_users()` (`036`) butuh dipanggil dari client via `.rpc()` dan perlu tipe yang benar. **Tool `generate_typescript_types` lewat Supabase MCP cuma balikin schema `public`** — tidak berguna buat project ini yang schema utamanya (`core`/`customer`/`auth_ext`/dst) semua di luar `public`. Cara yang benar: cek kolom/fungsi asli lewat `information_schema.columns` atau `pg_proc`, lalu tambal manual di `database.ts` mengikuti pola yang sudah ada di file itu — bukan percaya isi file types mencerminkan migration terbaru.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 
@@ -115,6 +118,8 @@ Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di b
 **Kredensial git repo ini di-set `--local`.** Git Credential Manager menyimpan akun `flobamoraptk` yang tidak punya akses tulis; repo ini diarahkan memakai token `gh` (akun `yohanaiplatform`) lewat config lokal. Clone baru akan kena 403 dan perlu di-set ulang.
 
 **ESLint punya 8 error pre-existing** di `useDashboard.ts`, `EditProfileForm.tsx`, `WilayahSelector.tsx`, dan beberapa file lain (mayoritas `react-hooks/set-state-in-effect`). Bukan dari perubahan baru — jangan panik, tapi jangan tambah yang baru.
+
+**Flex item tetangga `flex-1` bisa "mencuri" ruang dari flex item lain kalau tidak diberi `min-width:0`.** Ketemu di `Header.tsx`: logo (dalam grup tanpa `shrink-0`) ke-squeeze jadi ~separuh lebar semestinya di viewport mobile, bukan karena aset gambarnya jelek, tapi karena `SearchCommand.tsx` di tengahnya (flex-1) tidak punya `min-w-0` — defaultnya `min-width: auto` bikin browser mempertahankan ukuran min-content search bar dengan cara menyusutkan sibling lain. Pola benar untuk header seperti ini: elemen yang ukurannya harus tetap (logo, ikon) dikasih `shrink-0`, elemen yang boleh menyusut (search, teks panjang) dikasih `min-w-0`. Diverifikasi numerik lewat `getBoundingClientRect()` di browser, bukan cuma kelihatan "kayaknya udah bener" dari screenshot.
 
 ---
 

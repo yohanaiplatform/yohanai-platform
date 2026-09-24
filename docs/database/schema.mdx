@@ -46,7 +46,13 @@ Preferensi notifikasi per user, satu baris per user. Empat kategori toggle; kate
 
 ### roles, permissions, role_permissions
 
-Role-based access control.
+Role-based access control. `role_permissions` masih 0 baris — keputusan admin/bukan-admin sementara cukup biner lewat `core.is_admin_or_above()`, belum pakai permission granular.
+
+### Fungsi SECURITY DEFINER
+
+- `is_authenticated()` — dipanggil dari policy RLS seluruh tabel domain. **Jangan pernah cabut EXECUTE-nya** — melumpuhkan RLS di seluruh database.
+- `is_admin_or_above()` (`035`) — true kalau pemanggil (`auth.uid()`) admin/super_admin. Dipakai policy `leads_owner_or_admin`.
+- `list_assignable_users()` (`036`) — daftar user (id, nama, email, role) untuk dropdown assign lead. Return **kosong** (bukan raise exception) kalau pemanggil bukan admin/super_admin — UI CRM pakai ini buat auto-hide dropdown assign untuk non-admin.
 
 ### business_roles
 
@@ -167,7 +173,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`035` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026).
+Folder `supabase/migrations/` berisi `001`–`036` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036` ditambahkan 25 September 2026).
 
 | Rentang | Isi |
 |---------|-----|
@@ -180,6 +186,7 @@ Folder `supabase/migrations/` berisi `001`–`035` secara berurutan, dan riwayat
 | `033` | Backfill `created_at` dari `metadata->>submitted_at` untuk lead Google Form |
 | `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
 | `035` | Kolom `assigned_to`, fungsi `core.is_admin_or_above()`, policy `leads_owner_or_admin` — pemisahan akses lead per akun |
+| `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead di CRM, khusus admin/super_admin |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -189,6 +196,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-23 September 2026
+25 September 2026
 
 Sprint 011 — Platform Hold

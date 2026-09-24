@@ -51,6 +51,32 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 24–25 September 2026 — CRM Foundation Fase 2 Selesai & Branding
+
+CRM Foundation Fase 2 dituntaskan: Lead Detail, ubah status dari UI, assign lead ke agent, dan filter Sumber Informasi. Di luar CRM, sesi 25 September juga membenahi branding (logo header mobile, apple touch icon, boot screen) yang tidak terkait CRM tapi dikerjakan di sesi yang sama.
+
+### Added
+
+- **Lead Detail** (`/crm/[id]`) — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up, tanggal submit form) tampil lengkap, tombol WA, link balik ke Lead List. Nama lead di Lead List sekarang jadi link ke halaman ini
+- **Ubah status lead dari UI** — dropdown pipeline (`new` → ... → `won`/`lost`) di Lead Detail, update langsung ke `customer.leads` lewat client Supabase (bukan Server Action, konsisten dengan pola form lain di project)
+- **Assign lead ke agent** — dropdown "Ditugaskan ke" di Lead Detail, khusus admin/super_admin (auto-hide untuk role lain). Fungsi baru `core.list_assignable_users()` (migration `036`, `SECURITY DEFINER`) karena RLS `auth_ext.profiles` cuma izinkan user baca profil sendiri, jadi admin butuh jalur khusus untuk lihat daftar agent
+- **Filter Sumber Informasi** di Lead List — dropdown baru (`LEAD_SUMBER_OPTIONS`), pola sama seperti filter Kategori yang sudah ada
+- Logo header mobile: rasio aspek diperbaiki (128.95×32px, sebelumnya kepencet jadi 60.75×32px)
+- Boot screen (`AuthGuard.tsx`, layar pertama saat buka app) — app-icon dengan animasi pulse + 3 titik loading, menggantikan spinner generik
+
+### Fixed
+
+- **Logo header ke-squeeze di mobile** — bug flexbox: `SearchCommand.tsx` tidak punya `min-width:0`, jadi saat viewport sempit, flexbox menyusutkan grup logo+menu alih-alih search bar. Diperbaiki dengan `shrink-0` pada grup logo/notif dan `min-w-0` pada wrapper search
+- **Aset `logo-light.png`/`logo-dark.png` boros ruang kanvas** — versi lama cuma terisi 24% dari kanvasnya (diukur pakai `sharp`). Diganti versi crop rapat (53–65% terisi), badge "AI" juga diganti dari gaya glossy/gradient ke flat outline merah (kontras lebih baik di dark mode)
+- **`apple-touch-icon.png.png`** (dobel ekstensi) — ikon "Add to Home Screen" di iPhone 404 diam-diam. File di-rename
+- Tipe `customer.leads` di `src/types/database.ts` belum pernah di-regenerate sejak migration `035` menambah kolom `assigned_to` — ditambal manual setelah diverifikasi langsung ke `information_schema.columns`. Fungsi `is_authenticated()`/`is_admin_or_above()`/`list_assignable_users()` juga ditambahkan ke tipe `core.Functions` (sebelumnya tidak pernah disinkronkan sejak awal dibuat)
+
+### Changed
+
+- `LeadListPagination.tsx` ikut membawa parameter `sumber` saat pindah halaman
+
+---
+
 ## 23 September 2026 — Lead Intake Fase 1 & CRM Foundation Fase 2
 
 Lead intake dari Google Form legacy ke `customer.leads` selesai dan terverifikasi end-to-end di production. CRM Foundation (Lead List, filter, dashboard) menyusul di hari yang sama berdasarkan feedback pemakaian langsung.
@@ -193,7 +219,7 @@ Date
 Planned
 
 - ✅ Integrasi lead intake dari Google Form dan Apps Script ke `customer.leads` — selesai, lihat Unreleased
-- 🟡 CRM UI — Lead List (baca, filter, WA) selesai; Lead Detail, ubah status, UI assign ke agent masih planned
+- ✅ CRM UI — Lead List, Lead Detail, ubah status, assign ke agent, filter Sumber Informasi — semua selesai, lihat Unreleased
 - Property UI
 - Sales Pipeline
 - Runtime QA
@@ -245,6 +271,6 @@ Sebelum membuat release baru:
 
 # Last Updated
 
-23 September 2026
+25 September 2026
 
 Sprint 011 — Platform Hold
