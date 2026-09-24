@@ -181,7 +181,7 @@ Target:
 ## Next Priority
 
 - **Lead Intake Fase 1 — ✅ Selesai & terverifikasi end-to-end di production (23 Sep 2026).** Endpoint, migration, dedup, normalisasi HP semua tes lolos lewat `curl` langsung ke `https://yohanai.id`. Backfill ~2000 lead lama sedang/sudah berjalan lewat Apps Script (`backfillLeadsToYohanAI()`, dijalankan manual oleh Yohan). Detail lengkap di `docs/modules/crm.mdx`.
-- **CRM Foundation Fase 2 — 🟡 In Progress (23 Sep 2026).** Lead List baca data asli, filter, tombol WA, Lead Funnel nyata & bisa diklik, AI Intelligence sebagian nyata — semua sudah live. Sisa: Lead Detail page, ubah status dari UI, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx`.
+- **CRM Foundation Fase 2 — 🟡 In Progress (24 Sep 2026).** Lead List, Lead Detail, filter, tombol WA, Lead Funnel nyata & bisa diklik, AI Intelligence sebagian nyata — semua sudah live. Sisa: ubah status dari UI, UI assign lead ke agent, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx`.
 - Property Module
 - Sales Pipeline
 - AI Intelligence (lanjutan — 1 insight nyata sudah ada, WAHA/Fonnte belum diputuskan)
@@ -226,7 +226,7 @@ Target:
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
-| CRM | 🟡 In Progress — Lead List (baca, filter, WA) selesai; Lead Detail & ubah status belum |
+| CRM | 🟡 In Progress — Lead List & Lead Detail selesai; ubah status & assign agent belum |
 | Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
@@ -260,7 +260,7 @@ Target:
 
 # Next Milestone
 
-**CRM Foundation** — sedang berjalan. Lead List (baca, filter tanggal/kategori/temperature, tombol WA) sudah live di production. Sisa: halaman Lead Detail, ubah status lead dari UI, filter Sumber Informasi.
+**CRM Foundation** — sedang berjalan. Lead List (baca, filter tanggal/kategori/temperature, tombol WA) dan Lead Detail (`/crm/[id]`) sudah live di production. Sisa: ubah status lead dari UI, UI assign lead ke agent, filter Sumber Informasi.
 
 ---
 
@@ -300,13 +300,13 @@ Lead Intake Fase 1 — ✅ **Selesai & terverifikasi end-to-end di production.**
 
 Task 004
 
-CRM Foundation Fase 2 — 🟡 **In Progress.** Lead List (baca, filter, WA) selesai; sisa Lead Detail page + ubah status dari UI.
+CRM Foundation Fase 2 — 🟡 **In Progress.** Lead List & Lead Detail selesai; sisa ubah status dari UI, assign agent, filter Sumber Informasi.
 
 ---
 
 # Last Updated
 
-23 September 2026
+24 September 2026
 
 ---
 

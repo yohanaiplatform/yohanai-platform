@@ -18,11 +18,11 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | Item | Status |
 |------|--------|
 | Development | 🟡 In Progress — Lead Intake Fase 1 selesai, CRM Foundation Fase 2 sedang jalan |
-| Production Ready | 🟡 Sebagian — Lead List baca/filter sudah live, Lead Detail & ubah status belum ada |
+| Production Ready | 🟡 Sebagian — Lead List & Lead Detail sudah live, ubah status & assign agent belum ada |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
 | RLS policy | ✅ Ada (`authenticated_all`) |
 | GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`) |
-| UI | 🟡 Lead List (baca, filter tanggal/kategori/temperature, tombol WA) — Lead Detail & ubah status belum |
+| UI | 🟡 Lead List & Lead Detail selesai — ubah status & assign agent belum |
 | AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
@@ -94,6 +94,17 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 - Filter `temperature` (hot/warm/cold/closing/batal, bisa multi-value dipisah koma mis. `hot,warm`) — dipicu dari klik tile Lead Funnel di dashboard, ditampilkan sebagai chip "Filter aktif" dengan link "Hapus filter".
 - **Tombol WhatsApp** (`src/components/shared/WhatsAppButton.tsx`) — `wa.me/<phone>` + pesan pembuka otomatis, dipakai di Lead List DAN di Recent Leads dashboard (komponen bersama, bukan duplikat).
 
+**Lead Detail (`/crm/[id]`)** — 24 September 2026, server component:
+
+- `src/lib/crm/getLeadById.ts` — query satu lead lewat session client (RLS-scoped, bukan service-role, pola sama seperti `getLeads.ts`), join manual ke `lead_sources`.
+- `src/app/(dashboard)/crm/[id]/page.tsx` — validasi bentuk UUID dulu sebelum query (id rusak di URL balas 404 lewat `notFound()`, bukan salah ditampilkan sebagai error database). Menampilkan status, kontak, sumber, kategori, temperature awal, hasil survey, follow-up terakhir, tanggal submit form, terakhir diperbarui, dan detail permintaan (minat unit/lokasi, permintaan, komentar) dari `metadata`. Tombol WA dan link kembali ke Lead List.
+- `follow_up_terakhir` dan `submitted_at` di `metadata` tersimpan mentah sebagai `String(dateObject)` dari Apps Script (bukan ISO) — diparse ke tampilan tanggal Indonesia di halaman ini, pola sama seperti parsing `submitted_at` di `route.ts` untuk `created_at`.
+- Nama lead di Lead List sekarang jadi link ke halaman ini.
+- **Belum ada UI assign lead ke agent maupun ubah status** di halaman ini — dua item itu masih di backlog Fase 2, sengaja dipisah biar scope-nya kecil.
+- Diverifikasi end-to-end di dev server pakai data production asli (login `admin@yohanai.id` lewat panel browser Claude Code, klik lead dari Lead List, cek semua field terisi benar + tombol WA jalan).
+
+**Ketemu saat kerjakan ini:** tipe `customer.leads` di `src/types/database.ts` belum pernah di-regenerate sejak migration `035` menambah kolom `assigned_to` — isi repo lagi-lagi tidak cermin isi database (pola yang sama seperti temuan RLS policy sebelumnya). Diverifikasi langsung ke database (`information_schema.columns`), lalu ditambal manual di tipe-nya.
+
 **Dashboard, tiga perbaikan:**
 
 1. **Lead Funnel dulu selalu 0% semua temperature** — bug: query `getLeadSummary.ts` memfilter `leads.status = 'hot'/'warm'/'cold'`, padahal kolom itu pipeline (`new`/.../`won`/`lost`), CHECK constraint-nya bahkan menolak nilai itu. Temperature asli ada di `metadata->>status_funnel_awal`. Diperbaiki, DAN diperluas dari 3 jadi 5 kategori (Hot/Warm/Cold/Closing/Batal, sesuai 5 status funnel di spreadsheet legacy). Tiap tile sekarang **link ke `/crm?temperature=<x>`** dan dipindah ke atas halaman (sebelum Recent Leads/Chats).
@@ -117,7 +128,6 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 
 ## Yang belum dikerjakan (lanjutan Fase 2)
 
-- **Lead Detail page** — klik satu lead di Lead List, lihat semua field + metadata lengkap.
 - **Ubah status dari UI** — saat ini `status` cuma bisa diubah lewat SQL langsung; harus ada dropdown/aksi di Lead Detail atau inline di Lead List.
 - **UI assign lead ke agent** — sejak `035`, `customer.leads` punya kolom `assigned_to`, tapi belum ada UI untuk memilih/memindahkan lead ke agent tertentu. Sekarang cuma bisa lewat SQL langsung. Perlu ada sebelum Ramlan (atau agent lain nanti) benar-benar bisa mulai kerja dari CRM ini — tanpa assignment, dashboard/CRM dia akan tampil kosong terus.
 - **Filter Sumber Informasi** di Lead List (saat ini cuma ditampilkan sebagai kolom, belum jadi filter seperti Kategori).
@@ -179,7 +189,7 @@ CRM membantu agen untuk:
 
 ## Lead Detail
 
-🔵 Belum dikerjakan. Informasi lengkap setiap calon pembeli.
+✅ **Selesai (Fase 2, 24 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Lihat `src/app/(dashboard)/crm/[id]/page.tsx`. Ubah status & assign agent belum ada di halaman ini.
 
 ---
 
@@ -310,8 +320,8 @@ Future
 
 # Current Limitations
 
-- Lead Detail page belum ada — belum bisa lihat satu lead secara penuh
 - Ubah status lead cuma bisa lewat SQL langsung, belum ada UI-nya
+- UI assign lead ke agent belum ada, cuma bisa lewat SQL langsung
 - Timeline belum lengkap
 - Activity belum lengkap
 - Notes belum lengkap
@@ -355,6 +365,6 @@ Automation
 
 # Last Updated
 
-23 September 2026
+24 September 2026
 
 Sprint 011 — Platform Hold
