@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
-const LEAD_STATUS_CONFIG: Record<
+// Urutan di sini = urutan pipeline sekaligus urutan opsi di LeadStatusSelect --
+// satu-satunya tempat status lead didaftarkan, jangan duplikasi di tempat lain.
+export const LEAD_STATUS_CONFIG: Record<
   string,
   { label: string; variant: BadgeVariant; className?: string }
 > = {
