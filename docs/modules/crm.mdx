@@ -17,12 +17,12 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 
 | Item | Status |
 |------|--------|
-| Development | 🟡 In Progress — Lead Intake Fase 1 selesai, CRM Foundation Fase 2 sedang jalan |
-| Production Ready | 🟡 Sebagian — Lead List & Lead Detail sudah live, ubah status & assign agent belum ada |
+| Development | ✅ Lead Intake Fase 1 & CRM Foundation Fase 2 selesai |
+| Production Ready | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi semua live |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
-| RLS policy | ✅ Ada (`authenticated_all`) |
+| RLS policy | ✅ Ada (`leads_owner_or_admin` sejak `035`, sebelumnya `authenticated_all`) |
 | GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`) |
-| UI | 🟡 Lead List & Lead Detail selesai — ubah status & assign agent belum |
+| UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi selesai |
 | AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
@@ -79,9 +79,9 @@ WHERE metadata->>'origin' = 'google_form_legacy'
 
 ---
 
-# Fase 2 — CRM Foundation (23 September 2026)
+# Fase 2 — CRM Foundation (23-25 September 2026)
 
-Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai halaman `/crm` dan `/dashboard` yang sudah production. **Statusnya "In Progress"** — bagian baca/filter/kontak sudah selesai, bagian ubah data (Lead Detail, ubah status) belum dimulai.
+Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai halaman `/crm` dan `/dashboard` yang sudah production. **✅ Selesai (25 September 2026)** — baca/filter/kontak, Lead Detail, ubah status, dan assign agent semua sudah live.
 
 ## Yang sudah selesai
 
@@ -100,10 +100,22 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 - `src/app/(dashboard)/crm/[id]/page.tsx` — validasi bentuk UUID dulu sebelum query (id rusak di URL balas 404 lewat `notFound()`, bukan salah ditampilkan sebagai error database). Menampilkan status, kontak, sumber, kategori, temperature awal, hasil survey, follow-up terakhir, tanggal submit form, terakhir diperbarui, dan detail permintaan (minat unit/lokasi, permintaan, komentar) dari `metadata`. Tombol WA dan link kembali ke Lead List.
 - `follow_up_terakhir` dan `submitted_at` di `metadata` tersimpan mentah sebagai `String(dateObject)` dari Apps Script (bukan ISO) — diparse ke tampilan tanggal Indonesia di halaman ini, pola sama seperti parsing `submitted_at` di `route.ts` untuk `created_at`.
 - Nama lead di Lead List sekarang jadi link ke halaman ini.
-- **Belum ada UI assign lead ke agent maupun ubah status** di halaman ini — dua item itu masih di backlog Fase 2, sengaja dipisah biar scope-nya kecil.
 - Diverifikasi end-to-end di dev server pakai data production asli (login `admin@yohanai.id` lewat panel browser Claude Code, klik lead dari Lead List, cek semua field terisi benar + tombol WA jalan).
 
 **Ketemu saat kerjakan ini:** tipe `customer.leads` di `src/types/database.ts` belum pernah di-regenerate sejak migration `035` menambah kolom `assigned_to` — isi repo lagi-lagi tidak cermin isi database (pola yang sama seperti temuan RLS policy sebelumnya). Diverifikasi langsung ke database (`information_schema.columns`), lalu ditambal manual di tipe-nya.
+
+**Ubah Status & Assign Agent (`/crm/[id]`)** — 25 September 2026:
+
+- `src/components/crm/LeadStatusSelect.tsx` — dropdown status pipeline di Lead Detail, update langsung ke `customer.leads` lewat client Supabase browser (bukan Server Action — project belum pakai pola itu, konsisten dengan `NotificationPreferencesForm.tsx`). `LEAD_STATUS_CONFIG` di `lead-status-badge.tsx` di-export supaya daftar status cuma didefinisikan satu tempat.
+- `src/components/crm/LeadAssignSelect.tsx` — dropdown "Ditugaskan ke", isinya dari fungsi baru `core.list_assignable_users()` (migration `036`). RLS `auth_ext.profiles` cuma izinkan user baca profil sendiri, jadi admin tidak bisa query daftar agent lewat cara biasa — perlu fungsi `SECURITY DEFINER` (pola sama seperti `core.is_admin_or_above()` di `035`) yang sengaja **return kosong** (bukan raise exception) kalau pemanggil bukan admin/super_admin. UI pakai sinyal itu: array kosong → tampilkan teks statis "Anda" (dijamin benar oleh RLS `leads_owner_or_admin` — non-admin cuma pernah lihat lead miliknya sendiri), array berisi → tampilkan dropdown beneran.
+- Migration `036`: `REVOKE ALL FROM PUBLIC/anon`, `GRANT EXECUTE TO authenticated`, identitas dari `auth.uid()` bukan parameter client — pola yang sama persis dicatat di `AGENTS.md` supaya tidak diulang salah lagi.
+- Diverifikasi 2 lapis: (1) simulasi JWT langsung di database (`SET LOCAL role authenticated` + `request.jwt.claims`) — admin dapat 2 baris, agent (Ramlan) dapat 0 baris; (2) end-to-end lewat browser sebagai admin — ubah status Pak Ngurah New→Contacted dan assignment-nya ke Ramlan, dicek langsung ke database (bukan cuma percaya state React), lalu data uji dikembalikan ke semula. Perilaku non-admin belum dites lewat browser langsung (tidak ada kredensial akun Ramlan), cuma diverifikasi di level database.
+
+**Filter Sumber Informasi (`/crm`)** — 25 September 2026:
+
+- `LEAD_SUMBER_OPTIONS` baru di `src/constants/crm.ts` — 5 nilai bersih dari data asli (Iklan Meta/Google, Ketemu di Lokasi, Dari Teman/Saudara/Referal, Lihat Baliho, Lainnya), pola sama seperti `LEAD_KATEGORI_OPTIONS`.
+- Dropdown baru di `LeadListFilters.tsx`, filter di `getLeads.ts` (`metadata->>sumber_informasi`), dan `LeadListPagination.tsx` ikut membawa parameter `sumber` saat pindah halaman.
+- Diverifikasi: filter "Ketemu di Lokasi" balas 152 lead, cocok persis dengan hitungan langsung ke database.
 
 **Dashboard, tiga perbaikan:**
 
@@ -125,13 +137,16 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 | `033` | Backfill `created_at` dari `metadata->>submitted_at` untuk lead Google Form |
 | `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
 | `035` | Pemisahan akses lead per akun: kolom `assigned_to`, role `agent` untuk Ramlan, policy `leads_owner_or_admin` (admin lihat semua, role lain cuma lihat miliknya sendiri) — lihat `docs/status.mdx` audit poin 10 |
+| `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead, khusus admin/super_admin |
 
-## Yang belum dikerjakan (lanjutan Fase 2)
+## CRM Foundation Fase 2 — selesai
 
-- **Ubah status dari UI** — saat ini `status` cuma bisa diubah lewat SQL langsung; harus ada dropdown/aksi di Lead Detail atau inline di Lead List.
-- **UI assign lead ke agent** — sejak `035`, `customer.leads` punya kolom `assigned_to`, tapi belum ada UI untuk memilih/memindahkan lead ke agent tertentu. Sekarang cuma bisa lewat SQL langsung. Perlu ada sebelum Ramlan (atau agent lain nanti) benar-benar bisa mulai kerja dari CRM ini — tanpa assignment, dashboard/CRM dia akan tampil kosong terus.
-- **Filter Sumber Informasi** di Lead List (saat ini cuma ditampilkan sebagai kolom, belum jadi filter seperti Kategori).
-- **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah).
+Semua item di checklist awal Fase 2 sudah live: Lead List (baca/filter/WA), Lead Detail, ubah status dari UI, assign lead ke agent, dan filter Sumber Informasi.
+
+**Belum dikerjakan (di luar cakupan Fase 2, fase berikutnya):**
+
+- **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah). Ini "Phase 2"/"Phase 3" di roadmap CRM, bukan bagian dari CRM *Foundation*.
+- **UI bulk-assign** di Lead List (assign banyak lead sekaligus) — sekarang cuma bisa satu-satu dari Lead Detail. Belum jadi kebutuhan mendesak karena baru ada 2 akun.
 
 ## Prinsip: jangan buang Google Form-nya
 
@@ -189,7 +204,7 @@ CRM membantu agen untuk:
 
 ## Lead Detail
 
-✅ **Selesai (Fase 2, 24 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Lihat `src/app/(dashboard)/crm/[id]/page.tsx`. Ubah status & assign agent belum ada di halaman ini.
+✅ **Selesai (Fase 2, 24-25 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) juga sudah bisa langsung dari halaman ini. Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
 
 ---
 
@@ -320,8 +335,7 @@ Future
 
 # Current Limitations
 
-- Ubah status lead cuma bisa lewat SQL langsung, belum ada UI-nya
-- UI assign lead ke agent belum ada, cuma bisa lewat SQL langsung
+- Belum ada UI bulk-assign (assign banyak lead sekaligus dari Lead List) — cuma satu-satu dari Lead Detail
 - Timeline belum lengkap
 - Activity belum lengkap
 - Notes belum lengkap
@@ -365,6 +379,6 @@ Automation
 
 # Last Updated
 
-24 September 2026
+25 September 2026
 
 Sprint 011 — Platform Hold

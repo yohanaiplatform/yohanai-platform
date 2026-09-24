@@ -171,6 +171,19 @@ Target:
 
 ---
 
+## Branding & Visual Identity (25 September 2026)
+
+✅ **Selesai.** Logo `Yohan AI` di header mobile sebelumnya render gepeng/rusak — bukan sekadar soal kualitas gambar, tapi dua masalah terpisah:
+
+- **Bug flexbox** — search bar di tengah header (`SearchCommand.tsx`) tidak punya `min-width:0`, jadi saat viewport sempit, flexbox malah menyusutkan grup logo+menu demi mempertahankan ukuran search bar. Diperbaiki: grup logo & grup notif/avatar diberi `shrink-0`, wrapper search diberi `min-w-0`.
+- **Aset logo boros ruang** — `logo-light.png`/`logo-dark.png` yang lama cuma terisi 24% dari kanvasnya (diukur pakai `sharp`, bukan cuma lihat mata). Diganti dengan versi crop rapat (53–65% terisi) dari folder Logos Yohan di Google Drive, badge "AI" juga diganti dari gaya glossy/gradient 3D ke flat outline merah (kontras lebih baik, terutama di dark mode).
+- **`apple-touch-icon.png.png`** (dobel ekstensi) — ikon "Add to Home Screen" di iPhone 404 diam-diam selama ini. File di-rename.
+- **Boot screen** (`AuthGuard.tsx`, tampil pertama kali buka app sebelum dashboard render) — diganti dari spinner generik abu-abu jadi app-icon dengan animasi pulse + 3 titik loading merah, brand-forward.
+
+Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebelum & sesudah. `logo-landscape.png` (dead code, tidak dipakai di manapun) belum disentuh — bukan urgent.
+
+---
+
 ## Backlog (tidak memblokir milestone berikutnya)
 
 - **Upload foto profil (kamera/galeri/Google Drive)** — ⏳ Belum dikerjakan. Saat ini `avatar_url` masih berupa input teks URL manual. Butuh Supabase Storage bucket + policy + integrasi picker.
@@ -181,7 +194,7 @@ Target:
 ## Next Priority
 
 - **Lead Intake Fase 1 — ✅ Selesai & terverifikasi end-to-end di production (23 Sep 2026).** Endpoint, migration, dedup, normalisasi HP semua tes lolos lewat `curl` langsung ke `https://yohanai.id`. Backfill ~2000 lead lama sedang/sudah berjalan lewat Apps Script (`backfillLeadsToYohanAI()`, dijalankan manual oleh Yohan). Detail lengkap di `docs/modules/crm.mdx`.
-- **CRM Foundation Fase 2 — 🟡 In Progress (24 Sep 2026).** Lead List, Lead Detail, filter, tombol WA, Lead Funnel nyata & bisa diklik, AI Intelligence sebagian nyata — semua sudah live. Sisa: ubah status dari UI, UI assign lead ke agent, filter Sumber Informasi. Detail lengkap di `docs/modules/crm.mdx`.
+- **CRM Foundation Fase 2 — ✅ Selesai (25 Sep 2026).** Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, filter Sumber Informasi & Kategori, tombol WA, Lead Funnel nyata & bisa diklik, AI Intelligence sebagian nyata — semua live. Detail lengkap di `docs/modules/crm.mdx`.
 - Property Module
 - Sales Pipeline
 - AI Intelligence (lanjutan — 1 insight nyata sudah ada, WAHA/Fonnte belum diputuskan)
@@ -226,7 +239,7 @@ Target:
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
-| CRM | 🟡 In Progress — Lead List & Lead Detail selesai; ubah status & assign agent belum |
+| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah status, assign agent, filter semua live |
 | Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
@@ -254,13 +267,14 @@ Target:
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
 - Security Centre Meta memberi rekomendasi (bukan wajib): 1 user dengan public email domain di Business Manager — opsional untuk ditindaklanjuti
-- `role_id` (role akses/permission sistem, terpisah dari `business_role_id`) belum pernah di-assign untuk akun admin platform sendiri — badge Profile masih tampil "No Role Assigned"
 
 ---
 
 # Next Milestone
 
-**CRM Foundation** — sedang berjalan. Lead List (baca, filter tanggal/kategori/temperature, tombol WA) dan Lead Detail (`/crm/[id]`) sudah live di production. Sisa: ubah status lead dari UI, UI assign lead ke agent, filter Sumber Informasi.
+**CRM Foundation — ✅ Selesai (25 September 2026).** Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, dan filter Sumber Informasi semua live di production.
+
+Berikutnya (belum dimulai, urutan sesuai `AGENTS.md`): keputusan WAHA vs Fonnte untuk Communication Automation (perlu dibahas eksplisit bareng Yohan sebelum mulai bangun integrasi WA apa pun), lalu Property Module, lalu lanjutan AI Foundation.
 
 ---
 
@@ -296,17 +310,21 @@ Task 003
 
 Lead Intake Fase 1 — ✅ **Selesai & terverifikasi end-to-end di production.** Endpoint `POST /api/leads/intake`, migration `031`-`034`, dedup, normalisasi HP, backfill data lama (Apps Script, dijalankan Yohan). Detail: `docs/modules/crm.mdx`.
 
-### Next Task
-
 Task 004
 
-CRM Foundation Fase 2 — 🟡 **In Progress.** Lead List & Lead Detail selesai; sisa ubah status dari UI, assign agent, filter Sumber Informasi.
+CRM Foundation Fase 2 — ✅ **Selesai.** Lead List, Lead Detail, ubah status dari UI, assign lead ke agent (migration `036`), filter Sumber Informasi. Detail: `docs/modules/crm.mdx`.
+
+### Next Task
+
+Task 005
+
+Keputusan WAHA vs Fonnte untuk Communication Automation — belum dimulai, perlu dibahas eksplisit bareng Yohan dulu sebelum ada kode integrasi WA apa pun.
 
 ---
 
 # Last Updated
 
-24 September 2026
+25 September 2026
 
 ---
 
