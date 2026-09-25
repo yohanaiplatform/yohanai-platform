@@ -90,9 +90,15 @@ function buildFilteredLeadsQuery(
     const digits = filters.search.replace(/[^0-9]/g, "");
     const phoneDigits = digits.startsWith("0") ? `62${digits.slice(1)}` : digits;
 
+    // Selain nama/HP, ikut cari di field teks bebas -- ini tempat kata
+    // kunci lokasi (mis. "Sungai Raya Dalam", "UNTAN") biasanya muncul,
+    // bukan di kolom terstruktur seperti Kategori.
     const orParts = [
       `first_name.ilike.${namePattern}`,
       `last_name.ilike.${namePattern}`,
+      `metadata->>minat_unit_lokasi.ilike.${namePattern}`,
+      `metadata->>permintaan.ilike.${namePattern}`,
+      `metadata->>komentar.ilike.${namePattern}`,
     ];
     if (phoneDigits) {
       orParts.push(`phone.ilike.%${phoneDigits}%`);

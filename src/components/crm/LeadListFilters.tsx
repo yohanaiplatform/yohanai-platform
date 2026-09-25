@@ -40,15 +40,15 @@ export function LeadListFilters({
 
       <div className="flex flex-col gap-1">
         <label htmlFor="search" className="text-xs text-muted-foreground">
-          Cari Nama / No. HP
+          Cari Nama / No. HP / Lokasi
         </label>
         <Input
           id="search"
           name="search"
           type="text"
-          placeholder="mis. Budi atau 0812..."
+          placeholder="mis. Budi, 0812..., atau Sungai Raya Dalam"
           defaultValue={search ?? ""}
-          className="w-56"
+          className="w-64"
         />
       </div>
 
