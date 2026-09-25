@@ -10,10 +10,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useBreadcrumbLabels } from "./BreadcrumbLabels";
 
 export function Breadcrumb() {
   const pathname = usePathname();
   const paths = pathname.split("/").filter(Boolean);
+  const labels = useBreadcrumbLabels();
 
   return (
     <ShadcnBreadcrumb>
@@ -26,7 +28,9 @@ export function Breadcrumb() {
         {paths.map((path, index) => {
           const href = `/${paths.slice(0, index + 1).join("/")}`;
           const isLast = index === paths.length - 1;
-          const label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, " ");
+          const label =
+            labels[path] ??
+            path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, " ");
 
           return (
             <div key={href} className="flex items-center">

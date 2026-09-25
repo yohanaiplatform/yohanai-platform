@@ -9,6 +9,7 @@ import { LeadStatusSelect } from "@/components/crm/LeadStatusSelect";
 import { LeadAssignSelect } from "@/components/crm/LeadAssignSelect";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getLeadById } from "@/lib/crm/getLeadById";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
 import { createClient } from "@/lib/supabase/server";
@@ -101,6 +102,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
   return (
     <div className="space-y-6 p-6">
+      <SetBreadcrumbLabel segment={lead.id} label={nama} />
       {backLink}
 
       <SectionCard
