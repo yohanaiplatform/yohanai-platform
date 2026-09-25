@@ -42,19 +42,21 @@ export interface LeadFilters {
   search?: string;
 }
 
-export async function getLeads(
+/**
+ * Query dasar customer.leads dengan filter LeadFilters diterapkan --
+ * dipakai getLeads() (paginated, buat Lead List) dan getAllLeadsForExport()
+ * (tanpa batas, buat export CSV) supaya logika filter cuma didefinisikan
+ * sekali, tidak drift antara dua tempat.
+ */
+function buildFilteredLeadsQuery(
   supabase: SupabaseClient<Database>,
-  page: number,
-  filters: LeadFilters = {}
-): Promise<GetLeadsResult> {
-  const from = (page - 1) * LEADS_PAGE_SIZE;
-  const to = from + LEADS_PAGE_SIZE - 1;
-
+  filters: LeadFilters
+) {
   let query = supabase
     .schema("customer")
     .from("leads")
     .select(
-      "id, first_name, last_name, email, phone, status, created_at, metadata, lead_source_id",
+      "id, first_name, last_name, email, phone, status, assigned_to, created_at, metadata, lead_source_id",
       { count: "exact" }
     )
     .is("deleted_at", null);
@@ -98,8 +100,21 @@ export async function getLeads(
     query = query.or(orParts.join(","));
   }
 
+  return query;
+}
+
+export async function getLeads(
+  supabase: SupabaseClient<Database>,
+  page: number,
+  filters: LeadFilters = {}
+): Promise<GetLeadsResult> {
+  const from = (page - 1) * LEADS_PAGE_SIZE;
+  const to = from + LEADS_PAGE_SIZE - 1;
+
   const [leadsRes, sourcesRes] = await Promise.all([
-    query.order("created_at", { ascending: false }).range(from, to),
+    buildFilteredLeadsQuery(supabase, filters)
+      .order("created_at", { ascending: false })
+      .range(from, to),
     supabase.schema("customer").from("lead_sources").select("id, name"),
   ]);
 
@@ -128,6 +143,78 @@ export async function getLeads(
     count: leadsRes.count ?? 0,
     error: false,
   };
+}
+
+export interface LeadExportRow {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  status: string;
+  assigned_to: string | null;
+  created_at: string;
+  metadata: Json;
+  lead_source_name: string | null;
+}
+
+const EXPORT_BATCH_SIZE = 1000;
+
+/**
+ * Sama seperti getLeads() tapi tanpa pagination -- dipakai export CSV
+ * yang butuh SEMUA baris sesuai filter, bukan satu halaman. Query
+ * PostgREST punya batas baris per request (default 1000), jadi di-loop
+ * per batch sampai habis alih-alih asumsi satu request cukup.
+ */
+export async function getAllLeadsForExport(
+  supabase: SupabaseClient<Database>,
+  filters: LeadFilters = {}
+): Promise<{ data: LeadExportRow[]; error: boolean }> {
+  const { data: sources, error: sourcesError } = await supabase
+    .schema("customer")
+    .from("lead_sources")
+    .select("id, name");
+
+  if (sourcesError) {
+    return { data: [], error: true };
+  }
+
+  const sourceNameById = new Map(sources.map((source) => [source.id, source.name]));
+
+  const rows: LeadExportRow[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await buildFilteredLeadsQuery(supabase, filters)
+      .order("created_at", { ascending: false })
+      .range(from, from + EXPORT_BATCH_SIZE - 1);
+
+    if (error) {
+      return { data: [], error: true };
+    }
+
+    rows.push(
+      ...data.map((lead) => ({
+        id: lead.id,
+        first_name: lead.first_name,
+        last_name: lead.last_name,
+        email: lead.email,
+        phone: lead.phone,
+        status: lead.status,
+        assigned_to: lead.assigned_to,
+        created_at: lead.created_at,
+        metadata: lead.metadata,
+        lead_source_name: lead.lead_source_id
+          ? (sourceNameById.get(lead.lead_source_id) ?? null)
+          : null,
+      }))
+    );
+
+    if (data.length < EXPORT_BATCH_SIZE) break;
+    from += EXPORT_BATCH_SIZE;
+  }
+
+  return { data: rows, error: false };
 }
 
 export function getLeadMetadataString(

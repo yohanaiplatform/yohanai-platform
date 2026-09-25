@@ -38,15 +38,31 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
   const supabase = await createClient();
   const { data, count, error } = await getLeads(supabase, page, filters);
 
+  const exportParams = new URLSearchParams();
+  if (filters.dateFrom) exportParams.set("dateFrom", filters.dateFrom);
+  if (filters.dateTo) exportParams.set("dateTo", filters.dateTo);
+  if (filters.kategori) exportParams.set("kategori", filters.kategori);
+  if (filters.sumber) exportParams.set("sumber", filters.sumber);
+  if (filters.temperature) exportParams.set("temperature", filters.temperature);
+  if (filters.search) exportParams.set("search", filters.search);
+  const exportHref = `/api/leads/export${exportParams.size > 0 ? `?${exportParams}` : ""}`;
+
   return (
     <div className="space-y-6 p-6">
       <SectionCard
         title="CRM"
         description="Lead dari Google Form dan channel lain, tersimpan di database."
         action={
-          <Link href="/crm/new">
-            <Button size="sm">+ Tambah Lead</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <a href={exportHref}>
+              <Button size="sm" variant="outline">
+                Export CSV
+              </Button>
+            </a>
+            <Link href="/crm/new">
+              <Button size="sm">+ Tambah Lead</Button>
+            </Link>
+          </div>
         }
       >
         <div className="space-y-4">
