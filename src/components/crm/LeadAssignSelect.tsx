@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface AssignableUser {
   user_id: string;
@@ -16,9 +17,10 @@ interface AssignableUser {
 interface LeadAssignSelectProps {
   leadId: string;
   assignedTo: string | null;
+  t: CrmDictionary;
 }
 
-export function LeadAssignSelect({ leadId, assignedTo }: LeadAssignSelectProps) {
+export function LeadAssignSelect({ leadId, assignedTo, t }: LeadAssignSelectProps) {
   const router = useRouter();
   // null = belum tahu (masih fetch daftar user). core.list_assignable_users()
   // balas array kosong kalau pemanggil bukan admin/super_admin -- itu sinyal
@@ -60,7 +62,7 @@ export function LeadAssignSelect({ leadId, assignedTo }: LeadAssignSelectProps) 
 
     if (updateError) {
       setValue(prev);
-      setError("Gagal menyimpan assignment. Coba lagi.");
+      setError(t.detail.assignError);
       return;
     }
 
@@ -68,13 +70,13 @@ export function LeadAssignSelect({ leadId, assignedTo }: LeadAssignSelectProps) 
   }
 
   if (users === null) {
-    return <span className="text-sm text-muted-foreground">Memuat...</span>;
+    return <span className="text-sm text-muted-foreground">{t.detail.loading}</span>;
   }
 
   // Bukan admin/super_admin -- RLS leads_owner_or_admin menjamin lead yang
   // bisa dilihat non-admin cuma miliknya sendiri, jadi cukup teks statis.
   if (users.length === 0) {
-    return <span className="text-sm">Anda</span>;
+    return <span className="text-sm">{t.detail.you}</span>;
   }
 
   return (
@@ -85,7 +87,7 @@ export function LeadAssignSelect({ leadId, assignedTo }: LeadAssignSelectProps) 
         disabled={saving}
         className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
       >
-        <option value="">Belum ditugaskan</option>
+        <option value="">{t.detail.unassigned}</option>
         {users.map((u) => (
           <option key={u.user_id} value={u.user_id}>
             {u.display_name ?? u.email ?? u.user_id}

@@ -4,8 +4,11 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
 import { AddLeadForm } from "@/components/crm/AddLeadForm";
+import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
-export default function NewLeadPage() {
+export default async function NewLeadPage() {
+  const t = await getCrmDictionary();
+
   return (
     <div className="space-y-6 p-6">
       <Link
@@ -13,14 +16,11 @@ export default function NewLeadPage() {
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Kembali ke daftar lead
+        {t.detail.back}
       </Link>
 
-      <SectionCard
-        title="Tambah Lead"
-        description="Input manual untuk lead dari telepon, walk-in, atau sumber lain di luar Google Form."
-      >
-        <AddLeadForm />
+      <SectionCard title={t.addLead.title} description={t.addLead.description}>
+        <AddLeadForm t={t} />
       </SectionCard>
     </div>
   );

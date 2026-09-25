@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface AssignableUser {
   user_id: string;
@@ -31,7 +32,11 @@ interface AssignableUser {
   role_name: string | null;
 }
 
-export function AddLeadForm() {
+interface AddLeadFormProps {
+  t: CrmDictionary;
+}
+
+export function AddLeadForm({ t }: AddLeadFormProps) {
   const router = useRouter();
 
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[] | null>(null);
@@ -79,7 +84,7 @@ export function AddLeadForm() {
     e.preventDefault();
 
     if (!nama.trim() || !phone.trim() || !assignedTo) {
-      setError("Nama, No. HP, dan Ditugaskan ke wajib diisi.");
+      setError(t.addLead.requiredError);
       return;
     }
 
@@ -104,7 +109,7 @@ export function AddLeadForm() {
     setSubmitting(false);
 
     if (createError || !leadId) {
-      setError(createError ?? "Gagal menyimpan lead. Coba lagi.");
+      setError(createError ?? t.addLead.submitError);
       return;
     }
 
@@ -123,43 +128,43 @@ export function AddLeadForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="nama">Nama *</Label>
+          <Label htmlFor="nama">{t.addLead.name}</Label>
           <Input
             id="nama"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
-            placeholder="mis. Budi Santoso"
+            placeholder={t.addLead.namePlaceholder}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">No. HP *</Label>
+          <Label htmlFor="phone">{t.addLead.phone}</Label>
           <Input
             id="phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="mis. 08123456789"
+            placeholder={t.addLead.phonePlaceholder}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t.addLead.email}</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="opsional"
+            placeholder={t.addLead.emailPlaceholder}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="sumber">Sumber Informasi</Label>
+          <Label htmlFor="sumber">{t.addLead.source}</Label>
           <Select value={sumberInformasi} onValueChange={(v) => setSumberInformasi(v ?? "")}>
             <SelectTrigger id="sumber">
-              <SelectValue placeholder="Pilih sumber" />
+              <SelectValue placeholder={t.addLead.sourcePlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_SUMBER_OPTIONS.map((opt) => (
@@ -172,10 +177,10 @@ export function AddLeadForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="kategori">Kategori / Property</Label>
+          <Label htmlFor="kategori">{t.addLead.category}</Label>
           <Select value={kategori} onValueChange={(v) => setKategori(v ?? "")}>
             <SelectTrigger id="kategori">
-              <SelectValue placeholder="Pilih kategori" />
+              <SelectValue placeholder={t.addLead.categoryPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_KATEGORI_OPTIONS.map((opt) => (
@@ -188,20 +193,20 @@ export function AddLeadForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="minatUnitLokasi">Minat Unit / Lokasi</Label>
+          <Label htmlFor="minatUnitLokasi">{t.addLead.unitLocation}</Label>
           <Input
             id="minatUnitLokasi"
             value={minatUnitLokasi}
             onChange={(e) => setMinatUnitLokasi(e.target.value)}
-            placeholder="mis. Ampera Raya"
+            placeholder={t.addLead.unitLocationPlaceholder}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="temperature">Temperature Awal</Label>
+          <Label htmlFor="temperature">{t.addLead.temperature}</Label>
           <Select value={statusFunnelAwal} onValueChange={(v) => setStatusFunnelAwal(v ?? "")}>
             <SelectTrigger id="temperature">
-              <SelectValue placeholder="Pilih temperature" />
+              <SelectValue placeholder={t.addLead.temperaturePlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_TEMPERATURE_OPTIONS.map((opt) => (
@@ -214,10 +219,10 @@ export function AddLeadForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="sudahSurvey">Sudah Survey</Label>
+          <Label htmlFor="sudahSurvey">{t.addLead.surveyed}</Label>
           <Select value={sudahSurvey} onValueChange={(v) => setSudahSurvey(v ?? "")}>
             <SelectTrigger id="sudahSurvey">
-              <SelectValue placeholder="Pilih" />
+              <SelectValue placeholder={t.addLead.surveyedPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_SUDAH_SURVEY_OPTIONS.map((opt) => (
@@ -231,10 +236,10 @@ export function AddLeadForm() {
 
         {isAdmin && (
           <div className="space-y-2">
-            <Label htmlFor="assignedTo">Ditugaskan ke *</Label>
+            <Label htmlFor="assignedTo">{t.addLead.assignedTo}</Label>
             <Select value={assignedTo} onValueChange={(v) => setAssignedTo(v ?? "")}>
               <SelectTrigger id="assignedTo">
-                <SelectValue placeholder="Pilih agent">
+                <SelectValue placeholder={t.addLead.assignedToPlaceholder}>
                   {assignedToLabel}
                 </SelectValue>
               </SelectTrigger>
@@ -252,30 +257,30 @@ export function AddLeadForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="permintaan">Permintaan</Label>
+        <Label htmlFor="permintaan">{t.addLead.request}</Label>
         <Textarea
           id="permintaan"
           value={permintaan}
           onChange={(e) => setPermintaan(e.target.value)}
-          placeholder="mis. Nanti survey tanggal 8 atau 9"
+          placeholder={t.addLead.requestPlaceholder}
           rows={3}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="komentar">Komentar</Label>
+        <Label htmlFor="komentar">{t.addLead.comment}</Label>
         <Textarea
           id="komentar"
           value={komentar}
           onChange={(e) => setKomentar(e.target.value)}
-          placeholder="Catatan tambahan"
+          placeholder={t.addLead.commentPlaceholder}
           rows={3}
         />
       </div>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Menyimpan..." : "Simpan Lead"}
+          {submitting ? t.addLead.submitting : t.addLead.submit}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>

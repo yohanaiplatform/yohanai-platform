@@ -16,6 +16,7 @@ import { getLeadById } from "@/lib/crm/getLeadById";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
 import { getLeadNotes } from "@/lib/crm/getLeadNotes";
 import { createClient } from "@/lib/supabase/server";
+import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
 // Cek bentuk UUID dulu sebelum query -- id acak/rusak di URL akan bikin
 // Postgres balas error "invalid input syntax for type uuid", yang tanpa
@@ -58,6 +59,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   }
 
   const supabase = await createClient();
+  const t = await getCrmDictionary();
   const { data: lead, error } = await getLeadById(supabase, id);
 
   const backLink = (
@@ -66,7 +68,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4" />
-      Kembali ke daftar lead
+      {t.detail.back}
     </Link>
   );
 
@@ -75,8 +77,8 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       <div className="space-y-6 p-6">
         {backLink}
         <EmptyState
-          title="Error"
-          description="Gagal memuat data lead. Coba muat ulang halaman."
+          title={t.list.errorTitle}
+          description={t.list.errorDescription}
         />
       </div>
     );
@@ -88,7 +90,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
   const { data: notes } = await getLeadNotes(supabase, id);
 
-  const nama = `${lead.first_name} ${lead.last_name}`.trim() || "Tanpa Nama";
+  const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
   const kategori = getLeadMetadataString(lead.metadata, "kategori");
   const sumberInformasi = getLeadMetadataString(lead.metadata, "sumber_informasi");
   const permintaan = getLeadMetadataString(lead.metadata, "permintaan");
@@ -110,27 +112,27 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
       <SectionCard
         title={nama}
-        description={`Lead masuk ${formatDateTime(lead.created_at)}`}
+        description={`${t.detail.leadInPrefix} ${formatDateTime(lead.created_at)}`}
         action={<WhatsAppButton phone={lead.phone} nama={nama} />}
       >
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
-          <LeadDetailField label="Status" value={<LeadStatusSelect leadId={lead.id} status={lead.status} />} />
+          <LeadDetailField label={t.detail.status} value={<LeadStatusSelect leadId={lead.id} status={lead.status} t={t} />} />
           <LeadDetailField
-            label="Ditugaskan ke"
-            value={<LeadAssignSelect leadId={lead.id} assignedTo={lead.assigned_to} />}
+            label={t.detail.assignedTo}
+            value={<LeadAssignSelect leadId={lead.id} assignedTo={lead.assigned_to} t={t} />}
           />
-          <LeadDetailField label="Telepon" value={lead.phone} />
-          <LeadDetailField label="Email" value={lead.email} />
-          <LeadDetailField label="Follow-up Terakhir" value={followUpTerakhir} />
-          <LeadDetailField label="Tanggal Submit Form" value={submittedAt} />
+          <LeadDetailField label={t.detail.phone} value={lead.phone} />
+          <LeadDetailField label={t.detail.email} value={lead.email} />
+          <LeadDetailField label={t.detail.lastFollowUp} value={followUpTerakhir} />
+          <LeadDetailField label={t.detail.submittedDate} value={submittedAt} />
           <LeadDetailField
-            label="Terakhir Diperbarui"
+            label={t.detail.lastUpdated}
             value={formatDateTime(lead.updated_at)}
           />
         </div>
       </SectionCard>
 
-      <SectionCard title="Detail Lead" description="Bisa diubah kapan saja saat ada follow-up baru.">
+      <SectionCard title={t.detail.detailTitle} description={t.detail.detailDescription}>
         <LeadEditableFields
           leadId={lead.id}
           metadata={lead.metadata}
@@ -142,11 +144,12 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           minatUnitLokasi={minatUnitLokasi}
           permintaan={permintaan}
           komentar={komentar}
+          t={t}
         />
       </SectionCard>
 
-      <SectionCard title="Catatan" description="Riwayat update, dengan waktu -- tidak menimpa catatan sebelumnya.">
-        <LeadNotes leadId={lead.id} notes={notes} />
+      <SectionCard title={t.detail.notesTitle} description={t.detail.notesDescription}>
+        <LeadNotes leadId={lead.id} notes={notes} t={t} />
       </SectionCard>
     </div>
   );

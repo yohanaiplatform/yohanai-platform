@@ -9,6 +9,7 @@ import { LeadListPagination } from "@/components/crm/LeadListPagination";
 import { LeadListFilters } from "@/components/crm/LeadListFilters";
 import { getLeads, LEADS_PAGE_SIZE, type LeadFilters } from "@/lib/crm/getLeads";
 import { createClient } from "@/lib/supabase/server";
+import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
 interface CRMPageProps {
   searchParams: Promise<{
@@ -25,6 +26,7 @@ interface CRMPageProps {
 export default async function CRMPage({ searchParams }: CRMPageProps) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
+  const t = await getCrmDictionary();
 
   const filters: LeadFilters = {
     dateFrom: params.dateFrom || undefined,
@@ -50,17 +52,17 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
   return (
     <div className="space-y-6 p-6">
       <SectionCard
-        title="CRM"
-        description="Lead dari Google Form dan channel lain, tersimpan di database."
+        title={t.list.title}
+        description={t.list.description}
         action={
           <div className="flex items-center gap-2">
             <a href={exportHref}>
               <Button size="sm" variant="outline">
-                Export CSV
+                {t.list.exportCsv}
               </Button>
             </a>
             <Link href="/crm/new">
-              <Button size="sm">+ Tambah Lead</Button>
+              <Button size="sm">{t.list.addLead}</Button>
             </Link>
           </div>
         }
@@ -68,17 +70,17 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
         <div className="space-y-4">
           {filters.temperature && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Filter aktif:</span>
-              {filters.temperature.split(",").map((t) => (
-                <Badge key={t} variant="secondary" className="capitalize">
-                  {t.trim()}
+              <span className="text-muted-foreground">{t.list.activeFilter}</span>
+              {filters.temperature.split(",").map((temp) => (
+                <Badge key={temp} variant="secondary" className="capitalize">
+                  {temp.trim()}
                 </Badge>
               ))}
               <Link
                 href="/crm"
                 className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
               >
-                Hapus filter
+                {t.list.clearFilter}
               </Link>
             </div>
           )}
@@ -90,14 +92,16 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
             sumber={filters.sumber}
             temperature={filters.temperature}
             search={filters.search}
+            t={t}
           />
-          <LeadList data={data} error={error} />
+          <LeadList data={data} error={error} t={t} />
           {!error && (
             <LeadListPagination
               page={page}
               pageSize={LEADS_PAGE_SIZE}
               totalCount={count}
               filters={filters}
+              t={t}
             />
           )}
         </div>

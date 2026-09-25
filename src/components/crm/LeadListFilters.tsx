@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { LEAD_KATEGORI_OPTIONS, LEAD_SUMBER_OPTIONS } from "@/constants/crm";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadListFiltersProps {
   dateFrom?: string;
@@ -13,6 +14,7 @@ interface LeadListFiltersProps {
   sumber?: string;
   temperature?: string;
   search?: string;
+  t: CrmDictionary;
 }
 
 /**
@@ -25,6 +27,9 @@ interface LeadListFiltersProps {
  * Search di baris sendiri di atas (bukan campur dengan filter lain) karena
  * ini yang paling sering dipakai -- tombol kaca pembesar di kanan cuma
  * submit form yang sama, bukan mekanisme terpisah.
+ *
+ * Opsi dropdown (kategori/sumber) sengaja TIDAK diterjemahkan -- itu nilai
+ * data asli (bahasa Google Form), lihat catatan di dictionaries.ts.
  */
 export function LeadListFilters({
   dateFrom,
@@ -33,6 +38,7 @@ export function LeadListFilters({
   sumber,
   temperature,
   search,
+  t,
 }: LeadListFiltersProps) {
   return (
     <form
@@ -44,23 +50,21 @@ export function LeadListFilters({
       )}
 
       <div className="flex flex-col gap-1">
-        {/* TODO(bi-lingual): label & placeholder perlu ikut pilihan bahasa
-            begitu fitur bahasa di header aktif -- lihat docs/modules/crm.mdx. */}
         <label htmlFor="search" className="text-sm font-medium">
-          Cari
+          {t.list.search}
         </label>
         <div className="relative max-w-xl">
           <Input
             id="search"
             name="search"
             type="text"
-            placeholder="Nama, No. HP, atau lokasi (mis. Serdam, UNTAN)"
+            placeholder={t.list.searchPlaceholder}
             defaultValue={search ?? ""}
             className="pr-9"
           />
           <button
             type="submit"
-            aria-label="Cari"
+            aria-label={t.list.search}
             className="absolute right-1 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Search className="h-4 w-4" />
@@ -71,7 +75,7 @@ export function LeadListFilters({
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
           <label htmlFor="dateFrom" className="text-xs text-muted-foreground">
-            Dari Tanggal
+            {t.list.dateFrom}
           </label>
           <Input
             id="dateFrom"
@@ -84,7 +88,7 @@ export function LeadListFilters({
 
         <div className="flex flex-col gap-1">
           <label htmlFor="dateTo" className="text-xs text-muted-foreground">
-            Sampai Tanggal
+            {t.list.dateTo}
           </label>
           <Input
             id="dateTo"
@@ -97,7 +101,7 @@ export function LeadListFilters({
 
         <div className="flex flex-col gap-1">
           <label htmlFor="kategori" className="text-xs text-muted-foreground">
-            Property / Kategori
+            {t.list.category}
           </label>
           <select
             id="kategori"
@@ -105,7 +109,7 @@ export function LeadListFilters({
             defaultValue={kategori ?? ""}
             className="h-8 w-56 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
           >
-            <option value="">Semua Property</option>
+            <option value="">{t.list.allCategory}</option>
             {LEAD_KATEGORI_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -116,7 +120,7 @@ export function LeadListFilters({
 
         <div className="flex flex-col gap-1">
           <label htmlFor="sumber" className="text-xs text-muted-foreground">
-            Sumber Informasi
+            {t.list.source}
           </label>
           <select
             id="sumber"
@@ -124,7 +128,7 @@ export function LeadListFilters({
             defaultValue={sumber ?? ""}
             className="h-8 w-48 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
           >
-            <option value="">Semua Sumber</option>
+            <option value="">{t.list.allSource}</option>
             {LEAD_SUMBER_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -134,10 +138,10 @@ export function LeadListFilters({
         </div>
 
         <Button type="submit" size="sm">
-          Terapkan
+          {t.list.apply}
         </Button>
         <Link href="/crm" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Reset
+          {t.list.reset}
         </Link>
       </div>
     </form>

@@ -6,13 +6,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LEAD_STATUS_CONFIG } from "@/components/crm/lead-status-badge";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadStatusSelectProps {
   leadId: string;
   status: string;
+  t: CrmDictionary;
 }
 
-export function LeadStatusSelect({ leadId, status }: LeadStatusSelectProps) {
+export function LeadStatusSelect({ leadId, status, t }: LeadStatusSelectProps) {
   const router = useRouter();
   const [value, setValue] = useState(status);
   const [saving, setSaving] = useState(false);
@@ -36,7 +38,7 @@ export function LeadStatusSelect({ leadId, status }: LeadStatusSelectProps) {
 
     if (updateError) {
       setValue(prev);
-      setError("Gagal menyimpan status. Coba lagi.");
+      setError(t.detail.saveError);
       return;
     }
 
@@ -51,9 +53,9 @@ export function LeadStatusSelect({ leadId, status }: LeadStatusSelectProps) {
         disabled={saving}
         className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
       >
-        {Object.entries(LEAD_STATUS_CONFIG).map(([statusKey, config]) => (
+        {Object.keys(LEAD_STATUS_CONFIG).map((statusKey) => (
           <option key={statusKey} value={statusKey}>
-            {config.label}
+            {t.status[statusKey as keyof typeof t.status] ?? statusKey}
           </option>
         ))}
       </select>

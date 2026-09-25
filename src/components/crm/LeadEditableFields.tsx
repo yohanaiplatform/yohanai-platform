@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadEditableFieldsProps {
   leadId: string;
@@ -38,6 +39,7 @@ interface LeadEditableFieldsProps {
   minatUnitLokasi: string | null;
   permintaan: string | null;
   komentar: string | null;
+  t: CrmDictionary;
 }
 
 export function LeadEditableFields({
@@ -51,6 +53,7 @@ export function LeadEditableFields({
   minatUnitLokasi,
   permintaan,
   komentar,
+  t,
 }: LeadEditableFieldsProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -107,7 +110,7 @@ export function LeadEditableFields({
     setSaving(false);
 
     if (updateError) {
-      setError("Gagal menyimpan perubahan. Coba lagi.");
+      setError(t.detail.saveError);
       return;
     }
 
@@ -120,18 +123,18 @@ export function LeadEditableFields({
       <div className="space-y-4">
         <div className="flex justify-end">
           <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-            Edit
+            {t.detail.edit}
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-          <LeadDetailField label="Sumber" value={sumberInformasi ?? leadSourceName} />
-          <LeadDetailField label="Kategori" value={<LeadCategoryBadge kategori={kategori} />} />
-          <LeadDetailField label="Temperature Awal" value={statusFunnelAwal} />
-          <LeadDetailField label="Sudah Survey" value={sudahSurvey} />
-          <LeadDetailField label="Minat Unit / Lokasi" value={minatUnitLokasi} />
+          <LeadDetailField label={t.detail.source} value={sumberInformasi ?? leadSourceName} />
+          <LeadDetailField label={t.detail.category} value={<LeadCategoryBadge kategori={kategori} />} />
+          <LeadDetailField label={t.detail.temperature} value={statusFunnelAwal} />
+          <LeadDetailField label={t.detail.surveyed} value={sudahSurvey} />
+          <LeadDetailField label={t.detail.unitLocation} value={minatUnitLokasi} />
           <div />
-          <LeadDetailField label="Permintaan" value={permintaan} />
-          <LeadDetailField label="Komentar" value={komentar} />
+          <LeadDetailField label={t.detail.request} value={permintaan} />
+          <LeadDetailField label={t.detail.comment} value={komentar} />
         </div>
       </div>
     );
@@ -141,10 +144,10 @@ export function LeadEditableFields({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="edit-sumber">Sumber Informasi</Label>
+          <Label htmlFor="edit-sumber">{t.addLead.source}</Label>
           <Select value={formSumber} onValueChange={(v) => setFormSumber(v ?? "")}>
             <SelectTrigger id="edit-sumber">
-              <SelectValue placeholder="Pilih sumber" />
+              <SelectValue placeholder={t.addLead.sourcePlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_SUMBER_OPTIONS.map((opt) => (
@@ -157,10 +160,10 @@ export function LeadEditableFields({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit-kategori">Kategori / Property</Label>
+          <Label htmlFor="edit-kategori">{t.addLead.category}</Label>
           <Select value={formKategori} onValueChange={(v) => setFormKategori(v ?? "")}>
             <SelectTrigger id="edit-kategori">
-              <SelectValue placeholder="Pilih kategori" />
+              <SelectValue placeholder={t.addLead.categoryPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_KATEGORI_OPTIONS.map((opt) => (
@@ -173,10 +176,10 @@ export function LeadEditableFields({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit-temperature">Temperature Awal</Label>
+          <Label htmlFor="edit-temperature">{t.addLead.temperature}</Label>
           <Select value={formTemperature} onValueChange={(v) => setFormTemperature(v ?? "")}>
             <SelectTrigger id="edit-temperature">
-              <SelectValue placeholder="Pilih temperature" />
+              <SelectValue placeholder={t.addLead.temperaturePlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_TEMPERATURE_OPTIONS.map((opt) => (
@@ -189,10 +192,10 @@ export function LeadEditableFields({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit-sudah-survey">Sudah Survey</Label>
+          <Label htmlFor="edit-sudah-survey">{t.addLead.surveyed}</Label>
           <Select value={formSudahSurvey} onValueChange={(v) => setFormSudahSurvey(v ?? "")}>
             <SelectTrigger id="edit-sudah-survey">
-              <SelectValue placeholder="Pilih" />
+              <SelectValue placeholder={t.addLead.surveyedPlaceholder} />
             </SelectTrigger>
             <SelectContent>
               {LEAD_SUDAH_SURVEY_OPTIONS.map((opt) => (
@@ -205,18 +208,18 @@ export function LeadEditableFields({
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="edit-minat">Minat Unit / Lokasi</Label>
+          <Label htmlFor="edit-minat">{t.addLead.unitLocation}</Label>
           <Input
             id="edit-minat"
             value={formMinatUnitLokasi}
             onChange={(e) => setFormMinatUnitLokasi(e.target.value)}
-            placeholder="mis. Ampera Raya"
+            placeholder={t.addLead.unitLocationPlaceholder}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-permintaan">Permintaan</Label>
+        <Label htmlFor="edit-permintaan">{t.addLead.request}</Label>
         <Textarea
           id="edit-permintaan"
           value={formPermintaan}
@@ -226,7 +229,7 @@ export function LeadEditableFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="edit-komentar">Komentar</Label>
+        <Label htmlFor="edit-komentar">{t.addLead.comment}</Label>
         <Textarea
           id="edit-komentar"
           value={formKomentar}
@@ -237,10 +240,10 @@ export function LeadEditableFields({
 
       <div className="flex items-center gap-3">
         <Button type="button" size="sm" onClick={handleSave} disabled={saving}>
-          {saving ? "Menyimpan..." : "Save"}
+          {saving ? t.detail.saving : t.detail.save}
         </Button>
         <Button type="button" size="sm" variant="outline" onClick={handleCancel} disabled={saving}>
-          Batal
+          {t.detail.cancel}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>

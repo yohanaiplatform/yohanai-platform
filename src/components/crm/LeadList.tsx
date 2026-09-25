@@ -6,18 +6,20 @@ import { LeadStatusBadge } from "@/components/crm/lead-status-badge";
 import { LeadCategoryBadge } from "@/components/crm/lead-category-badge";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getLeadMetadataString, type LeadListItem } from "@/lib/crm/getLeads";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadListProps {
   data: LeadListItem[] | null;
   error: boolean;
+  t: CrmDictionary;
 }
 
-export function LeadList({ data, error }: LeadListProps) {
+export function LeadList({ data, error, t }: LeadListProps) {
   if (error) {
     return (
       <EmptyState
-        title="Error"
-        description="Gagal memuat data lead. Coba muat ulang halaman."
+        title={t.list.errorTitle}
+        description={t.list.errorDescription}
       />
     );
   }
@@ -25,8 +27,8 @@ export function LeadList({ data, error }: LeadListProps) {
   if (!data || data.length === 0) {
     return (
       <EmptyState
-        title="Belum Ada Lead"
-        description="Lead dari Google Form akan muncul di sini setelah masuk."
+        title={t.list.emptyTitle}
+        description={t.list.emptyDescription}
       />
     );
   }
@@ -36,13 +38,13 @@ export function LeadList({ data, error }: LeadListProps) {
       <table className="w-full min-w-[720px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-xs text-muted-foreground">
-            <th className="px-3 py-2 font-medium">Nama</th>
-            <th className="px-3 py-2 font-medium">Kontak</th>
-            <th className="px-3 py-2 font-medium">Sumber</th>
-            <th className="px-3 py-2 font-medium">Kategori</th>
-            <th className="px-3 py-2 font-medium">Status</th>
-            <th className="px-3 py-2 font-medium">Tanggal Masuk</th>
-            <th className="px-3 py-2 font-medium">Aksi</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.name}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.contact}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.source}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.category}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.status}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.dateIn}</th>
+            <th className="px-3 py-2 font-medium">{t.list.table.action}</th>
           </tr>
         </thead>
         <tbody>
@@ -52,7 +54,7 @@ export function LeadList({ data, error }: LeadListProps) {
               lead.metadata,
               "sumber_informasi"
             );
-            const nama = `${lead.first_name} ${lead.last_name}`.trim() || "Tanpa Nama";
+            const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
 
             return (
               <tr
@@ -77,7 +79,7 @@ export function LeadList({ data, error }: LeadListProps) {
                   <LeadCategoryBadge kategori={kategori} />
                 </td>
                 <td className="px-3 py-3">
-                  <LeadStatusBadge status={lead.status} />
+                  <LeadStatusBadge status={lead.status} t={t} />
                 </td>
                 <td className="px-3 py-3 text-muted-foreground">
                   {new Date(lead.created_at).toLocaleDateString("id-ID", {

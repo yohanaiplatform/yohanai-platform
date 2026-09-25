@@ -8,10 +8,12 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { LeadNote } from "@/lib/crm/getLeadNotes";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadNotesProps {
   leadId: string;
   notes: LeadNote[];
+  t: CrmDictionary;
 }
 
 function formatDateTime(value: string) {
@@ -31,7 +33,7 @@ function formatDateTime(value: string) {
  * bukan overwrite -- supaya "Lead sudah dapat unit lain", "Lead batal
  * booking", dst tercatat sebagai jejak, bukan hilang begitu diganti lagi.
  */
-export function LeadNotes({ leadId, notes }: LeadNotesProps) {
+export function LeadNotes({ leadId, notes, t }: LeadNotesProps) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -56,7 +58,7 @@ export function LeadNotes({ leadId, notes }: LeadNotesProps) {
     const authorLabel =
       [profile?.first_name, profile?.last_name].filter(Boolean).join(" ").trim() ||
       userData.user?.email ||
-      "Tim";
+      t.detail.teamFallback;
 
     const { error: insertError } = await supabase
       .schema("customer")
@@ -71,7 +73,7 @@ export function LeadNotes({ leadId, notes }: LeadNotesProps) {
     setSubmitting(false);
 
     if (insertError) {
-      setError("Gagal menyimpan catatan. Coba lagi.");
+      setError(t.detail.noteError);
       return;
     }
 
@@ -85,19 +87,19 @@ export function LeadNotes({ leadId, notes }: LeadNotesProps) {
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="mis. Lead sudah dapat unit di lokasi lain, follow-up dihentikan"
+          placeholder={t.detail.notePlaceholder}
           rows={2}
         />
         <div className="flex items-center gap-3">
           <Button type="submit" size="sm" disabled={submitting || !text.trim()}>
-            {submitting ? "Menyimpan..." : "Tambah Catatan"}
+            {submitting ? t.detail.addingNote : t.detail.addNote}
           </Button>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
       </form>
 
       {notes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Belum ada catatan.</p>
+        <p className="text-sm text-muted-foreground">{t.detail.noNotes}</p>
       ) : (
         <ul className="space-y-3 border-t border-border pt-3">
           {notes.map((n) => (

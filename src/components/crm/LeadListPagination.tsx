@@ -4,12 +4,14 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { LeadFilters } from "@/lib/crm/getLeads";
+import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadListPaginationProps {
   page: number;
   pageSize: number;
   totalCount: number;
   filters: LeadFilters;
+  t: CrmDictionary;
 }
 
 function buildHref(page: number, filters: LeadFilters): string {
@@ -29,6 +31,7 @@ export function LeadListPagination({
   pageSize,
   totalCount,
   filters,
+  t,
 }: LeadListPaginationProps) {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const hasPrev = page > 1;
@@ -39,7 +42,7 @@ export function LeadListPagination({
   return (
     <div className="flex items-center justify-between pt-4">
       <p className="text-sm text-muted-foreground">
-        Halaman {page} dari {totalPages} &middot; {totalCount} lead
+        {t.list.pageLabel} {page} {t.list.ofLabel} {totalPages} &middot; {totalCount} {t.list.leadUnit}
       </p>
       <div className="flex gap-2">
         <Link
@@ -51,7 +54,7 @@ export function LeadListPagination({
             !hasPrev && "pointer-events-none opacity-50"
           )}
         >
-          Sebelumnya
+          {t.list.prev}
         </Link>
         <Link
           href={buildHref(page + 1, filters)}
@@ -62,7 +65,7 @@ export function LeadListPagination({
             !hasNext && "pointer-events-none opacity-50"
           )}
         >
-          Berikutnya
+          {t.list.next}
         </Link>
       </div>
     </div>
