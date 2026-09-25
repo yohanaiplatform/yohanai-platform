@@ -25,6 +25,7 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter, tambah/edit lead manual, catatan, export CSV selesai |
 | AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned -- lihat catatan kecukupan data di bawah |
 | Jalur masuk lead | Google Form (otomatis, Fase 1) **dan** input manual dari dashboard (`/crm/new`, 26 September 2026) -- satu arah, **tidak** sinkron balik ke spreadsheet |
+| Bahasa | 🟡 Bi-lingual ID/EN sejak 26 September 2026 -- toggle di header, baru cakupan modul CRM, modul lain masih Indonesia tetap |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
 
@@ -203,6 +204,24 @@ Yohan tanya soal per-user/per-bisnis punya data terpisah (untuk SaaS nanti), den
 ## Sentuhan Warna (26 September 2026)
 
 Ditegur Yohan: platform kelihatan hitam-putih semua. `LeadFunnel`, `PropertySummary`, `AIInsightPanel` sudah berwarna sejak awal; yang genuinely monokrom dan diperbaiki: 4 StatCard dashboard (ikon + warna beda per kartu), badge status pipeline (`qualified`/`proposal`/`negotiation` sebelumnya sama persis warnanya, sekarang progresif dingin→hangat), dan Kategori lead (sekarang badge berwarna, warnanya di-hash dari teks supaya kategori baru otomatis dapat warna stabil tanpa kode disentuh).
+
+## Pencarian & Export Lanjutan (26 September 2026)
+
+Ditanya Yohan cara menyaring lead area Serdam/UNTAN, lalu langsung nanya soal broadcast WA dan download hasil filter:
+
+- **Search diperluas** — field "Cari" (sebelumnya "Cari Nama / No. HP") sekarang ikut cari di `metadata->>minat_unit_lokasi`/`permintaan`/`komentar`, bukan cuma nama/HP. Insight sampingan: warga setempat hampir selalu tulis singkatan lokasi ("Serdam" untuk Sungai Raya Dalam, 75 lead) bukan nama lengkap (cuma 1 lead) -- relevan kalau nanti bikin daftar kata kunci lokasi standar.
+- **Search bar dipindah ke baris sendiri** di atas filter lain, dengan tombol kaca pembesar (`Search` icon dari lucide) di kanan input -- submit form GET yang sama, bukan mekanisme terpisah.
+- **Export CSV otomatis ikut filter search** -- tidak perlu kode tambahan, `exportParams` di `crm/page.tsx` sudah membawa semua filter (termasuk `search`) sejak fitur export dibuat. Diverifikasi: filter "Serdam" (75 lead) -> export CSV -> 75 baris, cocok persis.
+- **Broadcast WA ke hasil filter -- BELUM BISA, dan sengaja tidak dikerjakan.** Ditanya Yohan, dijawab: `getAllLeadsForExport()` yang sudah ada bisa dipakai ulang untuk broadcast begitu WhatsApp tersambung, tapi sesuai `AGENTS.md`, **integrasi WA apa pun tidak boleh mulai dibangun sebelum keputusan WAHA vs Fonnte diambil eksplisit**. Ini murni jawaban konsep di chat, tidak ada kode yang ditulis.
+
+## Bi-lingual ID/EN (26 September 2026)
+
+Diminta Yohan: toggle bahasa di header (ID/EN), nanti dipindah ke Settings kalau halaman itu sudah aktif. Discoping bareng Yohan dulu sebelum mulai (4 pilihan: semua modul sekaligus / toggle+CRM dulu / cuma toggle tanpa isi) -- dipilih **toggle + CRM dulu**, modul lain menyusul bertahap.
+
+- `src/lib/i18n/dictionaries.ts` -- kamus `id`/`en`, dipisah per fitur (`list`/`detail`/`addLead`/`status`). **Nilai DATA (kategori, sumber informasi, temperature, sudah survey) sengaja TIDAK diterjemahkan** -- itu data asli tersimpan di database dalam bahasa Google Form, menerjemahkan tampilannya tanpa menerjemahkan nilai yang difilter/dicari akan bikin mismatch pencarian. Yang diterjemahkan cuma UI chrome dan label status pipeline (`new`/`contacted`/dst -- itu kode internal, bukan data, aman diterjemahkan).
+- Locale disimpan di **cookie**, bukan `localStorage` -- semua halaman CRM adalah Server Component yang render teks di server, jadi perlu bisa dibaca server-side. `LanguageToggle.tsx` (client) menulis cookie lalu `router.refresh()`.
+- Locale awal dikirim dari server lewat rantai props (`DashboardLayout` baca cookie → `AppShell` → `Header` → `LanguageToggle`), **bukan** dibaca dari `document.cookie` di `useEffect` client -- itu bikin kedipan UI balik ke default sesaat sebelum efek jalan, dan kena lint `react-hooks/set-state-in-effect`.
+- **Bug ketemu & diperbaiki:** kamus awalnya punya field berbentuk fungsi (buat interpolasi kalimat seperti "Halaman X dari Y"). Begitu objek kamus lengkap dilewatkan sebagai prop ke Client Component (`LeadStatusSelect` dkk), React gagal serialize ("Functions cannot be passed directly to Client Components"), bikin `/crm/[id]` dan `/crm/new` 500 error. Diganti jadi field string murni, kalimat disusun langsung di komponen yang butuh. **Pelajaran: kamus/dictionary yang dilewatkan sebagai prop ke Client Component harus 100% data serializable (string/number/boolean/object polos) -- jangan taruh fungsi di dalamnya.**
 
 ## Prinsip: jangan buang Google Form-nya
 

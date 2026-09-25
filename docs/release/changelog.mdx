@@ -51,6 +51,24 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Search Bar Redesign & Bi-lingual ID/EN
+
+### Added
+
+- Search bar Lead List dipindah ke baris sendiri di atas filter lain, dengan tombol kaca pembesar di kanan input (submit form GET yang sama)
+- **Toggle bahasa ID/EN** di header (`src/lib/i18n/`) — baru cakupan modul CRM (Lead List, Lead Detail, Tambah Lead, Catatan). Locale disimpan di cookie, dibaca server-side supaya halaman CRM (Server Component) ikut berubah. Nilai data (kategori/sumber/temperature/sudah survey) sengaja tidak diterjemahkan — itu data asli database
+- Dikonfirmasi (tanpa kode baru): Export CSV sudah otomatis ikut parameter `search` sejak fitur itu dibuat
+
+### Fixed
+
+- Kamus i18n sempat bikin `/crm/[id]` dan `/crm/new` 500 error — field berbentuk fungsi di kamus tidak bisa di-serialize saat dilewatkan sebagai prop ke Client Component. Diganti field string murni
+
+### Docs
+
+- Broadcast WA ke hasil filter dijawab konseptual di chat (bergantung keputusan WAHA vs Fonnte yang belum diambil) — tidak ada kode ditulis, sesuai `AGENTS.md`
+
+---
+
 ## 26 September 2026 — Pencarian Lead List Diperluas
 
 ### Added
