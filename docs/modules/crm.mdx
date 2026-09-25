@@ -256,6 +256,8 @@ CRM membantu agen untuk:
 
 ✅ **Selesai (Fase 2).** Menampilkan lead dari database, dengan filter tanggal/kategori/temperature, pagination, dan tombol kontak WhatsApp langsung. Lihat `src/app/(dashboard)/crm/page.tsx`.
 
+**Pencarian diperluas (26 September 2026):** field "Cari Nama / No. HP" tadinya cuma cari di `first_name`/`last_name`/`phone`. Ditanya Yohan cara saring lead berdasar kata kunci lokasi (mis. "UNTAN", "Serdam"), diperluas ikut cari di `metadata->>minat_unit_lokasi`, `permintaan`, `komentar` — field teks bebas tempat kata kunci lokasi/kebutuhan biasanya muncul, bukan di kolom terstruktur. Ketemu insight data sambil verifikasi: warga setempat hampir selalu pakai singkatan lokasi ("Serdam" untuk Sungai Raya Dalam, 75 lead) alih-alih nama lengkap (cuma 1 lead) — relevan kalau nanti mau bikin daftar kata kunci lokasi standar.
+
 ---
 
 ## Lead Detail
