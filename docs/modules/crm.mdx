@@ -18,13 +18,13 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | Item | Status |
 |------|--------|
 | Development | ✅ Lead Intake Fase 1 & CRM Foundation Fase 2 selesai |
-| Production Ready | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi, tambah lead manual semua live |
-| Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
-| RLS policy | ✅ Ada (`leads_owner_or_admin` sejak `035`, sebelumnya `authenticated_all`) |
-| GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`) |
-| UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi, tambah lead manual (`/crm/new`) selesai |
-| AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned |
-| Jalur masuk lead | Google Form (otomatis, Fase 1) **dan** input manual dari dashboard (`/crm/new`, 26 September 2026) |
+| Production Ready | ✅ Lead List, Lead Detail, ubah status, assign agent, filter, tambah/edit lead manual, catatan berwaktu, export CSV semua live |
+| Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`, `notes` sejak `038`) |
+| RLS policy | ✅ Ada (`leads_owner_or_admin`/`notes_owner_or_admin` sejak `035`/`038`, sebelumnya `authenticated_all`) |
+| GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`, `038`) |
+| UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter, tambah/edit lead manual, catatan, export CSV selesai |
+| AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned -- lihat catatan kecukupan data di bawah |
+| Jalur masuk lead | Google Form (otomatis, Fase 1) **dan** input manual dari dashboard (`/crm/new`, 26 September 2026) -- satu arah, **tidak** sinkron balik ke spreadsheet |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
 
@@ -140,6 +140,7 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 | `035` | Pemisahan akses lead per akun: kolom `assigned_to`, role `agent` untuk Ramlan, policy `leads_owner_or_admin` (admin lihat semua, role lain cuma lihat miliknya sendiri) — lihat `docs/status.mdx` audit poin 10 |
 | `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead, khusus admin/super_admin |
 | `037` | Baris baru "Input Manual" di `customer.lead_sources`, untuk lead yang diinput langsung dari dashboard |
+| `038` | Tabel `customer.notes` — catatan berwaktu per lead (append-only), policy `notes_owner_or_admin` |
 
 ## CRM Foundation Fase 2 — selesai
 
@@ -147,7 +148,7 @@ Semua item di checklist awal Fase 2 sudah live: Lead List (baca/filter/WA), Lead
 
 **Belum dikerjakan (di luar cakupan Fase 2, fase berikutnya):**
 
-- **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah). Ini "Phase 2"/"Phase 3" di roadmap CRM, bukan bagian dari CRM *Foundation*.
+- **Timeline/Activity lengkap** — Notes (catatan berwaktu) sudah ada sejak 26 September 2026 (lihat bagian di bawah), tapi Activity terstruktur (Call/Meeting/Visit sebagai tipe tersendiri, bukan cuma teks bebas) belum. Ini "Phase 2"/"Phase 3" di roadmap CRM, bukan bagian dari CRM *Foundation*.
 - **UI bulk-assign** di Lead List (assign banyak lead sekaligus) — sekarang cuma bisa satu-satu dari Lead Detail. Belum jadi kebutuhan mendesak karena baru ada 2 akun.
 
 ## Tambah Lead Manual (26 September 2026)
@@ -162,6 +163,46 @@ Ditanya Yohan setelah sadar tombol "Add Lead" di dashboard ternyata cuma link ke
 - Diverifikasi end-to-end dengan data production asli: isi form lengkap, submit, redirect ke Lead Detail, semua field (termasuk normalisasi nomor HP) cocok persis dengan input, dicek langsung ke database. Data uji dihapus lagi setelahnya.
 
 **Agent AI dari WhatsApp yang bisa input lead otomatis (permintaan Yohan yang sama) belum dibangun** — itu bergantung keputusan WAHA vs Fonnte yang belum diambil. Struktur `createLead.ts` dibuat generik supaya nanti bisa dipakai ulang oleh jalur itu juga, bukan eksklusif untuk form manual.
+
+## Edit Lead & Catatan Berwaktu (26 September 2026)
+
+Ditanya Yohan: field seperti "Sudah Survey" cuma bisa dilihat, padahal kondisinya berubah seiring follow-up (mis. awalnya "Belum", setelah follow-up ketiga jadi "Sudah"). Juga minta jejak waktu tiap ada update penting ("Lead sudah dapat unit di lokasi lain", "Lead batal booking", dst) — bukan cuma field yang di-overwrite dan riwayatnya hilang.
+
+Dua mekanisme terpisah, sengaja tidak digabung:
+
+1. **`LeadEditableFields.tsx`** — Sumber, Kategori, Temperature, Sudah Survey, Minat Unit/Lokasi, Permintaan, Komentar sekarang bisa diedit lewat tombol Edit → form → **Save**/Batal (beda dari Status/Assign yang auto-save per field). Update `metadata` dengan *merge* (bukan overwrite kolom `metadata` utuh) supaya `origin`/`submitted_at`/dll tidak ikut hilang.
+2. **`customer.notes`** (migration `038`) — log **append-only** per lead: waktu + penulis + isi, tidak pernah di-overwrite. RLS `notes_owner_or_admin` ikut visibilitas lead induknya (pola sama seperti `leads_owner_or_admin`), diterapkan sejak migration ditulis — bukan nunggu ketahuan bug `authenticated_all` lagi seperti kasus `035`. GRANT cuma `SELECT`+`INSERT` (tidak ada UPDATE/DELETE dari app, memang dirancang append-only). `author_label` disimpan mentah saat insert (bukan resolve dari `auth_ext.profiles` saat tampil) karena RLS profil cuma izinkan baca punya sendiri — non-admin yang lihat note tulisan admin di lead miliknya tidak akan bisa resolve nama itu lewat query biasa.
+
+**Ini juga fondasi data untuk "Buyer Behavior Intelligence"** (lihat riset di bawah) — sebelum ini, tidak ada satu pun tempat di skema yang mencatat riwayat interaksi dari waktu ke waktu, cuma nilai-terkini di `metadata`.
+
+**Bug ketemu saat tes manual:** `created_by` tidak pernah diisi di `createLead.ts` maupun insert notes baru. Ternyata pola yang sama berulang di **seluruh aplikasi** — `grep created_by` di `src/` nol hasil di kode aplikasi (cuma muncul di tipe TypeScript). Diperbaiki di 2 tempat yang baru ditulis sesi ini; kesenjangan yang sama di tabel/insert lain (mis. `createdBy` saat insert lead dari `/api/leads/intake`, dari service-role — itu memang sengaja NULL karena pemanggilnya mesin, bukan gap) belum diaudit menyeluruh.
+
+## Kecukupan Data untuk "Property Buyer Behavior Intelligence" (riset 26 September 2026)
+
+Ditanya Yohan, dicek ke `project-docs/` (arsip pra-Claude). Temuan:
+
+- Visi asli (Juli 2026): *"Unlike conventional CRM systems, Yohan.AI continuously analyzes **buyer behavior, conversation history, lead quality, and property data**"* — bukan cuma data lead statis.
+- Field mentah yang sudah tersimpan sekarang (kategori, permintaan, komentar, minat unit/lokasi, dll) **cukup sebagai bahan baku** — ini persis field yang dulu jadi input AI Processor legacy (`AI_Intent`, `Budget Min/Max`, `Property Match Score`, `Lead Score`, dll, lihat bagian "Rencana Lead Intake" di atas).
+- Yang tadinya **belum ada**: riwayat interaksi berwaktu. Sudah ditutup sebagian oleh `customer.notes` (lihat di atas). Yang masih kosong: `chat.conversations`/`chat.messages` (skema ada, data kosong — nunggu keputusan WAHA/Fonnte).
+
+**Kesimpulan:** data mentahnya cukup untuk dianalisis, riwayat perilakunya baru mulai tercatat lewat Notes. Belum ada AI Processor beneran yang mengonsumsi data ini (Follow-up Backlog di dashboard cuma 1 insight sederhana, bukan model AI).
+
+## Export CSV (26 September 2026)
+
+Diminta Yohan: download data CRM ke Excel/spreadsheet. Diputuskan CSV dulu (bukan `.xlsx`) — library `xlsx`/`exceljs` belum ada di project, nambahnya berarti nunggu `npm install` dulu sebelum bisa diverifikasi. CSV zero-dependency, buka langsung di Excel/Google Sheets.
+
+- Tombol "Export CSV" di halaman `/crm`, mengikuti filter aktif (bukan cuma satu halaman/paginasi).
+- `getLeads.ts` di-refactor: logika filter diekstrak ke `buildFilteredLeadsQuery()`, dipakai bareng oleh `getLeads()` (paginated) dan `getAllLeadsForExport()` (tanpa batas, di-loop per 1000 baris karena PostgREST punya limit per-request).
+- Route `/api/leads/export` session-based (bukan service-role) — RLS `leads_owner_or_admin` otomatis berlaku, non-admin cuma export lead miliknya sendiri.
+- **Belum otomatis sinkron ke Google Sheet "Input Data"** — itu permintaan terpisah yang butuh integrasi Google Sheets API (service account, dsb), belum dibangun. Lihat juga bagian "Jalur masuk lead" di atas: aliran data masih satu arah (Form → Database), belum ada arah balik (Database → Sheet).
+
+## Multi-Tenant untuk SaaS — sengaja ditunda
+
+Yohan tanya soal per-user/per-bisnis punya data terpisah (untuk SaaS nanti), dengan admin platform tetap bisa akses semua untuk keperluan support. **Diputuskan ditunda**, bukan lupa — platform masih ON HOLD, baru 2 user di 1 bisnis yang sama. Ini perubahan arsitektur besar (nyentuh RLS di semua tabel domain, bukan cuma `customer.leads`), dikerjakan pas sudah dekat mau onboarding pelanggan pertama. Dicek ke `project-docs/`: multi-tenant memang bagian dari visi awal (`v1.8`: *"single multi-tenant platform capable of serving multiple property agents under one centralized administration"*), tapi **tidak pernah didesain ke skema database** — jadi ini keputusan arsitektur dari nol, bukan tinggal mengaktifkan sesuatu yang sudah direncanakan.
+
+## Sentuhan Warna (26 September 2026)
+
+Ditegur Yohan: platform kelihatan hitam-putih semua. `LeadFunnel`, `PropertySummary`, `AIInsightPanel` sudah berwarna sejak awal; yang genuinely monokrom dan diperbaiki: 4 StatCard dashboard (ikon + warna beda per kartu), badge status pipeline (`qualified`/`proposal`/`negotiation` sebelumnya sama persis warnanya, sekarang progresif dingin→hangat), dan Kategori lead (sekarang badge berwarna, warnanya di-hash dari teks supaya kategori baru otomatis dapat warna stabil tanpa kode disentuh).
 
 ## Prinsip: jangan buang Google Form-nya
 
@@ -219,7 +260,7 @@ CRM membantu agen untuk:
 
 ## Lead Detail
 
-✅ **Selesai (Fase 2, 24-25 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) juga sudah bisa langsung dari halaman ini. Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
+✅ **Selesai (Fase 2, 24-26 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) bisa langsung dari halaman ini. Sejak 26 September: field Sumber/Kategori/Temperature/Sudah Survey/Minat Unit/Permintaan/Komentar bisa diedit (tombol Edit → Save), plus riwayat catatan berwaktu (lihat "Notes" di bawah). Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
 
 ---
 
@@ -231,25 +272,19 @@ CRM membantu agen untuk:
 
 ## Timeline
 
-Riwayat aktivitas:
-
-- Chat
-- Follow-up
-- Call
-- Meeting
-- Visit
+🟡 **Sebagian.** Notes (lihat di bawah) sudah jadi bentuk timeline paling dasar. Belum ada tipe aktivitas terstruktur (Chat/Call/Meeting/Visit sebagai kategori tersendiri, bukan teks bebas).
 
 ---
 
 ## Activity
 
-Seluruh aktivitas agen terhadap lead.
+🔵 Belum dikerjakan. Seluruh aktivitas agen terhadap lead, terkategori (di luar Notes yang bebas teks).
 
 ---
 
 ## Notes
 
-Catatan internal agen.
+✅ **Selesai (26 September 2026).** Tabel `customer.notes` (migration `038`), append-only — waktu + penulis + isi, tidak pernah di-overwrite. Ditambahkan dari Lead Detail, tampil terurut terbaru dulu. Lihat `src/components/crm/LeadNotes.tsx`.
 
 ---
 
@@ -322,14 +357,16 @@ types/
 
 # Database
 
-Primary Tables
+Primary Tables (ada, terverifikasi langsung ke database)
 
 - customer.leads
-- customer.activities
-- customer.notes
+- customer.lead_sources
+- customer.contacts (skema ada, belum dipakai kode aplikasi manapun)
+- customer.notes (sejak migration `038`, 26 September 2026)
 
 Future
 
+- customer.activities (Activity terstruktur, lihat "Current Features" di atas -- beda dari customer.notes yang sudah ada)
 - ai.lead_scores
 - ai.recommendations
 
@@ -357,9 +394,10 @@ Future
 # Current Limitations
 
 - Belum ada UI bulk-assign (assign banyak lead sekaligus dari Lead List) — cuma satu-satu dari Lead Detail
-- Timeline belum lengkap
-- Activity belum lengkap
-- Notes belum lengkap
+- Timeline/Activity belum lengkap — Notes (append-only, bebas teks) sudah ada, Activity terstruktur (Call/Meeting/Visit sebagai kategori) belum
+- Belum ada sinkronisasi balik ke Google Sheet "Input Data" — lead manual & perubahan dari dashboard tidak tercermin di spreadsheet
+- Export CSV belum jadi `.xlsx` asli (belum ada dependency `xlsx`/`exceljs` di project)
+- Multi-tenant (data terpisah per bisnis untuk SaaS) sengaja ditunda — lihat bagian "Multi-Tenant untuk SaaS" di atas
 - AI baru sebagian aktif (1 insight nyata: Follow-up Backlog)
 - Automation belum aktif
 

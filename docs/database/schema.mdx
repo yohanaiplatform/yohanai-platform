@@ -84,7 +84,11 @@ Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referra
 
 ### contacts
 
-Riwayat kontak per lead.
+Riwayat kontak per lead. Skema ada, belum dipakai kode aplikasi manapun.
+
+### notes
+
+Catatan per lead, **append-only** (migration `038`, 26 September 2026) — cuma `SELECT`+`INSERT` di-GRANT, tidak ada UPDATE/DELETE dari app. Kolom `author_label` disimpan mentah saat insert (snapshot nama penulis saat itu), bukan di-resolve dari `auth_ext.profiles` saat ditampilkan — RLS profil cuma izinkan baca punya sendiri, jadi non-admin yang lihat note tulisan admin di lead miliknya tidak bisa resolve nama itu lewat query biasa. RLS `notes_owner_or_admin` ikut visibilitas lead induknya (via `EXISTS` ke `customer.leads`), pola sama seperti `leads_owner_or_admin`.
 
 ## property
 
@@ -173,7 +177,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`037` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`037` ditambahkan 25–26 September 2026).
+Folder `supabase/migrations/` berisi `001`–`038` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`038` ditambahkan 25–26 September 2026).
 
 | Rentang | Isi |
 |---------|-----|
@@ -188,6 +192,7 @@ Folder `supabase/migrations/` berisi `001`–`037` secara berurutan, dan riwayat
 | `035` | Kolom `assigned_to`, fungsi `core.is_admin_or_above()`, policy `leads_owner_or_admin` — pemisahan akses lead per akun |
 | `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead di CRM, khusus admin/super_admin |
 | `037` | Baris baru "Input Manual" di `customer.lead_sources`, untuk lead yang diinput langsung dari dashboard (`/crm/new`) |
+| `038` | Tabel `customer.notes` (append-only, catatan berwaktu per lead), policy `notes_owner_or_admin`, GRANT `SELECT`+`INSERT` |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 

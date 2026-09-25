@@ -239,7 +239,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
-| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah status, assign agent, filter, tambah lead manual semua live |
+| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter, tambah lead manual, catatan berwaktu, export CSV semua live |
 | Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
@@ -318,9 +318,13 @@ Task 005
 
 Tambah Lead Manual — ✅ **Selesai (26 September 2026).** Tombol "Add Lead" di dashboard ternyata cuma link ke `/crm`, belum pernah dibangun jadi form beneran. Halaman `/crm/new` dibuat, migration `037` (sumber lead "Input Manual"). Detail: `docs/modules/crm.mdx` bagian "Tambah Lead Manual".
 
+Task 006
+
+CRM lanjutan (permintaan Yohan setelah pakai `/crm/new`) — ✅ **Selesai (26 September 2026).** Bug breadcrumb tampil UUID mentah diperbaiki; field Lead Detail (Sumber/Kategori/Temperature/Sudah Survey/dll) bisa diedit + tombol Save; tabel `customer.notes` (migration `038`) untuk catatan berwaktu, append-only; export CSV lead sesuai filter aktif; sentuhan warna di stat card & badge status/kategori. Riset kecukupan data untuk "Buyer Behavior Intelligence" dan keputusan menunda multi-tenant SaaS — keduanya didokumentasikan di `docs/modules/crm.mdx`, bukan kode. Detail lengkap: `docs/modules/crm.mdx`.
+
 ### Next Task
 
-Task 006
+Task 007
 
 Keputusan WAHA vs Fonnte untuk Communication Automation — belum dimulai, perlu dibahas eksplisit bareng Yohan dulu sebelum ada kode integrasi WA apa pun.
 

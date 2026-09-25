@@ -55,7 +55,7 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users, 037 sumber lead "Input Manual"
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users, 037 sumber lead "Input Manual", 038 tabel customer.notes (append-only)
 src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
 src/app/(dashboard)/crm/[id]/ Lead Detail — lihat, ubah status, assign agent (Fase 2, selesai)
 src/app/(dashboard)/crm/new/  Tambah Lead manual — dashboard/CRM "Add Lead" button (selesai 26 Sep 2026)
@@ -111,6 +111,8 @@ Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di b
 **Isi database tidak sama dengan isi repo — jangan menyimpulkan dari file migration saja.** Policy RLS untuk seluruh schema domain ternyata ada di database padahal tidak ada di `017_rls.sql`. Audit 23 September 2026 sudah menutup celah ini (migration kini `001`–`036`, terverifikasi sinkron), tapi kebiasaannya tetap berlaku: verifikasi langsung lewat connector Supabase sebelum menyimpulkan.
 
 **Pola yang sama juga kena `src/types/database.ts`, dan berulang 2x.** Migration `035` menambah kolom `customer.leads.assigned_to` tapi tipe TypeScript-nya tidak pernah di-regenerate — ketemu 24 September saat mulai kerja Lead Detail. Lalu ketemu lagi 25 September: fungsi `is_authenticated()`/`is_admin_or_above()` (dari `034`/`035`) ternyata juga tidak pernah masuk tipe sejak awal dibuat, baru ketahuan pas `list_assignable_users()` (`036`) butuh dipanggil dari client via `.rpc()` dan perlu tipe yang benar. **Tool `generate_typescript_types` lewat Supabase MCP cuma balikin schema `public`** — tidak berguna buat project ini yang schema utamanya (`core`/`customer`/`auth_ext`/dst) semua di luar `public`. Cara yang benar: cek kolom/fungsi asli lewat `information_schema.columns` atau `pg_proc`, lalu tambal manual di `database.ts` mengikuti pola yang sudah ada di file itu — bukan percaya isi file types mencerminkan migration terbaru.
+
+**`created_by` nyaris tidak pernah diisi di seluruh aplikasi.** Ketemu 26 September 2026 saat bikin `customer.notes`: kolom `created_by` (ada di hampir semua tabel, `REFERENCES auth.users(id)`, tapi TANPA default) ternyata tidak pernah di-set eksplisit oleh kode manapun di `src/` — `grep created_by src/` nol hasil di kode aplikasi, cuma muncul di tipe TypeScript. Diperbaiki cuma di `createLead.ts` dan insert notes baru (yang ditulis sesi itu); tabel/insert lain kemungkinan masih kosong dan belum diaudit menyeluruh. **Kalau insert ke tabel yang punya kolom `created_by`, selalu isi eksplisit dari `(await supabase.auth.getUser()).data.user?.id`** — jangan asumsikan ada trigger/default yang mengisinya.
 
 **Schema harus di-expose di Data API.** Supabase hanya mengekspos `public` + `graphql_public` secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property` sudah ditambahkan manual di Settings → Data API.
 

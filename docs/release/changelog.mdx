@@ -51,6 +51,29 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Edit Lead, Notes, Export CSV, Sentuhan Warna
+
+Sesi lanjutan setelah "Tambah Lead Manual" (lihat entry di bawah) — Yohan pakai fitur barunya dan langsung kasih 7 pertanyaan/permintaan sekaligus: sinkron spreadsheet, kecukupan data AI, export Excel, multi-tenant SaaS, edit lead + riwayat waktu, warna UI, dan bug breadcrumb.
+
+### Added
+
+- **Edit field Lead Detail** — Sumber, Kategori, Temperature, Sudah Survey, Minat Unit/Lokasi, Permintaan, Komentar sekarang bisa diedit lewat tombol Edit → Save (`LeadEditableFields.tsx`), update `metadata` dengan merge bukan overwrite kolom utuh
+- **Catatan berwaktu** — tabel `customer.notes` (migration `038`), append-only, RLS ikut visibilitas lead induknya. UI di `LeadNotes.tsx`, tampil di Lead Detail
+- **Export CSV** — tombol di halaman CRM, ikut filter aktif, semua baris (bukan cuma satu halaman). `getLeads.ts` di-refactor: filter diekstrak ke `buildFilteredLeadsQuery()` dipakai bareng oleh Lead List & export
+- Sentuhan warna: 4 stat card dashboard dapat ikon + warna beda, badge status pipeline progresif (sebelumnya `qualified`/`proposal`/`negotiation` sama persis warnanya), badge Kategori lead (warna di-hash dari teks)
+- `BreadcrumbLabels.tsx` — mekanisme baru supaya halaman dynamic route bisa daftarkan nama manusiawi ke breadcrumb
+
+### Fixed
+
+- **Breadcrumb tampil UUID mentah** ("Crm > 753809c2-bfac-...") alih-alih nama lead — breadcrumb generik cuma title-case segmen URL, tidak tahu cara resolve ID jadi nama
+- `created_by` tidak pernah diisi di `createLead.ts` maupun insert notes baru — pola yang sama ternyata berulang di seluruh aplikasi (tidak ada satu pun insert yang mengisinya), diperbaiki di 2 tempat yang baru ditulis sesi ini
+
+### Docs
+
+- Riset kecukupan data untuk "Buyer Behavior Intelligence" (cek `project-docs/` arsip pra-Claude) dan keputusan menunda multi-tenant SaaS — keduanya murni keputusan/temuan, tidak ada perubahan kode, didokumentasikan di `docs/modules/crm.mdx`
+
+---
+
 ## 26 September 2026 — Tambah Lead Manual
 
 Tombol "Add Lead" di dashboard ternyata cuma link ke `/crm` (sama persis dengan tombol "Open CRM" di sebelahnya) — kelihatan hidup padahal belum pernah dibangun jadi form beneran. Ditanya Yohan, langsung diaktifkan.
