@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { normalizePhone } from '@/lib/crm/normalizePhone'
 
 /**
  * Pintu masuk lead dari Google Form legacy (Apps Script -> UrlFetchApp.fetch).
@@ -30,12 +31,6 @@ interface LeadIntakePayload {
   statusFunnel?: string
   followUpTerakhir?: string
   submittedAt?: string
-}
-
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/[^0-9]/g, '')
-  if (digits.startsWith('0')) return `62${digits.slice(1)}`
-  return digits
 }
 
 /**
