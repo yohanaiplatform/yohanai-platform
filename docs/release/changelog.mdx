@@ -51,6 +51,26 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Tambah Lead Manual
+
+Tombol "Add Lead" di dashboard ternyata cuma link ke `/crm` (sama persis dengan tombol "Open CRM" di sebelahnya) — kelihatan hidup padahal belum pernah dibangun jadi form beneran. Ditanya Yohan, langsung diaktifkan.
+
+### Added
+
+- **Halaman `/crm/new`** — form tambah lead manual (telepon, walk-in, di luar Google Form). Field & pilihan dropdown sama seperti Google Form (Sumber Informasi, Kategori/Property, Temperature Awal, Sudah Survey) supaya data dari dua jalur ini konsisten bentuknya
+- `src/lib/crm/createLead.ts` — insert ke `customer.leads`, bentuk `metadata` identik dengan `POST /api/leads/intake` (beda `origin`: `manual_dashboard` vs `google_form_legacy`)
+- Migration `037` — baris baru "Input Manual" di `customer.lead_sources`
+- `LEAD_TEMPERATURE_OPTIONS` dan `LEAD_SUDAH_SURVEY_OPTIONS` di `constants/crm.ts`, nilainya dicek dulu dari data asli (`DISTINCT` ke database)
+- Assign otomatis ke diri sendiri untuk non-admin (sesuai RLS `leads_owner_or_admin`), admin bisa pilih siapa saja lewat `core.list_assignable_users()`
+
+### Fixed
+
+- Tombol "Add Lead" (dashboard) dan "+ Tambah Lead" (halaman CRM, baru) sekarang benar-benar membuka form, bukan cuma nyasar ke Lead List
+- `normalizePhone()` dipindah dari `route.ts` ke `src/lib/crm/normalizePhone.ts` supaya tidak duplikasi logika antara intake Google Form dan form manual
+- Dropdown "Ditugaskan ke" di form baru sempat menampilkan UUID mentah alih-alih nama saat pengembangan — `SelectValue` (Base UI) butuh label eksplisit sebagai children kalau value item berbeda dari teks tampilannya (pola yang sama sudah dipakai `WilayahSelector.tsx`), ketemu & diperbaiki sebelum dirilis
+
+---
+
 ## 24–25 September 2026 — CRM Foundation Fase 2 Selesai & Branding
 
 CRM Foundation Fase 2 dituntaskan: Lead Detail, ubah status dari UI, assign lead ke agent, dan filter Sumber Informasi. Di luar CRM, sesi 25 September juga membenahi branding (logo header mobile, apple touch icon, boot screen) yang tidak terkait CRM tapi dikerjakan di sesi yang sama.
@@ -271,6 +291,6 @@ Sebelum membuat release baru:
 
 # Last Updated
 
-25 September 2026
+26 September 2026
 
 Sprint 011 — Platform Hold

@@ -239,7 +239,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
-| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah status, assign agent, filter semua live |
+| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah status, assign agent, filter, tambah lead manual semua live |
 | Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
@@ -314,9 +314,13 @@ Task 004
 
 CRM Foundation Fase 2 — ✅ **Selesai.** Lead List, Lead Detail, ubah status dari UI, assign lead ke agent (migration `036`), filter Sumber Informasi. Detail: `docs/modules/crm.mdx`.
 
+Task 005
+
+Tambah Lead Manual — ✅ **Selesai (26 September 2026).** Tombol "Add Lead" di dashboard ternyata cuma link ke `/crm`, belum pernah dibangun jadi form beneran. Halaman `/crm/new` dibuat, migration `037` (sumber lead "Input Manual"). Detail: `docs/modules/crm.mdx` bagian "Tambah Lead Manual".
+
 ### Next Task
 
-Task 005
+Task 006
 
 Keputusan WAHA vs Fonnte untuk Communication Automation — belum dimulai, perlu dibahas eksplisit bareng Yohan dulu sebelum ada kode integrasi WA apa pun.
 
@@ -324,7 +328,7 @@ Keputusan WAHA vs Fonnte untuk Communication Automation — belum dimulai, perlu
 
 # Last Updated
 
-25 September 2026
+26 September 2026
 
 ---
 

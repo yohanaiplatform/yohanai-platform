@@ -55,11 +55,12 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users, 037 sumber lead "Input Manual"
 src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
 src/app/(dashboard)/crm/[id]/ Lead Detail — lihat, ubah status, assign agent (Fase 2, selesai)
-src/lib/crm/                  getLeads()/getLeadById() dan helper CRM Foundation (Fase 2, selesai)
-src/components/crm/           Lead List, Lead Detail, filter, status/assign select (Fase 2, selesai)
+src/app/(dashboard)/crm/new/  Tambah Lead manual — dashboard/CRM "Add Lead" button (selesai 26 Sep 2026)
+src/lib/crm/                  getLeads()/getLeadById()/createLead() dan helper CRM Foundation (Fase 2, selesai)
+src/components/crm/           Lead List, Lead Detail, Add Lead form, status/assign select (Fase 2, selesai)
 src/components/shared/        WhatsAppButton — dipakai CRM + dashboard
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
@@ -118,6 +119,8 @@ Audit 23 September 2026 juga menemukan `authenticated` belum punya `SELECT` di b
 **Kredensial git repo ini di-set `--local`.** Git Credential Manager menyimpan akun `flobamoraptk` yang tidak punya akses tulis; repo ini diarahkan memakai token `gh` (akun `yohanaiplatform`) lewat config lokal. Clone baru akan kena 403 dan perlu di-set ulang.
 
 **ESLint punya 8 error pre-existing** di `useDashboard.ts`, `EditProfileForm.tsx`, `WilayahSelector.tsx`, dan beberapa file lain (mayoritas `react-hooks/set-state-in-effect`). Bukan dari perubahan baru — jangan panik, tapi jangan tambah yang baru.
+
+**Komponen `Select` (Base UI, `src/components/ui/select.tsx`) tidak otomatis menampilkan label kalau `value` item beda dari teks tampilannya.** Ketemu di dropdown "Ditugaskan ke" (`AddLeadForm.tsx`) — value-nya UUID user, tapi yang seharusnya tampil nama. Tanpa penanganan khusus, `SelectValue` fallback menampilkan UUID mentah. Solusinya: hitung label yang sesuai dari value yang dipilih, lalu taruh sebagai `children` di `SelectValue` (`<SelectValue placeholder="...">{label}</SelectValue>`) — pola ini sudah lebih dulu dipakai di `WilayahSelector.tsx`, cuma luput di-follow saat bikin dropdown baru. **Kalau value dropdown bukan teks yang sama dengan label (ID/UUID/kode), selalu resolve label-nya sendiri, jangan andalkan default rendering.**
 
 **Flex item tetangga `flex-1` bisa "mencuri" ruang dari flex item lain kalau tidak diberi `min-width:0`.** Ketemu di `Header.tsx`: logo (dalam grup tanpa `shrink-0`) ke-squeeze jadi ~separuh lebar semestinya di viewport mobile, bukan karena aset gambarnya jelek, tapi karena `SearchCommand.tsx` di tengahnya (flex-1) tidak punya `min-w-0` — defaultnya `min-width: auto` bikin browser mempertahankan ukuran min-content search bar dengan cara menyusutkan sibling lain. Pola benar untuk header seperti ini: elemen yang ukurannya harus tetap (logo, ikon) dikasih `shrink-0`, elemen yang boleh menyusut (search, teks panjang) dikasih `min-w-0`. Diverifikasi numerik lewat `getBoundingClientRect()` di browser, bukan cuma kelihatan "kayaknya udah bener" dari screenshot.
 

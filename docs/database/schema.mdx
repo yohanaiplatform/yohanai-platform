@@ -80,7 +80,7 @@ new → contacted → qualified → proposal → negotiation → won → lost
 
 ### lead_sources
 
-Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search, **Google Form** (ditambahkan 23 September 2026, migration `031`).
+Asal lead. Sudah terisi: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search, **Google Form** (ditambahkan 23 September 2026, migration `031`), **Input Manual** (ditambahkan 26 September 2026, migration `037`, dipakai form `/crm/new`).
 
 ### contacts
 
@@ -173,7 +173,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`036` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036` ditambahkan 25 September 2026).
+Folder `supabase/migrations/` berisi `001`–`037` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`037` ditambahkan 25–26 September 2026).
 
 | Rentang | Isi |
 |---------|-----|
@@ -187,6 +187,7 @@ Folder `supabase/migrations/` berisi `001`–`036` secara berurutan, dan riwayat
 | `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
 | `035` | Kolom `assigned_to`, fungsi `core.is_admin_or_above()`, policy `leads_owner_or_admin` — pemisahan akses lead per akun |
 | `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead di CRM, khusus admin/super_admin |
+| `037` | Baris baru "Input Manual" di `customer.lead_sources`, untuk lead yang diinput langsung dari dashboard (`/crm/new`) |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -196,6 +197,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-25 September 2026
+26 September 2026
 
 Sprint 011 — Platform Hold

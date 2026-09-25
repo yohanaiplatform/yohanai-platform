@@ -18,12 +18,13 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | Item | Status |
 |------|--------|
 | Development | ✅ Lead Intake Fase 1 & CRM Foundation Fase 2 selesai |
-| Production Ready | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi semua live |
+| Production Ready | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi, tambah lead manual semua live |
 | Skema database | ✅ Ada (`customer.leads`, `lead_sources`, `contacts`) |
 | RLS policy | ✅ Ada (`leads_owner_or_admin` sejak `035`, sebelumnya `authenticated_all`) |
 | GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`) |
-| UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi selesai |
+| UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter Sumber Informasi, tambah lead manual (`/crm/new`) selesai |
 | AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned |
+| Jalur masuk lead | Google Form (otomatis, Fase 1) **dan** input manual dari dashboard (`/crm/new`, 26 September 2026) |
 
 **Lapisan data sudah siap pakai.** Migration `007_customer_tables.sql` membuat `customer.leads` lengkap dengan pipeline status (`new` → `contacted` → `qualified` → `proposal` → `negotiation` → `won` → `lost`), `customer.lead_sources` (terisi 8 baris: Facebook, Instagram, TikTok, WhatsApp, Website, Referral, Google Ads, Organic Search), dan `customer.contacts`.
 
@@ -138,6 +139,7 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 | `034` | `GRANT SELECT/INSERT/UPDATE` `chat.conversations`/`chat.messages` ke `authenticated` |
 | `035` | Pemisahan akses lead per akun: kolom `assigned_to`, role `agent` untuk Ramlan, policy `leads_owner_or_admin` (admin lihat semua, role lain cuma lihat miliknya sendiri) — lihat `docs/status.mdx` audit poin 10 |
 | `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead, khusus admin/super_admin |
+| `037` | Baris baru "Input Manual" di `customer.lead_sources`, untuk lead yang diinput langsung dari dashboard |
 
 ## CRM Foundation Fase 2 — selesai
 
@@ -147,6 +149,19 @@ Semua item di checklist awal Fase 2 sudah live: Lead List (baca/filter/WA), Lead
 
 - **Timeline/Activity/Notes** — belum ada sama sekali, masih di tahap desain (lihat bagian "Current Features" di bawah). Ini "Phase 2"/"Phase 3" di roadmap CRM, bukan bagian dari CRM *Foundation*.
 - **UI bulk-assign** di Lead List (assign banyak lead sekaligus) — sekarang cuma bisa satu-satu dari Lead Detail. Belum jadi kebutuhan mendesak karena baru ada 2 akun.
+
+## Tambah Lead Manual (26 September 2026)
+
+Ditanya Yohan setelah sadar tombol "Add Lead" di dashboard ternyata cuma link ke `/crm`, tidak benar-benar membuka form — kelihatan hidup padahal belum pernah dibangun. **Ini bukan pengganti Google Form** (lihat prinsip di bawah), melainkan jalur tambahan untuk lead yang datang di luar Google Form: telepon langsung, walk-in, dsb.
+
+- Halaman `/crm/new` (`AddLeadForm.tsx`) — field & pilihan dropdown sengaja dibuat sama seperti Google Form (Sumber Informasi, Kategori/Property, Temperature Awal, Sudah Survey), supaya data yang masuk lewat dua jalur ini tetap konsisten bentuknya.
+- `src/lib/crm/createLead.ts` — insert ke `customer.leads`, bentuk `metadata` dibuat identik dengan `POST /api/leads/intake` (cuma beda `origin`: `manual_dashboard` vs `google_form_legacy`) supaya Lead Detail tidak perlu cabang kasus khusus.
+- Assign: non-admin otomatis ke diri sendiri (RLS `leads_owner_or_admin` cuma izinkan itu), admin bisa pilih siapa saja lewat `core.list_assignable_users()`.
+- Tombol "Add Lead" (dashboard, Quick Actions) dan "+ Tambah Lead" (halaman `/crm`) sekarang mengarah ke sini.
+- **Bug ketemu saat tes manual:** dropdown "Ditugaskan ke" sempat menampilkan UUID mentah alih-alih nama — komponen `Select` (Base UI) tidak otomatis me-resolve label dari `SelectItem` yang value-nya berbeda dari teks tampilan (di sini value = UUID, label = nama). Harus dikasih `children` eksplisit di `SelectValue`, pola yang sebenarnya sudah dipakai `WilayahSelector.tsx` tapi luput di-follow di komponen baru ini. **Kalau bikin dropdown baru yang value-nya bukan teks yang sama dengan label (mis. ID/UUID), selalu hitung label-nya sendiri dan taruh sebagai children `SelectValue`, jangan andalkan default rendering.**
+- Diverifikasi end-to-end dengan data production asli: isi form lengkap, submit, redirect ke Lead Detail, semua field (termasuk normalisasi nomor HP) cocok persis dengan input, dicek langsung ke database. Data uji dihapus lagi setelahnya.
+
+**Agent AI dari WhatsApp yang bisa input lead otomatis (permintaan Yohan yang sama) belum dibangun** — itu bergantung keputusan WAHA vs Fonnte yang belum diambil. Struktur `createLead.ts` dibuat generik supaya nanti bisa dipakai ulang oleh jalur itu juga, bukan eksklusif untuk form manual.
 
 ## Prinsip: jangan buang Google Form-nya
 
@@ -205,6 +220,12 @@ CRM membantu agen untuk:
 ## Lead Detail
 
 ✅ **Selesai (Fase 2, 24-25 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) juga sudah bisa langsung dari halaman ini. Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
+
+---
+
+## Tambah Lead Manual
+
+✅ **Selesai (26 September 2026).** Halaman `/crm/new` — form input lead langsung dari dashboard (telepon, walk-in, di luar Google Form), field & pilihan sama seperti Google Form. Diakses dari tombol "Add Lead" di dashboard dan "+ Tambah Lead" di halaman CRM. Lihat `docs/modules/crm.mdx` bagian "Tambah Lead Manual" untuk detail.
 
 ---
 
@@ -379,6 +400,6 @@ Automation
 
 # Last Updated
 
-25 September 2026
+26 September 2026
 
 Sprint 011 — Platform Hold
