@@ -30,3 +30,19 @@ export const LEAD_SUMBER_OPTIONS = [
   "Lihat Baliho",
   "Lainnya",
 ] as const;
+
+/**
+ * "Temperature" lead (metadata->>status_funnel_awal) -- 5 kategori sesuai
+ * status funnel di spreadsheet legacy, dipakai juga di tile Lead Funnel
+ * dashboard (lihat getLeadSummary.ts).
+ */
+export const LEAD_TEMPERATURE_OPTIONS = [
+  "Hot",
+  "Warm",
+  "Cold",
+  "Closing",
+  "Batal",
+] as const;
+
+/** metadata->>sudah_survey -- nilai persis dari data Google Form (bukan boolean). */
+export const LEAD_SUDAH_SURVEY_OPTIONS = ["Sudah", "Belum"] as const;

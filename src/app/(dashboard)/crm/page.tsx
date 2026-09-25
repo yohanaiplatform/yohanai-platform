@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SectionCard } from "@/components/ui/section-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { LeadList } from "@/components/crm/LeadList";
 import { LeadListPagination } from "@/components/crm/LeadListPagination";
 import { LeadListFilters } from "@/components/crm/LeadListFilters";
@@ -42,6 +43,11 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
       <SectionCard
         title="CRM"
         description="Lead dari Google Form dan channel lain, tersimpan di database."
+        action={
+          <Link href="/crm/new">
+            <Button size="sm">+ Tambah Lead</Button>
+          </Link>
+        }
       >
         <div className="space-y-4">
           {filters.temperature && (

@@ -69,7 +69,7 @@ export default async function DashboardPage() {
               <span className="text-base font-semibold">Import Listing</span>
             </Button>
           </Link>
-          <Link href="/crm">
+          <Link href="/crm/new">
             <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
               <span className="text-base font-semibold">Add Lead</span>
             </Button>
