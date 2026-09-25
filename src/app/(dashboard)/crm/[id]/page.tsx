@@ -8,10 +8,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusSelect } from "@/components/crm/LeadStatusSelect";
 import { LeadAssignSelect } from "@/components/crm/LeadAssignSelect";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
+import { LeadEditableFields } from "@/components/crm/LeadEditableFields";
+import { LeadNotes } from "@/components/crm/LeadNotes";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getLeadById } from "@/lib/crm/getLeadById";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
+import { getLeadNotes } from "@/lib/crm/getLeadNotes";
 import { createClient } from "@/lib/supabase/server";
 
 // Cek bentuk UUID dulu sebelum query -- id acak/rusak di URL akan bikin
@@ -83,6 +86,8 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
     notFound();
   }
 
+  const { data: notes } = await getLeadNotes(supabase, id);
+
   const nama = `${lead.first_name} ${lead.last_name}`.trim() || "Tanpa Nama";
   const kategori = getLeadMetadataString(lead.metadata, "kategori");
   const sumberInformasi = getLeadMetadataString(lead.metadata, "sumber_informasi");
@@ -97,8 +102,6 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const submittedAt = formatMetadataDate(
     getLeadMetadataString(lead.metadata, "submitted_at")
   );
-
-  const punyaDetailPermintaan = Boolean(permintaan || komentar || minatUnitLokasi);
 
   return (
     <div className="space-y-6 p-6">
@@ -118,13 +121,6 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           />
           <LeadDetailField label="Telepon" value={lead.phone} />
           <LeadDetailField label="Email" value={lead.email} />
-          <LeadDetailField
-            label="Sumber"
-            value={sumberInformasi ?? lead.lead_source_name}
-          />
-          <LeadDetailField label="Kategori" value={kategori} />
-          <LeadDetailField label="Temperature Awal" value={statusFunnelAwal} />
-          <LeadDetailField label="Sudah Survey" value={sudahSurvey} />
           <LeadDetailField label="Follow-up Terakhir" value={followUpTerakhir} />
           <LeadDetailField label="Tanggal Submit Form" value={submittedAt} />
           <LeadDetailField
@@ -134,17 +130,24 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
         </div>
       </SectionCard>
 
-      {punyaDetailPermintaan && (
-        <SectionCard title="Detail Permintaan">
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-            <LeadDetailField label="Minat Unit / Lokasi" value={minatUnitLokasi} />
-            <LeadDetailField label="Permintaan" value={permintaan} />
-            <div className="sm:col-span-2">
-              <LeadDetailField label="Komentar" value={komentar} />
-            </div>
-          </div>
-        </SectionCard>
-      )}
+      <SectionCard title="Detail Lead" description="Bisa diubah kapan saja saat ada follow-up baru.">
+        <LeadEditableFields
+          leadId={lead.id}
+          metadata={lead.metadata}
+          sumberInformasi={sumberInformasi}
+          leadSourceName={lead.lead_source_name}
+          kategori={kategori}
+          statusFunnelAwal={statusFunnelAwal}
+          sudahSurvey={sudahSurvey}
+          minatUnitLokasi={minatUnitLokasi}
+          permintaan={permintaan}
+          komentar={komentar}
+        />
+      </SectionCard>
+
+      <SectionCard title="Catatan" description="Riwayat update, dengan waktu -- tidak menimpa catatan sebelumnya.">
+        <LeadNotes leadId={lead.id} notes={notes} />
+      </SectionCard>
     </div>
   );
 }

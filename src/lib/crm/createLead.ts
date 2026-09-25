@@ -33,12 +33,10 @@ export async function createLead(
   supabase: SupabaseClient<Database>,
   input: CreateLeadInput
 ): Promise<CreateLeadResult> {
-  const { data: source } = await supabase
-    .schema("customer")
-    .from("lead_sources")
-    .select("id")
-    .eq("name", "Input Manual")
-    .maybeSingle();
+  const [{ data: source }, { data: userData }] = await Promise.all([
+    supabase.schema("customer").from("lead_sources").select("id").eq("name", "Input Manual").maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
 
   const { data: inserted, error } = await supabase
     .schema("customer")
@@ -51,6 +49,7 @@ export async function createLead(
       email: input.email?.trim() || null,
       status: "new",
       assigned_to: input.assignedTo,
+      created_by: userData.user?.id ?? null,
       metadata: {
         origin: "manual_dashboard",
         sumber_informasi: input.sumberInformasi || null,

@@ -541,6 +541,50 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          author_label: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          lead_id: string
+          note: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          author_label?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          lead_id: string
+          note: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          author_label?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          lead_id?: string
+          note?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_sources: {
         Row: {
           created_at: string
