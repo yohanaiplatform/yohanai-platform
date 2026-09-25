@@ -7,15 +7,38 @@ type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 // Urutan di sini = urutan pipeline sekaligus urutan opsi di LeadStatusSelect --
 // satu-satunya tempat status lead didaftarkan, jangan duplikasi di tempat lain.
+// Warna sengaja progresif dingin -> hangat -> hasil, supaya tiap tahap beda
+// kelihatan (sebelumnya qualified/proposal/negotiation sama-sama "default",
+// tidak bisa dibedakan sekilas).
 export const LEAD_STATUS_CONFIG: Record<
   string,
   { label: string; variant: BadgeVariant; className?: string }
 > = {
-  new: { label: "New", variant: "secondary" },
-  contacted: { label: "Contacted", variant: "outline" },
-  qualified: { label: "Qualified", variant: "default" },
-  proposal: { label: "Proposal", variant: "default" },
-  negotiation: { label: "Negotiation", variant: "default" },
+  new: {
+    label: "New",
+    variant: "outline",
+    className: "border-slate-400/40 text-slate-600 dark:text-slate-400",
+  },
+  contacted: {
+    label: "Contacted",
+    variant: "outline",
+    className: "border-blue-500/40 text-blue-600 dark:text-blue-400",
+  },
+  qualified: {
+    label: "Qualified",
+    variant: "outline",
+    className: "border-violet-500/40 text-violet-600 dark:text-violet-400",
+  },
+  proposal: {
+    label: "Proposal",
+    variant: "outline",
+    className: "border-amber-500/40 text-amber-600 dark:text-amber-400",
+  },
+  negotiation: {
+    label: "Negotiation",
+    variant: "outline",
+    className: "border-orange-500/40 text-orange-600 dark:text-orange-400",
+  },
   won: {
     label: "Won",
     variant: "outline",

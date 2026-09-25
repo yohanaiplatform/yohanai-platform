@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusBadge } from "@/components/crm/lead-status-badge";
+import { LeadCategoryBadge } from "@/components/crm/lead-category-badge";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getLeadMetadataString, type LeadListItem } from "@/lib/crm/getLeads";
 
@@ -72,8 +73,8 @@ export function LeadList({ data, error }: LeadListProps) {
                 <td className="px-3 py-3 text-muted-foreground">
                   {sumberInformasi ?? lead.lead_source_name ?? "-"}
                 </td>
-                <td className="px-3 py-3 text-muted-foreground">
-                  {kategori ?? "-"}
+                <td className="px-3 py-3">
+                  <LeadCategoryBadge kategori={kategori} />
                 </td>
                 <td className="px-3 py-3">
                   <LeadStatusBadge status={lead.status} />

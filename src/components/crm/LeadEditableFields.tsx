@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
+import { LeadCategoryBadge } from "@/components/crm/lead-category-badge";
 import {
   Select,
   SelectContent,
@@ -124,7 +125,7 @@ export function LeadEditableFields({
         </div>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           <LeadDetailField label="Sumber" value={sumberInformasi ?? leadSourceName} />
-          <LeadDetailField label="Kategori" value={kategori} />
+          <LeadDetailField label="Kategori" value={<LeadCategoryBadge kategori={kategori} />} />
           <LeadDetailField label="Temperature Awal" value={statusFunnelAwal} />
           <LeadDetailField label="Sudah Survey" value={sudahSurvey} />
           <LeadDetailField label="Minat Unit / Lokasi" value={minatUnitLokasi} />

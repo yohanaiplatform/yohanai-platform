@@ -6,6 +6,8 @@ title: string
 value: string | number
 description?: string
 icon?: React.ReactNode
+/** Warna latar + ikon kotak icon, mis. "bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400". Default abu-abu kalau tidak diisi. */
+iconClassName?: string
 trend?: {
 value: string
 direction: "up" | "down" | "neutral"
@@ -17,6 +19,7 @@ title,
 value,
 description,
 icon,
+iconClassName,
 trend,
 className,
 }: StatCardProps) {
@@ -40,7 +43,7 @@ return (
 {title}
 </span>
 {icon && (
-<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+<div className={cn("flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground", iconClassName)}>
 {icon}
 </div>
 )}
