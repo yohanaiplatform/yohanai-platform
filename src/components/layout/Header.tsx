@@ -3,7 +3,7 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
-import { SearchCommand } from "./SearchCommand";
+import { HeaderSearch } from "./HeaderSearch";
 import { NotificationMenu } from "./NotificationMenu";
 import { UserMenu } from "./UserMenu";
 import { LanguageToggle } from "./LanguageToggle";
@@ -32,7 +32,7 @@ export function Header({ onMenuClick, initialLocale }: HeaderProps) {
       </div>
 
       <div className="mx-3 min-w-0 flex-1 md:mx-6">
-        <SearchCommand />
+        <HeaderSearch />
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
