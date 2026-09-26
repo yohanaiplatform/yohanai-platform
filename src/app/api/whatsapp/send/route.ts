@@ -66,8 +66,10 @@ export async function POST(request: Request) {
   const fallbackTitle = `${lead.first_name} ${lead.last_name}`.trim() || lead.phone;
   const conversationId = await findOrCreateLeadConversation(supabase, leadId, fallbackTitle);
 
+  let savedMessage: { id: string; sender_type: string; content: string; created_at: string } | null = null;
+
   if (conversationId) {
-    await supabase
+    const { data: inserted } = await supabase
       .schema("chat")
       .from("messages")
       .insert({
@@ -76,7 +78,11 @@ export async function POST(request: Request) {
         sender_id: user.id,
         content: message,
         metadata: { wa_message_id: sendResult.messageId ?? null, message_type: "text" },
-      });
+      })
+      .select("id, sender_type, content, created_at")
+      .single();
+
+    savedMessage = inserted ?? null;
 
     await supabase
       .schema("chat")
@@ -85,5 +91,5 @@ export async function POST(request: Request) {
       .eq("id", conversationId);
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, conversationId, message: savedMessage });
 }

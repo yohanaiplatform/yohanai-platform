@@ -2,35 +2,87 @@
 
 // src/components/crm/LeadWhatsApp.tsx
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import type { LeadChatMessage } from "@/lib/crm/getLeadConversation";
+import { ChatMessageList, type ChatMessage } from "@/components/shared/ChatMessageList";
 import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadWhatsAppProps {
   leadId: string;
-  messages: LeadChatMessage[];
+  conversationId: string | null;
+  messages: ChatMessage[];
   t: CrmDictionary;
 }
 
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-export function LeadWhatsApp({ leadId, messages, t }: LeadWhatsAppProps) {
-  const router = useRouter();
+/** Percakapan WhatsApp per lead -- live lewat Supabase Realtime, bukan cuma render sekali di server. */
+export function LeadWhatsApp({
+  leadId,
+  conversationId: initialConversationId,
+  messages: initialMessages,
+  t,
+}: LeadWhatsAppProps) {
+  const [conversationId, setConversationId] = useState(initialConversationId);
+  const [messages, setMessages] = useState(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function appendMessage(message: ChatMessage) {
+    setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+  }
+
+  // Lead yang belum pernah chat sama sekali belum punya conversation --
+  // dengarkan sampai webhook/pengiriman pertama membuatnya.
+  useEffect(() => {
+    if (conversationId) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`lead-conversation-${leadId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "chat",
+          table: "conversations",
+          filter: `lead_id=eq.${leadId}`,
+        },
+        (payload) => setConversationId(payload.new.id as string)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [leadId, conversationId]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`conversation-messages-${conversationId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "chat",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const row = payload.new as ChatMessage;
+          appendMessage(row);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,34 +105,15 @@ export function LeadWhatsApp({ leadId, messages, t }: LeadWhatsAppProps) {
       return;
     }
 
+    const result = await res.json();
+    if (result.conversationId && !conversationId) setConversationId(result.conversationId);
+    if (result.message) appendMessage(result.message);
     setText("");
-    router.refresh();
   }
 
   return (
     <div className="space-y-4">
-      {messages.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t.detail.whatsappEmpty}</p>
-      ) : (
-        <ul className="flex max-h-96 flex-col gap-3 overflow-y-auto">
-          {messages.map((m) => (
-            <li
-              key={m.id}
-              className={cn(
-                "w-fit max-w-[80%] rounded-lg px-3 py-2 text-sm",
-                m.sender_type === "customer"
-                  ? "self-start bg-muted"
-                  : "self-end bg-brand/10"
-              )}
-            >
-              <p className="whitespace-pre-wrap">{m.content}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {formatDateTime(m.created_at)}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ChatMessageList messages={messages} emptyLabel={t.detail.whatsappEmpty} />
 
       <form onSubmit={handleSubmit} className="space-y-2 border-t border-border pt-3">
         <Textarea

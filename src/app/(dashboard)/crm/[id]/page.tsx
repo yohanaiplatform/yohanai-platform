@@ -91,7 +91,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   }
 
   const { data: notes } = await getLeadNotes(supabase, id);
-  const { data: chatMessages } = await getLeadConversation(supabase, id);
+  const { conversationId, data: chatMessages } = await getLeadConversation(supabase, id);
 
   const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
   const kategori = getLeadMetadataString(lead.metadata, "kategori");
@@ -152,7 +152,12 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       </SectionCard>
 
       <SectionCard title={t.detail.whatsappTitle} description={t.detail.whatsappDescription}>
-        <LeadWhatsApp leadId={lead.id} messages={chatMessages} t={t} />
+        <LeadWhatsApp
+          leadId={lead.id}
+          conversationId={conversationId}
+          messages={chatMessages}
+          t={t}
+        />
       </SectionCard>
 
       <SectionCard title={t.detail.notesTitle} description={t.detail.notesDescription}>

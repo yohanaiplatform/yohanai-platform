@@ -2,16 +2,11 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-
-export interface LeadChatMessage {
-  id: string;
-  sender_type: string;
-  content: string;
-  created_at: string;
-}
+import type { ChatMessage } from "@/components/shared/ChatMessageList";
 
 export interface GetLeadConversationResult {
-  data: LeadChatMessage[];
+  conversationId: string | null;
+  data: ChatMessage[];
   error: boolean;
 }
 
@@ -31,11 +26,11 @@ export async function getLeadConversation(
     .maybeSingle();
 
   if (convError) {
-    return { data: [], error: true };
+    return { conversationId: null, data: [], error: true };
   }
 
   if (!conversation) {
-    return { data: [], error: false };
+    return { conversationId: null, data: [], error: false };
   }
 
   const { data: messages, error: messagesError } = await supabase
@@ -47,8 +42,8 @@ export async function getLeadConversation(
     .order("created_at", { ascending: true });
 
   if (messagesError) {
-    return { data: [], error: true };
+    return { conversationId: conversation.id, data: [], error: true };
   }
 
-  return { data: messages, error: false };
+  return { conversationId: conversation.id, data: messages, error: false };
 }

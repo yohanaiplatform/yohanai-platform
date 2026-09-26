@@ -1,7 +1,11 @@
+"use client";
+
 // src/components/dashboard/RecentChats.tsx
 
+import { useState } from "react";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { RecentChatThread } from "@/components/dashboard/RecentChatThread";
 import type { RecentChat } from "@/types/dashboard";
 
 interface RecentChatsProps {
@@ -25,6 +29,8 @@ function getRelativeTime(dateString: string) {
 }
 
 export function RecentChats({ data, error }: RecentChatsProps) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
   if (error) {
     return (
       <SectionCard
@@ -56,37 +62,40 @@ export function RecentChats({ data, error }: RecentChatsProps) {
   return (
     <SectionCard
       title="Recent Chats"
-      description="Latest WhatsApp conversations"
+      description="Latest WhatsApp conversations -- click one to open the conversation"
     >
       <div className="space-y-4">
         {data.map((chat) => (
-          <div
-            key={chat.id}
-            className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0"
-          >
-            <div>
-              <p className="font-medium">
-                {chat.title ?? "Untitled Conversation"}
-              </p>
-
-              <p className="text-sm text-muted-foreground">
-                Last activity: {getRelativeTime(chat.updated_at)}
-              </p>
-
-              <p className="text-xs text-muted-foreground mt-1">
-                Lead ID: {chat.lead_id ?? "-"}
-              </p>
-            </div>
-
-            <span
-              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                chat.status === "active"
-                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-              }`}
+          <div key={chat.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
+            <button
+              type="button"
+              onClick={() => setOpenId(openId === chat.id ? null : chat.id)}
+              className="flex w-full items-center justify-between text-left"
             >
-              {chat.status}
-            </span>
+              <div>
+                <p className="font-medium">
+                  {chat.title ?? "Untitled Conversation"}
+                </p>
+
+                <p className="text-sm text-muted-foreground">
+                  Last activity: {getRelativeTime(chat.updated_at)}
+                </p>
+              </div>
+
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  chat.status === "active"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                    : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                }`}
+              >
+                {chat.status}
+              </span>
+            </button>
+
+            {openId === chat.id && (
+              <RecentChatThread conversationId={chat.id} leadId={chat.lead_id} />
+            )}
           </div>
         ))}
       </div>
