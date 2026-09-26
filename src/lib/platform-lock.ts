@@ -25,6 +25,9 @@ export const LOCK_NOTICE_PATH = '/under-development'
  * - /api/leads/intake: dipanggil Apps Script (mesin, bukan browser), tidak
  *   pernah punya sesi login. Diamankan sendiri lewat secret header
  *   (LEADS_INTAKE_SECRET), bukan lewat gate ini.
+ * - /api/whatsapp/webhook: dipanggil server Kapso, tidak pernah punya sesi
+ *   login. Diamankan sendiri lewat HMAC signature (KAPSO_WEBHOOK_SECRET),
+ *   bukan lewat gate ini.
  */
 const PUBLIC_PATHS = [
   LOCK_NOTICE_PATH,
@@ -36,6 +39,7 @@ const PUBLIC_PATHS = [
   '/data-deletion',
   '/api/health',
   '/api/leads/intake',
+  '/api/whatsapp/webhook',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */
