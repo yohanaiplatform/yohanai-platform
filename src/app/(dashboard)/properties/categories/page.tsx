@@ -1,15 +1,15 @@
-// src/app/(dashboard)/properties/new/page.tsx
+// src/app/(dashboard)/properties/categories/page.tsx
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
-import { AddListingForm } from "@/components/property/AddListingForm";
+import { CategoryManager } from "@/components/property/CategoryManager";
 import { getCategories } from "@/lib/property/categories";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function NewListingPage() {
+export default async function PropertyCategoriesPage() {
   const supabase = await createClient();
-  const { data: categories } = await getCategories(supabase);
+  const { data: categories } = await getCategories(supabase, { includeDeleted: true });
 
   return (
     <div className="space-y-6 p-6">
@@ -22,10 +22,10 @@ export default async function NewListingPage() {
       </Link>
 
       <SectionCard
-        title="Tambah Listing"
-        description="Input manual untuk properti baru."
+        title="Kelola Kategori"
+        description="Tambah, ubah, atau hapus kategori properti. Kategori yang dihapus tidak muncul lagi di dropdown, tapi listing lama yang sudah memakainya tetap aman."
       >
-        <AddListingForm categories={categories ?? []} />
+        <CategoryManager categories={categories} />
       </SectionCard>
     </div>
   );

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ListingListFilters } from "@/components/property/ListingListFilters";
 import { ListingGrid } from "@/components/property/ListingGrid";
 import { getListings } from "@/lib/property/getListings";
+import { getCategories } from "@/lib/property/categories";
 import { createClient } from "@/lib/supabase/server";
 
 interface PropertiesPageProps {
@@ -26,12 +27,7 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
       categoryId: params.categoryId || undefined,
       search: params.search || undefined,
     }),
-    supabase
-      .schema("property")
-      .from("categories")
-      .select("id, name")
-      .is("deleted_at", null)
-      .order("name"),
+    getCategories(supabase),
   ]);
 
   return (
@@ -40,9 +36,16 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
         title="Property"
         description="Kelola listing properti."
         action={
-          <Link href="/properties/new">
-            <Button size="sm">+ Tambah Listing</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/properties/categories">
+              <Button size="sm" variant="outline">
+                Kelola Kategori
+              </Button>
+            </Link>
+            <Link href="/properties/new">
+              <Button size="sm">+ Tambah Listing</Button>
+            </Link>
+          </div>
         }
       >
         <div className="space-y-4">
