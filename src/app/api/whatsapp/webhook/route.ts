@@ -74,6 +74,12 @@ async function handleMessageReceived(
   supabase: ReturnType<typeof createAdminClient>,
   payload: KapsoMessageReceivedPayload
 ) {
+  // Tipe "unsupported" -- notifikasi protokol WA (mis. pesan dihapus pengirim,
+  // pesan sekali lihat) yang dikirim Meta lewat error 131051, BUKAN pesan
+  // sungguhan. Kalau tidak dilewati, isi errornya kesimpan seolah-olah lead
+  // benar-benar mengetik itu.
+  if (payload.message.type === 'unsupported') return
+
   const rawPhone = payload.conversation?.phone_number ?? payload.message.from
   if (!rawPhone) return
 
