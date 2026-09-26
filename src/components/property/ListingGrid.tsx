@@ -41,7 +41,7 @@ export function ListingGrid({ data, error }: ListingGridProps) {
         return (
           <Link
             key={listing.id}
-            href={`/properties/${listing.id}`}
+            href={`/properties/${listing.slug}`}
             className="overflow-hidden rounded-xl border bg-card shadow-sm transition-colors hover:border-foreground/20"
           >
             <div className="flex h-40 items-center justify-center bg-muted">

@@ -1,10 +1,11 @@
-// src/lib/property/getListingById.ts
+// src/lib/property/getListingBySlug.ts
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 
 export interface ListingDetail {
   id: string;
+  slug: string;
   title: string;
   description: string | null;
   address: string | null;
@@ -16,20 +17,20 @@ export interface ListingDetail {
   updated_at: string;
 }
 
-export interface GetListingByIdResult {
+export interface GetListingBySlugResult {
   data: ListingDetail | null;
   error: boolean;
 }
 
-export async function getListingById(
+export async function getListingBySlug(
   supabase: SupabaseClient<Database>,
-  id: string
-): Promise<GetListingByIdResult> {
+  slug: string
+): Promise<GetListingBySlugResult> {
   const { data: listing, error } = await supabase
     .schema("property")
     .from("listings")
-    .select("id, title, description, address, price, category_id, metadata, created_at, updated_at")
-    .eq("id", id)
+    .select("id, slug, title, description, address, price, category_id, metadata, created_at, updated_at")
+    .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle();
 
@@ -54,6 +55,7 @@ export async function getListingById(
   return {
     data: {
       id: listing.id,
+      slug: listing.slug,
       title: listing.title,
       description: listing.description,
       address: listing.address,

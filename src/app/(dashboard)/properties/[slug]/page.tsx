@@ -1,4 +1,4 @@
-// src/app/(dashboard)/properties/[id]/page.tsx
+// src/app/(dashboard)/properties/[slug]/page.tsx
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,26 +9,21 @@ import { PropertyEditableFields } from "@/components/property/PropertyEditableFi
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
 import { PropertyVideoEmbed } from "@/components/property/PropertyVideoEmbed";
 import { PropertyExportButtons } from "@/components/property/PropertyExportButtons";
-import { getListingById } from "@/lib/property/getListingById";
+import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
+import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { getListingMetadataValue } from "@/lib/property/getListings";
 import { formatRupiah } from "@/lib/property/formatRupiah";
 import { createClient } from "@/lib/supabase/server";
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 interface ListingDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
-  const { id } = await params;
-  if (!UUID_PATTERN.test(id)) {
-    notFound();
-  }
+  const { slug } = await params;
 
   const supabase = await createClient();
-  const { data: listing, error } = await getListingById(supabase, id);
+  const { data: listing, error } = await getListingBySlug(supabase, slug);
 
   const backLink = (
     <Link
@@ -65,6 +60,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
   return (
     <div className="space-y-6 p-6">
+      <SetBreadcrumbLabel segment={listing.slug} label={listing.title} />
       {backLink}
 
       <SectionCard
@@ -72,7 +68,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
         description={listing.category_name ?? undefined}
         action={
           <PropertyExportButtons
-            filenameBase={listing.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}
+            filenameBase={listing.slug}
             data={{
               title: listing.title,
               price: listing.price,
@@ -82,6 +78,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               bathrooms,
               landArea,
               buildingArea,
+              status,
             }}
           />
         }

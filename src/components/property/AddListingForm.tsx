@@ -62,7 +62,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
     setError(null);
 
     const supabase = createClient();
-    const { listingId, error: createError } = await createListing(supabase, {
+    const { listingId, slug, error: createError } = await createListing(supabase, {
       title,
       categoryId,
       price: Number(price),
@@ -80,12 +80,12 @@ export function AddListingForm({ categories }: AddListingFormProps) {
 
     setSubmitting(false);
 
-    if (createError || !listingId) {
+    if (createError || !listingId || !slug) {
       setError(createError ?? "Gagal menyimpan listing. Coba lagi.");
       return;
     }
 
-    router.push(`/properties/${listingId}`);
+    router.push(`/properties/${slug}`);
   }
 
   return (

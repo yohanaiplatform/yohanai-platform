@@ -5,6 +5,7 @@ import type { Database, Json } from "@/types/database";
 
 export interface ListingListItem {
   id: string;
+  slug: string;
   title: string;
   price: number;
   address: string | null;
@@ -38,7 +39,7 @@ export async function getListings(
   let query = supabase
     .schema("property")
     .from("listings")
-    .select("id, title, price, address, category_id, metadata, created_at")
+    .select("id, slug, title, price, address, category_id, metadata, created_at")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -74,6 +75,7 @@ export async function getListings(
   return {
     data: listings.map((l) => ({
       id: l.id,
+      slug: l.slug,
       title: l.title,
       price: Number(l.price),
       address: l.address,

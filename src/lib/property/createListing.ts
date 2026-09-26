@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { generateUniqueListingSlug } from "@/lib/property/slugify";
 
 export interface CreateListingInput {
   title: string;
@@ -21,6 +22,7 @@ export interface CreateListingInput {
 
 export interface CreateListingResult {
   listingId: string | null;
+  slug: string | null;
   error: string | null;
 }
 
@@ -29,7 +31,10 @@ export async function createListing(
   supabase: SupabaseClient<Database>,
   input: CreateListingInput
 ): Promise<CreateListingResult> {
-  const { data: userData } = await supabase.auth.getUser();
+  const [{ data: userData }, slug] = await Promise.all([
+    supabase.auth.getUser(),
+    generateUniqueListingSlug(supabase, input.title),
+  ]);
 
   const { data: inserted, error } = await supabase
     .schema("property")
@@ -37,6 +42,7 @@ export async function createListing(
     .insert({
       category_id: input.categoryId || null,
       title: input.title.trim(),
+      slug,
       description: input.description?.trim() || null,
       address: input.address?.trim() || null,
       price: input.price,
@@ -53,12 +59,12 @@ export async function createListing(
         photo_urls: [],
       },
     })
-    .select("id")
+    .select("id, slug")
     .single();
 
   if (error || !inserted) {
-    return { listingId: null, error: error?.message ?? "Insert gagal" };
+    return { listingId: null, slug: null, error: error?.message ?? "Insert gagal" };
   }
 
-  return { listingId: inserted.id, error: null };
+  return { listingId: inserted.id, slug: inserted.slug, error: null };
 }
