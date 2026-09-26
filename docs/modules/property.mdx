@@ -15,10 +15,12 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 | Item | Status |
 |------|--------|
-| CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[id]`) |
+| CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[slug]`) |
+| URL Listing | ✅ Slug manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042` |
 | Upload Foto | ✅ Ke Supabase Storage bucket `properties`, dikompres di browser dulu |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
-| Export Promosi | ✅ Download JPG & PDF (flyer), full client-side |
+| Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
+| Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
 | Manajemen Kategori (UI) | 🔵 Belum ada — kategori cuma bisa ditambah manual lewat database |
 | AI Recommendation | 🔵 Planned |
 
@@ -26,7 +28,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 # Skema Data
 
-**Tabel:** `property.categories` (id, name, description) dan `property.listings` (id, category_id, title, description, address, price, **metadata JSONB**, timestamps). Tidak ada tabel `property.images` terpisah — semua field tambahan (spesifikasi + foto) disimpan di kolom `metadata`, mengikuti pola yang sama seperti `customer.leads` (bukan kolom per-field).
+**Tabel:** `property.categories` (id, name, description) dan `property.listings` (id, **slug** (unik, migration `042`), category_id, title, description, address, price, **metadata JSONB**, timestamps). Tidak ada tabel `property.images` terpisah — semua field tambahan (spesifikasi + foto) disimpan di kolom `metadata`, mengikuti pola yang sama seperti `customer.leads` (bukan kolom per-field). `slug` sendiri kolom asli (unik, NOT NULL), bukan di metadata, karena dipakai routing URL — dibuat otomatis dari judul saat insert (`src/lib/property/slugify.ts`), ditambah suffix `-2`/`-3` dst kalau ada tabrakan judul.
 
 ```json
 {
@@ -38,11 +40,12 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
   "carport": number | null,
   "certificate_type": "SHM" | "HGB" | "Girik" | "Lainnya" | null,
   "video_url": string | null,
+  "contact_phone": string | null,
   "photo_urls": string[]
 }
 ```
 
-`photo_urls[0]` = foto sampul, dipakai di grid list & flyer promosi.
+`photo_urls[0]` = foto sampul, dipakai di grid list & (rencananya) flyer promosi.
 
 **GRANT:** `authenticated` sebelumnya **0 akses** ke schema `property` (temuan audit 23 September 2026, sengaja belum diperbaiki karena belum ada kode yang butuh) — diperbaiki di migration `041` begitu Property Module mulai dibangun. Storage bucket `properties` sudah ada dari migration `019` (public), tidak perlu bucket baru.
 
@@ -58,19 +61,23 @@ Grid card (foto sampul, judul, harga, badge status), filter status + kategori + 
 
 Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah listing tersimpan (butuh id listing dulu), lewat halaman detail.
 
-## Property Detail (`/properties/[id]`)
+## Property Detail (`/properties/[slug]`)
 
 - Galeri foto dengan tombol tambah/hapus (foto pertama = sampul).
 - Video embed (YouTube) kalau ada.
-- Spesifikasi inline-editable (pola sama seperti `LeadEditableFields` di CRM).
-- Tombol **Download JPG** / **Download PDF** — merender komponen flyer (`PropertyFlyer.tsx`) di luar layar, di-capture pakai `html2canvas`, lalu `jspdf` untuk versi PDF. Semua di browser, tidak ada dependency headless-browser di server.
+- Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
+- Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.
+
+### Download JPG/PDF — dihentikan sementara
+
+Tombolnya masih ada di kode (`PropertyExportButtons.tsx`, `PropertyFlyer.tsx`, `src/lib/property/exportFlyer.ts` — capture DOM ke canvas pakai `html2canvas`, lalu `jspdf` untuk versi PDF, full client-side) tapi **pengembangannya dihentikan** setelah 2 iterasi desain ditolak Yohan ("jauh dari harapan"). Akar masalah: kode mengasumsikan foto yang diupload adalah foto polos properti, padahal foto sungguhan yang dipakai Yohan sudah berupa desain promosi jadi (post Instagram dengan teks/denah sendiri) — overlay teks otomatis & crop kolase paksa jadi tabrakan/motong konten penting. Sempat dieksplorasi juga pakai Canva (tersambung ke sesi chat), tapi akun Canva Yohan belum punya Brand Template/Brand Kit, dan koneksi Canva di sesi chat terpisah dari kemampuan aplikasi production — butuh setup terpisah kalau mau dilanjutkan. Detail lengkap: memory `property-flyer-autogen-failed`. **Jangan desain ulang flyer ini lagi tanpa alasan/arahan baru dari Yohan.**
 
 ---
 
 # Folder Structure
 
 ```text
-src/lib/property/        getListings, getListingById, createListing,
+src/lib/property/        getListings, getListingBySlug, createListing, slugify,
                           uploadListingPhoto, exportFlyer, youtube, formatRupiah
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
                           PropertyEditableFields, PropertyPhotoManager,

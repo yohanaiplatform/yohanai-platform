@@ -51,6 +51,37 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Communication Automation (Kapso) & Property Module Fase 1
+
+Sesi besar: keputusan Communication Automation diambil dan langsung dibangun sampai jalan di sandbox, disusul Property Module Fase 1 penuh di hari yang sama.
+
+### Added
+
+- **Kapso dipilih untuk Communication Automation** (bukan WAHA/Fonnte) — BSP resmi di atas WhatsApp Cloud API Meta. Alasan: official (WAHA/Fonnte pakai WhatsApp Web tidak resmi, ada risiko nomor banned) dan native terhubung ke tooling AI (workflow/agent bawaan, MCP server, skill Claude Code)
+- `POST /api/whatsapp/webhook` — terima pesan WA masuk (Kapso **sandbox**, bukan nomor produksi), verifikasi HMAC signature, cocokkan otomatis ke `customer.leads` lewat nomor HP, simpan ke `chat.conversations`/`chat.messages`
+- `POST /api/whatsapp/send` — kirim balasan WA keluar dari Lead Detail, diamankan sesi login (bukan secret header, beda pola dari `/api/leads/intake`)
+- **Live chat lewat Supabase Realtime** (migration `040`) — "Percakapan WhatsApp" di Lead Detail dan **Recent Chats di dashboard** (sekarang interaktif: klik satu percakapan, thread muncul inline) auto-update tanpa refresh. Komponen `ChatMessageList` dipakai bareng oleh keduanya
+- **Property Module Fase 1** — CRUD listing (`/properties`, `/properties/new`, `/properties/[slug]`); spesifikasi standar (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status) di `metadata` JSONB, pola sama seperti `customer.leads`; upload foto ke Supabase Storage bucket `properties` dengan kompresi otomatis di browser (`browser-image-compression`); video YouTube ditanam sebagai player
+- URL listing pakai **slug** manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — dibuat otomatis dari judul, dijamin unik (migration `042`)
+- Field `contact_phone` (opsional) di listing
+- `getPropertySummary.ts` (dashboard) diganti dari stub ke query nyata, group by `metadata->>status`
+
+### Fixed
+
+- Webhook sempat menyimpan notifikasi protokol WhatsApp (mis. "pesan dihapus", error Meta `131051`) sebagai bubble chat sungguhan — event bertipe `unsupported` sekarang dilewati
+- Pesan media (foto/video) sempat tampil sebagai link storage Kapso mentah di chat — diganti notice "buka WhatsApp untuk melihat". Deteksi media awalnya pakai flag `message.kapso.has_media` dari Kapso yang ternyata tidak konsisten terisi untuk pesan gambar sungguhan; diperbaiki dengan menurunkan dari `message.type` (`image`/`video`/`audio`/`document`/`sticker`) sebagai sumber kebenaran
+- `.gitignore` pola `.env*` ternyata ikut meng-ignore `.env.example` sejak awal project — file itu tidak pernah ter-track di git walau isinya cuma template, bukan rahasia
+
+### Removed / Parked
+
+- **Auto-generate flyer promosi (Download JPG/PDF) dihentikan setelah 2 iterasi desain**, ditolak Yohan ("jauh dari harapan", "buang-buang waktu"). Akar masalah: kode mengasumsikan foto yang diupload adalah foto polos, padahal foto sungguhan yang dipakai Yohan sudah berupa desain promosi jadi (mis. post Instagram dengan teks/denah sendiri) — overlay teks otomatis dan crop kolase paksa jadi tabrakan/motong konten penting. Tombolnya dibiarkan ada di kode (tidak mengganggu), tidak dihapus, tapi pengembangannya dihentikan untuk saat ini
+
+### Docs
+
+- Sempat dieksplorasi memakai Canva (tersambung ke sesi chat) untuk generate flyer dari Brand Template — akun Canva Yohan belum punya Brand Template/Brand Kit tersimpan, dan koneksi Canva di sesi chat terpisah dari kemampuan aplikasi production. Kalau mau dilanjutkan nanti, butuh setup terpisah (App Canva Developer + OAuth + integrasi backend), bukan sekadar pasang template publik
+
+---
+
 ## 26 September 2026 — Search Bar Redesign & Bi-lingual ID/EN
 
 ### Added
@@ -289,7 +320,7 @@ Planned
 
 - ✅ Integrasi lead intake dari Google Form dan Apps Script ke `customer.leads` — selesai, lihat Unreleased
 - ✅ CRM UI — Lead List, Lead Detail, ubah status, assign ke agent, filter Sumber Informasi — semua selesai, lihat Unreleased
-- Property UI
+- ✅ Property UI — Fase 1 selesai (CRUD, foto, video, slug URL), lihat Unreleased
 - Sales Pipeline
 - Runtime QA
 - Production Database
@@ -310,7 +341,7 @@ Planned
 
 Planned
 
-- WhatsApp Automation
+- 🟡 WhatsApp Automation — Kapso sandbox selesai (kirim/terima, live chat), nomor produksi belum disambungkan, lihat Unreleased
 - Workflow Engine
 - Notification Center
 

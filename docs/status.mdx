@@ -240,7 +240,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing, upload foto (dikompres di browser), video embed YouTube, spesifikasi standar, export flyer PDF/JPG. Kategori & manajemen lanjutan belum ada |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak. Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Kategori & manajemen lanjutan belum ada |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
@@ -271,7 +271,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 
 # Next Milestone
 
-**Kapso (Communication Automation) sandbox + Property Module Fase 1 — ✅ Selesai (26 September 2026).** Detail lengkap di `docs/modules/property.mdx` dan bagian Task 008-009 di bawah.
+**Kapso (Communication Automation) sandbox + Property Module Fase 1 — ✅ Selesai (26 September 2026).** Detail lengkap di `docs/modules/property.mdx` dan bagian Task 008-010 di bawah.
 
 Berikutnya, urutan disepakati eksplisit bareng Yohan 26 Sep 2026: (1) AI Agent / Intelligent Dashboard (buyer behavior insight nyata), (2) alur dokumen tanda tangan untuk lead closing (spreadsheet + Apps Script, konteksnya dari sesi terpisah — belum dibagikan ulang ke sesi ini), (3) baru setelah itu sambungkan nomor WhatsApp produksi (Griya Indonesia Real Estate) — auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, bukan integrasi pihak ketiga, jadi risiko migrasi relatif rendah kapan pun siap.
 
@@ -336,13 +336,20 @@ Keputusan Communication Automation + integrasi WA sandbox — ✅ **Selesai (26 
 
 Task 009
 
-Property Module Fase 1 (Fondasi) — ✅ **Selesai (26 September 2026).** `authenticated` GRANT ke schema `property` diperbaiki (migration `041`, sebelumnya 0 akses sama sekali persis seperti temuan audit 23 Sep yang belum ditindaklanjuti). CRUD listing (`/properties`, `/properties/new`, `/properties/[id]`) dengan field standar (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status) disimpan di `metadata` JSONB (pola sama seperti `customer.leads`, bukan kolom baru). Upload foto ke Supabase Storage bucket `properties` (sudah ada, public) dengan kompresi di browser (`browser-image-compression`) sebelum upload. Video YouTube ditanam sebagai player, link lain (mis. Google Drive) tampil sebagai tautan biasa. Listing bisa diexport jadi flyer promosi JPG/PDF (`html2canvas` + `jspdf`, full client-side, tidak butuh headless browser di server). `getPropertySummary.ts` (dashboard) diganti dari stub ke query nyata. Detail lengkap: `docs/modules/property.mdx`.
+Property Module Fase 1 (Fondasi) — ✅ **Selesai (26 September 2026).** `authenticated` GRANT ke schema `property` diperbaiki (migration `041`, sebelumnya 0 akses sama sekali persis seperti temuan audit 23 Sep yang belum ditindaklanjuti). CRUD listing (`/properties`, `/properties/new`, `/properties/[slug]`) dengan field standar (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status) disimpan di `metadata` JSONB (pola sama seperti `customer.leads`, bukan kolom baru). Upload foto ke Supabase Storage bucket `properties` (sudah ada, public) dengan kompresi di browser (`browser-image-compression`) sebelum upload. Video YouTube ditanam sebagai player, link lain (mis. Google Drive) tampil sebagai tautan biasa. `getPropertySummary.ts` (dashboard) diganti dari stub ke query nyata. Detail lengkap: `docs/modules/property.mdx`.
 
 Belum dikerjakan (sengaja ditunda, bukan lupa): manajemen kategori lewat UI (9 kategori sudah ada di database dari sebelumnya + seed 5 tambahan idempotent), pagination list, kepemilikan listing per agent.
 
+Task 010
+
+Property lanjutan (permintaan Yohan setelah pakai listing pertama) — **sebagian selesai, sebagian dihentikan (26 September 2026):**
+- ✅ **URL listing pakai slug** manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042`, dibuat otomatis dari judul + dijamin unik (`src/lib/property/slugify.ts`). Breadcrumb ikut diperbaiki (tampil judul, bukan slug mentah) pakai `SetBreadcrumbLabel`, pola sama seperti CRM.
+- ✅ Field `contact_phone` (opsional) ditambahkan ke listing.
+- 🔴 **Download JPG/PDF (flyer promosi) DIHENTIKAN setelah 2 iterasi desain**, ditolak Yohan ("jauh dari harapan", "buang-buang waktu"). Sempat coba tiru gaya template Canva yang dilampirkan Yohan — akar masalah gagal: kode asumsikan foto listing = foto polos, padahal foto sungguhan yang dipakai Yohan sudah desain promosi jadi (post Instagram dengan teks/denah sendiri), jadi overlay teks & crop kolase otomatis tabrakan/motong konten penting. Sempat dicek juga kemungkinan pakai Canva API sungguhan (tersambung ke sesi chat) — akun Canva Yohan belum punya Brand Template/Brand Kit, dan koneksi Canva di chat terpisah dari kemampuan app production, jadi butuh setup terpisah kalau mau dilanjutkan. **Jangan desain ulang flyer ini lagi tanpa arahan baru** — detail: memory `property-flyer-autogen-failed`, `docs/modules/property.mdx` bagian "Download JPG/PDF — dihentikan sementara".
+
 ### Next Task
 
-Task 010
+Task 011
 
 AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + percakapan WhatsApp (yang sekarang sudah tersimpan nyata di `chat.messages`) jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
 

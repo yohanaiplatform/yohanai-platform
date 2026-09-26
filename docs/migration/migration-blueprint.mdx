@@ -87,7 +87,7 @@ Nama tabel di bawah sudah diselaraskan dengan skema yang benar-benar ada di Supa
 |------------|-------------|--------|
 | createInboxLead | `POST /api/leads/intake` | ✅ Selesai, terverifikasi end-to-end di production (23 Sep 2026) — lihat "Rencana Lead Intake" di halaman CRM Module |
 | customer, createCustomer | `/api/leads` | 🔵 Rencana |
-| createChatLog | `/api/chatlogs` | 🔵 Rencana |
+| createChatLog | `POST /api/whatsapp/webhook` + `POST /api/whatsapp/send` | ✅ Selesai (Kapso sandbox, 26 Sep 2026) — beda jalur dari rencana awal (`/api/chatlogs`), langsung terhubung ke `chat.conversations`/`chat.messages` |
 | updateCustomerAI | `/api/ai/leads` | 🔵 Rencana |
 | — | `GET /api/health` | ✅ Selesai (health check) |
 
@@ -101,9 +101,11 @@ Nama tabel di bawah sudah diselaraskan dengan skema yang benar-benar ada di Supa
 
 ## Current Sprint
 
-Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD, **Lead Intake dari Google Form (Fase 1)**, **CRM Foundation (Fase 2)** — Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, filter Sumber Informasi, semua live (25 September 2026).
+Selesai: Infrastructure, Supabase Foundation, Database Schema, ERD, **Lead Intake dari Google Form (Fase 1)**, **CRM Foundation (Fase 2)**, **Communication Automation (Kapso, sandbox)**, **Property Module (Fase 1)** — semua live per 26 September 2026.
 
-Berikutnya: keputusan WAHA vs Fonnte untuk Communication Automation (belum dibahas sama sekali, jangan mulai bangun integrasi WA apa pun sebelum ini diputuskan eksplisit bareng Yohan), lalu Property Module, lalu AI Foundation.
+Keputusan Communication Automation sudah diambil: **Kapso** (BSP resmi WhatsApp Cloud API Meta), bukan WAHA/Fonnte — lihat "WAHA / n8n" di diagram Legacy Architecture di bawah, itu peran yang sekarang digantikan Kapso untuk arsitektur baru. Kirim/terima pesan + live chat sudah jalan di sandbox Kapso; nomor produksi (Griya Indonesia Real Estate) sengaja belum disambungkan.
+
+Berikutnya (disepakati eksplisit bareng Yohan 26 Sep 2026): (1) AI Agent / Intelligent Dashboard, (2) alur dokumen tanda tangan untuk lead closing (spreadsheet + Apps Script dari sesi terpisah), (3) baru sambungkan nomor WhatsApp produksi.
 
 Catatan penting: **Apps Script legacy bukan sekadar pemindah data.** AI Processor, Decision Engine, dan CRM Engine di dalamnya sengaja TIDAK ikut dipindahkan ke `customer.leads` — hanya field mentah (input form) yang dikirim lewat `POST /api/leads/intake`. Detail pemetaan kolom mana yang mentah vs hasil AI ada di `docs/modules/crm.mdx`.
 
@@ -111,6 +113,6 @@ Catatan penting: **Apps Script legacy bukan sekadar pemindah data.** AI Processo
 
 # Last Updated
 
-25 September 2026
+26 September 2026
 
 Sprint 011 — Platform Hold

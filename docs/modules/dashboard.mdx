@@ -59,7 +59,7 @@ Menampilkan daftar lead terbaru dari Supabase.
 
 ## Recent Chats
 
-Menampilkan aktivitas komunikasi terbaru. Saat ini selalu kosong ("No Chats") — belum ada integrasi WhatsApp/WAHA yang mengisi `chat.conversations`.
+✅ **Real & interaktif, sejak 26 September 2026.** Terisi dari integrasi WhatsApp (Kapso, sandbox) — klik satu percakapan, thread pesannya muncul inline (`RecentChatThread.tsx`), live lewat Supabase Realtime tanpa refresh. Kalau `lead_id` percakapan itu ada, muncul juga kotak balas (kirim WA langsung dari dashboard); kalau `lead_id` null (nomor pengirim tidak cocok lead manapun), tampil view-only.
 
 ---
 
@@ -187,8 +187,8 @@ Dashboard bergantung pada:
 # Current Limitations
 
 - AI Insight 2 dari 3 kartu masih contoh ilustratif (ditandai jelas di UI)
-- Property Summary masih placeholder murni (`getPropertySummary.ts` return 0 hardcode, belum query `property.listings`)
-- Recent Chats selalu kosong — belum ada integrasi WhatsApp/WAHA
+- ~~Property Summary masih placeholder murni~~ — diperbaiki 26 September 2026, lihat `docs/modules/property.mdx`
+- ~~Recent Chats selalu kosong~~ — diperbaiki 26 September 2026, lihat bagian "Recent Chats" di atas
 - Runtime QA dengan data produksi masih berjalan
 
 ---

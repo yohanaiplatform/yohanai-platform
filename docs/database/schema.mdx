@@ -94,13 +94,13 @@ Catatan per lead, **append-only** (migration `038`, 26 September 2026) — cuma 
 
 ### categories, listings
 
-Kategori dan listing properti.
+Kategori (9 baris, mis. Rumah/Tanah/Ruko) dan listing properti. `listings` punya kolom `slug` (unik, dipakai URL `/properties/<slug>`, dibuat otomatis dari judul saat insert — lihat `src/lib/property/slugify.ts`) selain `id`. Field spesifikasi (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status, video_url, contact_phone, photo_urls) semua di kolom `metadata` JSONB, pola sama seperti `customer.leads` — bukan kolom tersendiri.
 
 ## chat
 
 ### conversations, messages
 
-Percakapan dan pesan per lead.
+Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kapso, sandbox): pesan masuk dari webhook dan balasan keluar dari Lead Detail sama-sama masuk ke sini. Kedua tabel sudah ditambahkan ke publication `supabase_realtime` (migration `040`) sehingga UI (Lead Detail, Recent Chats dashboard) bisa live-update lewat Supabase Realtime tanpa refresh.
 
 ## ai
 
@@ -165,7 +165,9 @@ Seluruh tabel domain (`customer`, `property`, `chat`, `ai`, `workflow`, `marketi
 1. `authenticated` × `customer.leads`/`contacts` — diperbaiki `027`.
 2. `service_role` × schema `customer` — `service_role` cuma otomatis dapat `USAGE` di `public`, sama sekali tidak di schema domain manapun. Diperbaiki **cuma untuk `customer`** di `032` (belum untuk `auth_ext`/`chat`/`core`/`property` — sengaja ditunda sampai ada kode yang butuh).
 3. `authenticated` × `chat.conversations`/`chat.messages` — diperbaiki `034`.
-4. Beberapa tabel `core.*` (RBAC) dan `property.*` masih belum punya GRANT `authenticated` sama sekali per hari ini — **cek dulu** `has_table_privilege()` sebelum membangun fitur yang menyentuhnya.
+4. `service_role` × schema `chat` — dibutuhkan begitu webhook WhatsApp (`POST /api/whatsapp/webhook`) mulai ditulis dan dipanggil pakai `createAdminClient()`. Diperbaiki `039`.
+5. `authenticated` × schema `property` (schema **dan** tabel `categories`/`listings`) — 0 akses sama sekali sebelum Property Module mulai dibangun. Diperbaiki `041`.
+6. Beberapa tabel `core.*` (RBAC: `roles`, `permissions`, `role_permissions`, `settings`, `audit_logs`) masih belum punya GRANT `authenticated` sama sekali per hari ini — **cek dulu** `has_table_privilege()` sebelum membangun fitur yang menyentuhnya.
 
 **RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** `public.profile_completeness_rules` sempat berada dalam kondisi ini, sehingga query langsung dari client di `EditProfileForm.tsx` selalu mengembalikan nol baris — daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Policy SELECT-nya ditambahkan di `025_profile_completeness.sql`.
 
@@ -177,7 +179,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`038` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`038` ditambahkan 25–26 September 2026).
+Folder `supabase/migrations/` berisi `001`–`042` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`042` ditambahkan 25–26 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -193,6 +195,10 @@ Folder `supabase/migrations/` berisi `001`–`038` secara berurutan, dan riwayat
 | `036` | Fungsi `core.list_assignable_users()` — daftar user untuk dropdown assign lead di CRM, khusus admin/super_admin |
 | `037` | Baris baru "Input Manual" di `customer.lead_sources`, untuk lead yang diinput langsung dari dashboard (`/crm/new`) |
 | `038` | Tabel `customer.notes` (append-only, catatan berwaktu per lead), policy `notes_owner_or_admin`, GRANT `SELECT`+`INSERT` |
+| `039` | `GRANT USAGE` + hak tabel `chat.conversations`/`chat.messages` ke `service_role` — dibutuhkan webhook WhatsApp (`POST /api/whatsapp/webhook`) |
+| `040` | Aktifkan Supabase Realtime untuk `chat.conversations`/`chat.messages` (`ALTER PUBLICATION supabase_realtime ADD TABLE`) — dasar fitur live chat |
+| `041` | Fondasi Property Module: `GRANT USAGE`+hak tabel schema `property` ke `authenticated`, seed 5 kategori default (idempotent) |
+| `042` | Kolom `slug` (unik, NOT NULL) di `property.listings` — URL listing jadi manusiawi, bukan UUID |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 

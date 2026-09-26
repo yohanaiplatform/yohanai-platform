@@ -281,7 +281,13 @@ CRM membantu agen untuk:
 
 ## Lead Detail
 
-✅ **Selesai (Fase 2, 24-26 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) bisa langsung dari halaman ini. Sejak 26 September: field Sumber/Kategori/Temperature/Sudah Survey/Minat Unit/Permintaan/Komentar bisa diedit (tombol Edit → Save), plus riwayat catatan berwaktu (lihat "Notes" di bawah). Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
+✅ **Selesai (Fase 2, 24-26 September 2026).** Halaman `/crm/[id]` — semua field lead + metadata (permintaan, komentar, minat unit/lokasi, temperature awal, survey, follow-up) tampil lengkap, tombol WA, link balik ke Lead List. Ubah status (dropdown pipeline) dan assign ke agent (khusus admin/super_admin) bisa langsung dari halaman ini. Sejak 26 September: field Sumber/Kategori/Temperature/Sudah Survey/Minat Unit/Permintaan/Komentar bisa diedit (tombol Edit → Save), plus riwayat catatan berwaktu (lihat "Notes" di bawah), plus **Percakapan WhatsApp** (lihat di bawah). Lihat `src/app/(dashboard)/crm/[id]/page.tsx`.
+
+---
+
+## Percakapan WhatsApp
+
+✅ **Selesai (26 September 2026).** Section baru di Lead Detail — kirim & terima pesan WhatsApp langsung dari CRM, live lewat Supabase Realtime (tidak perlu refresh manual). Bagian dari integrasi Kapso (Communication Automation), lihat `docs/status.mdx` Task 008 untuk detail arsitektur lengkap. Pesan media (foto/video) tampil sebagai notice "buka WhatsApp untuk melihat", bukan link storage mentah. Komponen: `src/components/crm/LeadWhatsApp.tsx`.
 
 ---
 
