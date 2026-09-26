@@ -20,7 +20,7 @@ Dashboard bukan sekadar halaman statistik, tetapi menjadi **Executive Decision C
 | Development | ✅ Complete (Foundation) |
 | Production Ready | ✅ Yes |
 | Backend Integration | 🟡 Runtime QA |
-| UI | ✅ Complete |
+| UI | ✅ Complete — stat card & Quick Actions dapat ikon/warna sejak 25 September 2026 |
 | AI Integration | 🟡 Planned |
 
 ---
@@ -41,12 +41,13 @@ Dashboard membantu pengguna untuk:
 
 ## Dashboard Cards
 
-Menampilkan ringkasan:
+✅ **4 StatCard, data asli.** Total Leads, Active Chats, Properties, Today's New Leads (`src/lib/dashboard/getDashboardStats.ts`). Sejak 25 September 2026 tiap kartu punya ikon + warna berbeda (`iconClassName` baru di `StatCard`, lihat `docs/modules/crm.mdx` bagian "Sentuhan Warna") — sebelumnya semua abu-abu tanpa ikon.
 
-- Total Leads
-- Active Property
-- Sales Pipeline
-- Conversion Rate
+---
+
+## Quick Actions
+
+✅ **4 tombol, ikon berwarna sejak 25 September 2026.** "Import Listing" (→ `/properties`), "Add Lead" (→ `/crm/new`, **sekarang fungsional** — sebelumnya cuma link ke `/crm` tanpa form, diperbaiki 26 September 2026, lihat `docs/modules/crm.mdx` bagian "Tambah Lead Manual"), "Open CRM" (→ `/crm`), "View Reports" (→ `/sales`).
 
 ---
 
@@ -227,6 +228,6 @@ Predictive Analytics
 
 # Last Updated
 
-23 September 2026
+26 September 2026
 
-Sprint 011 — Lead Funnel & 1 AI Insight jadi real, lihat `docs/modules/crm.mdx` untuk detail lengkap
+Sprint 011 — Lead Funnel & 1 AI Insight jadi real (23 Sep), stat card/Quick Actions dapat ikon & warna + "Add Lead" jadi fungsional (25-26 Sep). Detail lengkap di `docs/modules/crm.mdx`
