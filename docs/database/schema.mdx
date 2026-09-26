@@ -94,7 +94,9 @@ Catatan per lead, **append-only** (migration `038`, 26 September 2026) — cuma 
 
 ### categories, listings
 
-Kategori (9 baris, mis. Rumah/Tanah/Ruko) dan listing properti. `listings` punya kolom `slug` (unik, dipakai URL `/properties/<slug>`, dibuat otomatis dari judul saat insert — lihat `src/lib/property/slugify.ts`) selain `id`. Field spesifikasi (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status, video_url, contact_phone, photo_urls) semua di kolom `metadata` JSONB, pola sama seperti `customer.leads` — bukan kolom tersendiri.
+Kategori (9 baris, mis. Rumah/Tanah/Ruko; soft delete lewat `deleted_at`, dikelola dari `/properties/categories`) dan listing properti. `listings` punya kolom `slug` (unik, dipakai URL `/properties/<slug>`, dibuat otomatis dari judul saat insert — lihat `src/lib/property/slugify.ts`) dan `assigned_to` (kepemilikan per agent, sama pola seperti `customer.leads.assigned_to` — lihat bagian akses di bawah) selain `id`. Field spesifikasi (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status, video_url, contact_phone, photo_urls) semua di kolom `metadata` JSONB, pola sama seperti `customer.leads` — bukan kolom tersendiri.
+
+**Akses `listings` dibatasi per agent** (migration `043`, pola identik `leads_owner_or_admin` di `035`): policy `listings_owner_or_admin` — admin/super_admin lihat semua, role lain cuma lihat `assigned_to = auth.uid()`. Reuse `core.is_admin_or_above()` dan `core.list_assignable_users()` yang sudah ada, tidak ada fungsi baru. `categories` tetap `authenticated_all` (dikonfirmasi eksplisit ke Yohan — kategori bukan data sensitif per-agent).
 
 ## chat
 
@@ -179,7 +181,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`042` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`042` ditambahkan 25–26 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`043` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`043` ditambahkan 25–27 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -199,6 +201,7 @@ Folder `supabase/migrations/` berisi `001`–`042` secara berurutan, dan riwayat
 | `040` | Aktifkan Supabase Realtime untuk `chat.conversations`/`chat.messages` (`ALTER PUBLICATION supabase_realtime ADD TABLE`) — dasar fitur live chat |
 | `041` | Fondasi Property Module: `GRANT USAGE`+hak tabel schema `property` ke `authenticated`, seed 5 kategori default (idempotent) |
 | `042` | Kolom `slug` (unik, NOT NULL) di `property.listings` — URL listing jadi manusiawi, bukan UUID |
+| `043` | Kolom `assigned_to` di `property.listings`, policy `listings_owner_or_admin` (reuse `core.is_admin_or_above()`) — pemisahan akses listing per agent, pola identik `035` |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -208,6 +211,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-26 September 2026
+27 September 2026
 
 Sprint 011 — Platform Hold

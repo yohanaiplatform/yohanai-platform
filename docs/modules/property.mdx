@@ -23,13 +23,14 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
 | Manajemen Kategori (UI) | ✅ Halaman `/properties/categories` — tambah/edit/hapus (soft delete)/pulihkan, akses `authenticated_all` (sama seperti pola tabel lain) |
 | Pagination List | ✅ `/properties` — 24/48/96 per halaman (pola sama seperti Lead List di CRM) |
+| Kepemilikan per Agent | ✅ Kolom `assigned_to` + RLS `listings_owner_or_admin` (migration `043`) — agent cuma lihat listing miliknya, admin lihat & assign semua |
 | AI Recommendation | 🔵 Planned |
 
 ---
 
 # Skema Data
 
-**Tabel:** `property.categories` (id, name, description) dan `property.listings` (id, **slug** (unik, migration `042`), category_id, title, description, address, price, **metadata JSONB**, timestamps). Tidak ada tabel `property.images` terpisah — semua field tambahan (spesifikasi + foto) disimpan di kolom `metadata`, mengikuti pola yang sama seperti `customer.leads` (bukan kolom per-field). `slug` sendiri kolom asli (unik, NOT NULL), bukan di metadata, karena dipakai routing URL — dibuat otomatis dari judul saat insert (`src/lib/property/slugify.ts`), ditambah suffix `-2`/`-3` dst kalau ada tabrakan judul.
+**Tabel:** `property.categories` (id, name, description) dan `property.listings` (id, **slug** (unik, migration `042`), category_id, **assigned_to** (kepemilikan per agent, migration `043`), title, description, address, price, **metadata JSONB**, timestamps). Tidak ada tabel `property.images` terpisah — semua field tambahan (spesifikasi + foto) disimpan di kolom `metadata`, mengikuti pola yang sama seperti `customer.leads` (bukan kolom per-field). `slug` sendiri kolom asli (unik, NOT NULL), bukan di metadata, karena dipakai routing URL — dibuat otomatis dari judul saat insert (`src/lib/property/slugify.ts`), ditambah suffix `-2`/`-3` dst kalau ada tabrakan judul.
 
 ```json
 {
@@ -52,6 +53,8 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 **RLS `property.categories`:** policy `authenticated_all` (`USING core.is_authenticated()`) ternyata sudah ada di database sejak awal, tapi **tidak tercatat di migration manapun** di repo — ditemukan 26 September 2026 saat verifikasi sebelum membangun halaman Kelola Kategori (pola yang sama seperti temuan audit 23 September di `AGENTS.md`: isi repo bukan cermin isi database). GRANT `authenticated`: SELECT/INSERT/UPDATE ada (`041`), **DELETE tidak ada** — bukan masalah karena hapus kategori memakai soft delete (`deleted_at`), bukan DELETE asli.
 
+**RLS `property.listings`:** sama seperti `categories`, policy `authenticated_all` yang ada di database sebelum migration `043` juga **tidak pernah tercatat di file migration manapun** — ditemukan 27 September 2026 saat verifikasi sebelum membangun kepemilikan per agent. Diganti di `043` jadi policy `listings_owner_or_admin`, identik pola `leads_owner_or_admin` (`035`): admin/super_admin lihat semua, role lain cuma lihat `assigned_to = auth.uid()`. Reuse `core.is_admin_or_above()` dan `core.list_assignable_users()` — tidak ada fungsi baru. Diverifikasi lewat simulasi JWT langsung (bukan cuma baca policy): admin lihat listing, Ramlan (role `agent`, belum ditugaskan listing manapun) lihat 0.
+
 ---
 
 # Current Features
@@ -62,13 +65,14 @@ Grid card (foto sampul, judul, harga, badge status), filter status + kategori + 
 
 ## Tambah Listing (`/properties/new`)
 
-Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah listing tersimpan (butuh id listing dulu), lewat halaman detail.
+Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah listing tersimpan (butuh id listing dulu), lewat halaman detail. Field "Ditugaskan ke" (wajib) cuma tampil untuk admin/super_admin (default assign ke diri sendiri, bisa diganti) — non-admin tidak lihat dropdown-nya sama sekali dan otomatis assign ke diri sendiri, pola identik `AddLeadForm.tsx` di CRM.
 
 ## Property Detail (`/properties/[slug]`)
 
 - Galeri foto dengan tombol tambah/hapus (foto pertama = sampul).
 - Video embed (YouTube) kalau ada.
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
+- "Ditugaskan ke" — dropdown ganti penanggung jawab (`PropertyAssignSelect.tsx`, admin/super_admin saja; non-admin cuma lihat teks statis "Saya"), pola identik `LeadAssignSelect.tsx` di CRM.
 - Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.
 
 ## Kelola Kategori (`/properties/categories`)
@@ -90,7 +94,8 @@ src/lib/property/        getListings, getListingBySlug, createListing, slugify,
                           deleteCategory/restoreCategory)
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
                           ListingListPagination, ListingPageSizeSelect,
-                          PropertyEditableFields, PropertyPhotoManager,
+                          PropertyEditableFields, PropertyAssignSelect,
+                          PropertyPhotoManager,
                           PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons,
                           CategoryManager
 src/app/(dashboard)/properties/categories/  Halaman Kelola Kategori
@@ -101,7 +106,6 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Current Limitations
 
-- Semua listing terlihat semua akun (`authenticated_all`, sama seperti pola yang sudah dipakai tabel lain) — belum ada kepemilikan per agent.
 - AI Recommendation belum aktif — menunggu AI Foundation.
 
 ---
@@ -116,4 +120,4 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Last Updated
 
-26 September 2026
+27 September 2026

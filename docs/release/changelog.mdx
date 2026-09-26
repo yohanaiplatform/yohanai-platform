@@ -51,6 +51,22 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 27 September 2026 — Kepemilikan Listing per Agent
+
+### Added
+
+- Kolom `property.listings.assigned_to` + policy RLS `listings_owner_or_admin` (migration `043`) -- pola identik `customer.leads.assigned_to`/`leads_owner_or_admin` (`035`): admin/super_admin lihat & assign semua listing, role lain cuma lihat listing miliknya sendiri. Reuse fungsi `core.is_admin_or_above()` dan `core.list_assignable_users()` yang sudah ada, tidak ada fungsi baru dibuat
+- Dropdown "Ditugaskan ke" di form Tambah Listing (`AddListingForm.tsx`, cuma tampil untuk admin, default assign ke diri sendiri) dan di halaman Property Detail (`PropertyAssignSelect.tsx`, admin bisa ganti penanggung jawab kapan saja) -- keduanya meniru pola `AddLeadForm.tsx`/`LeadAssignSelect.tsx` di CRM
+
+### Docs
+
+- Sebelum membangun, ditemukan pola yang sama seperti `property.categories`: policy `authenticated_all` untuk `property.listings` ternyata sudah ada di database sejak awal tapi tidak pernah tercatat di migration manapun
+- Akses dikonfirmasi eksplisit ke Yohan sebelum dibangun: dibatasi per-agent (bukan cuma field tracking), konsisten dengan pola leads
+- Listing lama di-assign ke `admin@yohanai.id` (backfill, sama seperti keputusan 1968 lead lama di `035`)
+- Diverifikasi 2 lapis: simulasi JWT langsung di database (admin lihat listing, Ramlan yang belum ditugaskan apa pun lihat 0), dan klik-klik UI sungguhan setelah Yohan login manual (ganti penanggung jawab dari dropdown, dikonfirmasi tersimpan benar di database, bukan cuma sukses di UI)
+
+---
+
 ## 26 September 2026 — Pagination List Property
 
 ### Added

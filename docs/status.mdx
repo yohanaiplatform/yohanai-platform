@@ -240,7 +240,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
@@ -355,9 +355,13 @@ Task 012
 
 Property lanjutan #3 — Pagination List — ✅ **Selesai (26 September 2026).** `getListings()` di-refactor pakai `count: "exact"` + `.range()` (pola sama seperti `getLeads()` di CRM), 24/48/96 listing per halaman lewat `ListingListPagination`/`ListingPageSizeSelect`. Diverifikasi dengan 26 baris data uji sementara (dihapus lagi setelah tes) supaya benar-benar teruji pindah halaman, bukan cuma render kosong karena data asli baru 1 listing. Detail lengkap: `docs/modules/property.mdx`.
 
+Task 013
+
+Property lanjutan #4 — Kepemilikan Listing per Agent — ✅ **Selesai (27 September 2026).** Migration `043`: kolom `assigned_to` di `property.listings` + policy `listings_owner_or_admin`, pola identik `leads_owner_or_admin` (`035`) — reuse `core.is_admin_or_above()` dan `core.list_assignable_users()`, tidak ada fungsi baru. Sebelum membangun, dikonfirmasi eksplisit ke Yohan: akses dibatasi (bukan cuma field tracking) — agent cuma lihat/edit listing miliknya, admin lihat & assign semua, konsisten dengan pola leads. Listing lama di-assign ke `admin@yohanai.id` (sama seperti backfill leads di `035`). Verifikasi lewat simulasi JWT langsung: admin lihat listing, Ramlan (belum ditugaskan apa pun) lihat 0 — juga diverifikasi ulang lewat UI setelah Yohan login manual (dropdown "Ditugaskan ke" di form tambah listing & halaman detail, ganti penanggung jawab tersimpan benar di database). `AddListingForm.tsx` dan `PropertyAssignSelect.tsx` meniru pola `AddLeadForm.tsx`/`LeadAssignSelect.tsx` di CRM persis. Detail lengkap: `docs/modules/property.mdx`.
+
 ### Next Task
 
-Task 013
+Task 014
 
 AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + percakapan WhatsApp (yang sekarang sudah tersimpan nyata di `chat.messages`) jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
 
@@ -365,7 +369,7 @@ AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + per
 
 # Last Updated
 
-26 September 2026
+27 September 2026
 
 ---
 

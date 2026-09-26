@@ -58,7 +58,7 @@ src/lib/supabase/middleware.ts  updateSession() — refresh sesi + panggil gate
 src/config/platform.ts        Flag lock versi client (UI saja)
 src/app/(auth)/               Login, register, forgot/reset password, verify email
 src/app/(dashboard)/          Dashboard, CRM, property, sales, communication, settings
-supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users, 037 sumber lead "Input Manual", 038 tabel customer.notes, 039 grant service_role ke chat, 040 enable Realtime chat, 041 fondasi Property Module (grant + seed kategori), 042 kolom slug property.listings — rentang ini bergerak terus, cek `ls supabase/migrations` untuk angka terkini
+supabase/migrations/          001–021 skema dasar, 022–026 Sprint 011, 027–030 perbaikan akses, 031–034 Lead Intake Fase 1 + CRM Foundation, 035 pemisahan akses lead per akun, 036 fungsi list_assignable_users, 037 sumber lead "Input Manual", 038 tabel customer.notes, 039 grant service_role ke chat, 040 enable Realtime chat, 041 fondasi Property Module (grant + seed kategori), 042 kolom slug property.listings, 043 pemisahan akses listing per agent (assigned_to + listings_owner_or_admin, pola sama seperti 035) — rentang ini bergerak terus, cek `ls supabase/migrations` untuk angka terkini
 src/app/api/leads/intake/     POST endpoint lead intake (Fase 1, selesai)
 src/app/api/whatsapp/webhook/ POST terima pesan WA masuk (Kapso sandbox, selesai 26 Sep 2026) — HMAC signature, cocokkan ke lead lewat nomor HP
 src/app/api/whatsapp/send/    POST kirim balasan WA keluar dari Lead Detail (sesi login, bukan secret header)
