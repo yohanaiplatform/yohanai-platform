@@ -7,6 +7,8 @@ import { generateUniqueListingSlug } from "@/lib/property/slugify";
 export interface CreateListingInput {
   title: string;
   categoryId?: string;
+  /** Wajib -- RLS listings_owner_or_admin menolak insert kalau bukan diri sendiri (non-admin) atau tidak diisi. */
+  assignedTo: string;
   price: number;
   address?: string;
   description?: string;
@@ -42,6 +44,7 @@ export async function createListing(
     .from("listings")
     .insert({
       category_id: input.categoryId || null,
+      assigned_to: input.assignedTo,
       title: input.title.trim(),
       slug,
       description: input.description?.trim() || null,

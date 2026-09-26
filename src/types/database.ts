@@ -729,6 +729,7 @@ export type Database = {
       listings: {
         Row: {
           address: string | null
+          assigned_to: string | null
           category_id: string | null
           created_at: string
           created_by: string | null
@@ -744,6 +745,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          assigned_to?: string | null
           category_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -759,6 +761,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          assigned_to?: string | null
           category_id?: string | null
           created_at?: string
           created_by?: string | null

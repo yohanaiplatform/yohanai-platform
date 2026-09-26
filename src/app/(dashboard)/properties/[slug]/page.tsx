@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PropertyEditableFields } from "@/components/property/PropertyEditableFields";
+import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
 import { PropertyVideoEmbed } from "@/components/property/PropertyVideoEmbed";
 import { PropertyExportButtons } from "@/components/property/PropertyExportButtons";
@@ -90,6 +91,10 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
         <div className="space-y-5">
           <p className="text-2xl font-semibold text-brand">{formatRupiah(listing.price)}</p>
           {listing.address && <p className="text-sm text-muted-foreground">{listing.address}</p>}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Ditugaskan ke</span>
+            <PropertyAssignSelect listingId={listing.id} assignedTo={listing.assigned_to} />
+          </div>
           {listing.description && <p className="whitespace-pre-wrap text-sm">{listing.description}</p>}
         </div>
       </SectionCard>

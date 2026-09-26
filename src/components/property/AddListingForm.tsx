@@ -2,7 +2,7 @@
 
 // src/components/property/AddListingForm.tsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createListing } from "@/lib/property/createListing";
@@ -24,12 +24,22 @@ interface Category {
   name: string;
 }
 
+interface AssignableUser {
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  role_name: string | null;
+}
+
 interface AddListingFormProps {
   categories: Category[];
 }
 
 export function AddListingForm({ categories }: AddListingFormProps) {
   const router = useRouter();
+
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[] | null>(null);
+  const [assignedTo, setAssignedTo] = useState("");
 
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -51,11 +61,44 @@ export function AddListingForm({ categories }: AddListingFormProps) {
 
   const categoryLabel = categories.find((c) => c.id === categoryId)?.name;
 
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      const supabase = createClient();
+      const [{ data: userData }, { data: users }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.schema("core").rpc("list_assignable_users"),
+      ]);
+
+      if (!active) return;
+
+      const uid = userData.user?.id ?? null;
+      setAssignableUsers(users ?? []);
+      // Default: assign ke diri sendiri. Admin boleh ganti lewat dropdown
+      // di bawah, non-admin tidak (RLS listings_owner_or_admin cuma izinkan
+      // assigned_to = diri sendiri). Pola sama seperti AddLeadForm.tsx.
+      setAssignedTo(uid ?? "");
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isAdmin = (assignableUsers?.length ?? 0) > 0;
+  const assignedUser = assignableUsers?.find((u) => u.user_id === assignedTo);
+  const assignedToLabel = assignedUser
+    ? `${assignedUser.display_name ?? assignedUser.email ?? assignedUser.user_id}${
+        assignedUser.role_name ? ` (${assignedUser.role_name})` : ""
+      }`
+    : undefined;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!title.trim() || !price.trim()) {
-      setError("Judul dan Harga wajib diisi.");
+    if (!title.trim() || !price.trim() || !assignedTo) {
+      setError("Judul, Harga, dan Ditugaskan ke wajib diisi.");
       return;
     }
 
@@ -66,6 +109,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
     const { listingId, slug, error: createError } = await createListing(supabase, {
       title,
       categoryId,
+      assignedTo,
       price: Number(price),
       address,
       description,
@@ -132,6 +176,25 @@ export function AddListingForm({ categories }: AddListingFormProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {isAdmin && (
+          <div className="space-y-2">
+            <Label htmlFor="assignedTo">Ditugaskan ke *</Label>
+            <Select value={assignedTo} onValueChange={(v) => setAssignedTo(v ?? "")}>
+              <SelectTrigger id="assignedTo">
+                <SelectValue placeholder="Pilih penanggung jawab">{assignedToLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(assignableUsers ?? []).map((u) => (
+                  <SelectItem key={u.user_id} value={u.user_id}>
+                    {u.display_name ?? u.email ?? u.user_id}
+                    {u.role_name ? ` (${u.role_name})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>

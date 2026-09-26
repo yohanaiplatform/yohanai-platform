@@ -12,6 +12,7 @@ export interface ListingDetail {
   price: number;
   category_id: string | null;
   category_name: string | null;
+  assigned_to: string | null;
   metadata: Json;
   created_at: string;
   updated_at: string;
@@ -29,7 +30,9 @@ export async function getListingBySlug(
   const { data: listing, error } = await supabase
     .schema("property")
     .from("listings")
-    .select("id, slug, title, description, address, price, category_id, metadata, created_at, updated_at")
+    .select(
+      "id, slug, title, description, address, price, category_id, assigned_to, metadata, created_at, updated_at"
+    )
     .eq("slug", slug)
     .is("deleted_at", null)
     .maybeSingle();
@@ -62,6 +65,7 @@ export async function getListingBySlug(
       price: Number(listing.price),
       category_id: listing.category_id,
       category_name,
+      assigned_to: listing.assigned_to,
       metadata: listing.metadata,
       created_at: listing.created_at,
       updated_at: listing.updated_at,
