@@ -14,6 +14,7 @@ interface LeadListFiltersProps {
   sumber?: string;
   temperature?: string;
   search?: string;
+  pageSize?: number;
   t: CrmDictionary;
 }
 
@@ -38,6 +39,7 @@ export function LeadListFilters({
   sumber,
   temperature,
   search,
+  pageSize,
   t,
 }: LeadListFiltersProps) {
   return (
@@ -48,6 +50,7 @@ export function LeadListFilters({
       {temperature && (
         <input type="hidden" name="temperature" value={temperature} />
       )}
+      {pageSize && <input type="hidden" name="pageSize" value={pageSize} />}
 
       <div className="flex flex-col gap-1">
         <label htmlFor="search" className="text-sm font-medium">

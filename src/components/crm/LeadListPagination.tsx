@@ -14,9 +14,10 @@ interface LeadListPaginationProps {
   t: CrmDictionary;
 }
 
-function buildHref(page: number, filters: LeadFilters): string {
+function buildHref(page: number, filters: LeadFilters, pageSize: number): string {
   const params = new URLSearchParams();
   params.set("page", String(page));
+  params.set("pageSize", String(pageSize));
   if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) params.set("dateTo", filters.dateTo);
   if (filters.kategori) params.set("kategori", filters.kategori);
@@ -46,7 +47,7 @@ export function LeadListPagination({
       </p>
       <div className="flex gap-2">
         <Link
-          href={buildHref(page - 1, filters)}
+          href={buildHref(page - 1, filters, pageSize)}
           aria-disabled={!hasPrev}
           tabIndex={hasPrev ? undefined : -1}
           className={cn(
@@ -57,7 +58,7 @@ export function LeadListPagination({
           {t.list.prev}
         </Link>
         <Link
-          href={buildHref(page + 1, filters)}
+          href={buildHref(page + 1, filters, pageSize)}
           aria-disabled={!hasNext}
           tabIndex={hasNext ? undefined : -1}
           className={cn(

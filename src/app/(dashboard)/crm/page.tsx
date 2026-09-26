@@ -7,13 +7,20 @@ import { Button } from "@/components/ui/button";
 import { LeadList } from "@/components/crm/LeadList";
 import { LeadListPagination } from "@/components/crm/LeadListPagination";
 import { LeadListFilters } from "@/components/crm/LeadListFilters";
-import { getLeads, LEADS_PAGE_SIZE, type LeadFilters } from "@/lib/crm/getLeads";
+import { LeadPageSizeSelect } from "@/components/crm/LeadPageSizeSelect";
+import {
+  getLeads,
+  LEADS_PAGE_SIZE,
+  LEAD_PAGE_SIZE_OPTIONS,
+  type LeadFilters,
+} from "@/lib/crm/getLeads";
 import { createClient } from "@/lib/supabase/server";
 import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
 interface CRMPageProps {
   searchParams: Promise<{
     page?: string;
+    pageSize?: string;
     dateFrom?: string;
     dateTo?: string;
     kategori?: string;
@@ -26,6 +33,10 @@ interface CRMPageProps {
 export default async function CRMPage({ searchParams }: CRMPageProps) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
+  const requestedPageSize = Number(params.pageSize);
+  const pageSize = (LEAD_PAGE_SIZE_OPTIONS as readonly number[]).includes(requestedPageSize)
+    ? requestedPageSize
+    : LEADS_PAGE_SIZE;
   const t = await getCrmDictionary();
 
   const filters: LeadFilters = {
@@ -38,7 +49,7 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
   };
 
   const supabase = await createClient();
-  const { data, count, error } = await getLeads(supabase, page, filters);
+  const { data, count, error } = await getLeads(supabase, page, filters, pageSize);
 
   const exportParams = new URLSearchParams();
   if (filters.dateFrom) exportParams.set("dateFrom", filters.dateFrom);
@@ -92,13 +103,17 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
             sumber={filters.sumber}
             temperature={filters.temperature}
             search={filters.search}
+            pageSize={pageSize}
             t={t}
           />
+          <div className="flex justify-end">
+            <LeadPageSizeSelect pageSize={pageSize} label={t.list.pageSizeLabel} />
+          </div>
           <LeadList data={data} error={error} t={t} />
           {!error && (
             <LeadListPagination
               page={page}
-              pageSize={LEADS_PAGE_SIZE}
+              pageSize={pageSize}
               totalCount={count}
               filters={filters}
               t={t}

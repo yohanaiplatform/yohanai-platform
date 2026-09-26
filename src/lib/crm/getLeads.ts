@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 
 export const LEADS_PAGE_SIZE = 25;
+export const LEAD_PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
 
 export interface LeadListItem {
   id: string;
@@ -112,10 +113,11 @@ function buildFilteredLeadsQuery(
 export async function getLeads(
   supabase: SupabaseClient<Database>,
   page: number,
-  filters: LeadFilters = {}
+  filters: LeadFilters = {},
+  pageSize: number = LEADS_PAGE_SIZE
 ): Promise<GetLeadsResult> {
-  const from = (page - 1) * LEADS_PAGE_SIZE;
-  const to = from + LEADS_PAGE_SIZE - 1;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   const [leadsRes, sourcesRes] = await Promise.all([
     buildFilteredLeadsQuery(supabase, filters)

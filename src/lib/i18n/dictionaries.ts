@@ -52,6 +52,7 @@ export interface CrmDictionary {
     leadUnit: string;
     prev: string;
     next: string;
+    pageSizeLabel: string;
   };
   detail: {
     back: string;
@@ -166,6 +167,7 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       leadUnit: "lead",
       prev: "Sebelumnya",
       next: "Berikutnya",
+      pageSizeLabel: "Tampilkan per halaman",
     },
     detail: {
       back: "Kembali ke daftar lead",
@@ -282,6 +284,7 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       leadUnit: "leads",
       prev: "Previous",
       next: "Next",
+      pageSizeLabel: "Show per page",
     },
     detail: {
       back: "Back to lead list",
