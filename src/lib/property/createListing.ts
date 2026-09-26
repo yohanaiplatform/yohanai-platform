@@ -18,6 +18,7 @@ export interface CreateListingInput {
   carport?: number;
   certificateType?: string;
   videoUrl?: string;
+  contactPhone?: string;
 }
 
 export interface CreateListingResult {
@@ -56,6 +57,7 @@ export async function createListing(
         carport: input.carport ?? null,
         certificate_type: input.certificateType || null,
         video_url: input.videoUrl?.trim() || null,
+        contact_phone: input.contactPhone?.trim() || null,
         photo_urls: [],
       },
     })

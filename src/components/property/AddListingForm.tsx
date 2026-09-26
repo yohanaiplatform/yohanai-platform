@@ -44,6 +44,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
   const [carport, setCarport] = useState("");
   const [certificateType, setCertificateType] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +77,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
       carport: carport ? Number(carport) : undefined,
       certificateType,
       videoUrl,
+      contactPhone,
     });
 
     setSubmitting(false);
@@ -235,6 +237,16 @@ export function AddListingForm({ categories }: AddListingFormProps) {
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
             placeholder="https://youtube.com/watch?v=..."
+          />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="contactPhone">No. HP Kontak (tampil di flyer)</Label>
+          <Input
+            id="contactPhone"
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+            placeholder="mis. 0821-5041-5012"
           />
         </div>
       </div>

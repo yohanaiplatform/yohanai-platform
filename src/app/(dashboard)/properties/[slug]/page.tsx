@@ -56,6 +56,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const carport = getListingMetadataValue<number>(listing.metadata, "carport");
   const certificateType = getListingMetadataValue<string>(listing.metadata, "certificate_type");
   const videoUrl = getListingMetadataValue<string>(listing.metadata, "video_url");
+  const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
 
   return (
@@ -73,11 +74,14 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
               title: listing.title,
               price: listing.price,
               address: listing.address,
-              coverPhoto: photoUrls[0] ?? null,
+              photoUrls,
               bedrooms,
               bathrooms,
               landArea,
               buildingArea,
+              carport,
+              certificateType,
+              contactPhone,
               status,
             }}
           />
@@ -111,6 +115,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           buildingArea={buildingArea}
           carport={carport}
           certificateType={certificateType}
+          contactPhone={contactPhone}
         />
       </SectionCard>
     </div>

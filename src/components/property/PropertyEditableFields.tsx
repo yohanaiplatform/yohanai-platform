@@ -38,6 +38,7 @@ interface PropertyEditableFieldsProps {
   buildingArea: number | null;
   carport: number | null;
   certificateType: string | null;
+  contactPhone: string | null;
 }
 
 export function PropertyEditableFields({
@@ -50,6 +51,7 @@ export function PropertyEditableFields({
   buildingArea,
   carport,
   certificateType,
+  contactPhone,
 }: PropertyEditableFieldsProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -63,6 +65,7 @@ export function PropertyEditableFields({
   const [formBuildingArea, setFormBuildingArea] = useState(buildingArea?.toString() ?? "");
   const [formCarport, setFormCarport] = useState(carport?.toString() ?? "");
   const [formCertificateType, setFormCertificateType] = useState(certificateType ?? "");
+  const [formContactPhone, setFormContactPhone] = useState(contactPhone ?? "");
 
   function handleCancel() {
     setFormStatus(status ?? "available");
@@ -72,6 +75,7 @@ export function PropertyEditableFields({
     setFormBuildingArea(buildingArea?.toString() ?? "");
     setFormCarport(carport?.toString() ?? "");
     setFormCertificateType(certificateType ?? "");
+    setFormContactPhone(contactPhone ?? "");
     setError(null);
     setIsEditing(false);
   }
@@ -97,6 +101,7 @@ export function PropertyEditableFields({
           building_area: formBuildingArea ? Number(formBuildingArea) : null,
           carport: formCarport ? Number(formCarport) : null,
           certificate_type: formCertificateType || null,
+          contact_phone: formContactPhone.trim() || null,
         },
       })
       .eq("id", listingId);
@@ -128,6 +133,7 @@ export function PropertyEditableFields({
           <DetailField label="Luas Bangunan" value={buildingArea ? `${buildingArea} m²` : undefined} />
           <DetailField label="Carport" value={carport} />
           <DetailField label="Sertifikat" value={certificateType} />
+          <DetailField label="No. HP Kontak (di flyer)" value={contactPhone} />
         </div>
       </div>
     );
@@ -224,6 +230,16 @@ export function PropertyEditableFields({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-contactPhone">No. HP Kontak (tampil di flyer)</Label>
+          <Input
+            id="edit-contactPhone"
+            value={formContactPhone}
+            onChange={(e) => setFormContactPhone(e.target.value)}
+            placeholder="mis. 0821-5041-5012"
+          />
         </div>
       </div>
 
