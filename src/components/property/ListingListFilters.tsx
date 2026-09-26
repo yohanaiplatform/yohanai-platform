@@ -16,6 +16,7 @@ interface ListingListFiltersProps {
   status?: string;
   categoryId?: string;
   search?: string;
+  pageSize?: number;
 }
 
 /** Pola sama seperti LeadListFilters.tsx: form native GET, tanpa JS, jalan lewat searchParams. */
@@ -24,9 +25,11 @@ export function ListingListFilters({
   status,
   categoryId,
   search,
+  pageSize,
 }: ListingListFiltersProps) {
   return (
     <form method="GET" className="space-y-4 border-b border-border pb-4">
+      {pageSize && <input type="hidden" name="pageSize" value={pageSize} />}
       <div className="flex flex-col gap-1">
         <label htmlFor="search" className="text-sm font-medium">
           Cari

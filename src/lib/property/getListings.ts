@@ -3,6 +3,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 
+export const LISTINGS_PAGE_SIZE = 24;
+export const LISTING_PAGE_SIZE_OPTIONS = [24, 48, 96] as const;
+
 export interface ListingListItem {
   id: string;
   slug: string;
@@ -24,24 +27,21 @@ export interface ListingFilters {
 
 export interface GetListingsResult {
   data: ListingListItem[] | null;
+  count: number;
   error: boolean;
 }
 
-/**
- * Belum ada pagination (Fase 1, volume masih kecil) -- diambil semua
- * sekaligus, urut listing terbaru dulu. Bisa ditambah nanti seperti pola
- * LEADS_PAGE_SIZE di getLeads.ts kalau jumlah listing sudah banyak.
- */
-export async function getListings(
+function buildFilteredListingsQuery(
   supabase: SupabaseClient<Database>,
-  filters: ListingFilters = {}
-): Promise<GetListingsResult> {
+  filters: ListingFilters
+) {
   let query = supabase
     .schema("property")
     .from("listings")
-    .select("id, slug, title, price, address, category_id, metadata, created_at")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    .select("id, slug, title, price, address, category_id, metadata, created_at", {
+      count: "exact",
+    })
+    .is("deleted_at", null);
 
   if (filters.categoryId) {
     query = query.eq("category_id", filters.categoryId);
@@ -54,10 +54,24 @@ export async function getListings(
     query = query.or(`title.ilike.${pattern},address.ilike.${pattern}`);
   }
 
-  const { data: listings, error } = await query;
+  return query;
+}
+
+export async function getListings(
+  supabase: SupabaseClient<Database>,
+  page: number = 1,
+  filters: ListingFilters = {},
+  pageSize: number = LISTINGS_PAGE_SIZE
+): Promise<GetListingsResult> {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data: listings, count, error } = await buildFilteredListingsQuery(supabase, filters)
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
-    return { data: null, error: true };
+    return { data: null, count: 0, error: true };
   }
 
   const categoryIds = [...new Set(listings.map((l) => l.category_id).filter(Boolean))] as string[];
@@ -84,6 +98,7 @@ export async function getListings(
       metadata: l.metadata,
       created_at: l.created_at,
     })),
+    count: count ?? 0,
     error: false,
   };
 }
