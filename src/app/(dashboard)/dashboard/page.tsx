@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Users,
-  MessageCircle,
   Building2,
   UserPlus,
   Upload,
   BarChart3,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon";
 
 import { getDashboardStats } from "@/lib/dashboard/getDashboardStats";
 import { getRecentLeads } from "@/lib/dashboard/getRecentLeads";
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
           title="Active Chats"
           value={stats.activeChats.toString()}
           description="Ongoing WhatsApp conversations"
-          icon={<MessageCircle className="h-5 w-5" />}
+          icon={<WhatsAppIcon className="h-5 w-5" />}
           iconClassName="bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
         />
         <StatCard

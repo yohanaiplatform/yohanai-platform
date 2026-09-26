@@ -1,6 +1,6 @@
 // src/components/shared/WhatsAppButton.tsx
 
-import { MessageCircle } from "lucide-react";
+import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon";
 
 interface WhatsAppButtonProps {
   phone: string | null;
@@ -23,7 +23,7 @@ export function WhatsAppButton({ phone, nama }: WhatsAppButtonProps) {
       title="Hubungi lewat WhatsApp"
       className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
     >
-      <MessageCircle className="h-4 w-4" />
+      <WhatsAppIcon className="h-4 w-4" />
     </a>
   );
 }
