@@ -51,6 +51,22 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Manajemen Kategori Properti
+
+Lanjutan Property Module setelah Fase 1 -- salah satu item "Current Limitations" (manajemen kategori cuma lewat database manual) sekarang punya UI.
+
+### Added
+
+- Halaman **Kelola Kategori** (`/properties/categories`) -- tambah, edit (nama & deskripsi), hapus (soft delete lewat kolom `deleted_at`, bukan DELETE asli), dan pulihkan kategori. Tombol "Kelola Kategori" ditambahkan di header halaman `/properties`
+- `src/lib/property/categories.ts` -- `getCategories()`/`createCategory()`/`updateCategory()`/`deleteCategory()`/`restoreCategory()`, dipakai bareng oleh halaman kelola kategori maupun dropdown kategori yang sudah ada (`/properties`, `/properties/new`), menggantikan query inline yang sebelumnya diduplikasi di 2 tempat
+- Validasi nama kategori duplikat (termasuk yang sudah di-soft-delete, karena constraint `UNIQUE(name)` di database tidak terkecuali baris terhapus) ditampilkan sebagai pesan error yang jelas, bukan error Postgres mentah
+
+### Docs
+
+- **Akses tetap `authenticated_all`** (bukan admin-only) -- dikonfirmasi eksplisit ke Yohan sebelum dibangun, karena policy RLS `property.categories` sebelumnya (ternyata ada di database tanpa tercatat di migration manapun -- pola yang sama seperti temuan audit 23 September di `AGENTS.md`) sudah mengizinkan semua akun login. Soft-delete dipilih dibanding hard DELETE supaya tidak perlu migration `GRANT DELETE` baru, dan supaya listing lama yang masih mereferensikan kategori yang dihapus tetap bisa menampilkan namanya (lihat `getListings.ts`)
+
+---
+
 ## 26 September 2026 — Communication Automation (Kapso) & Property Module Fase 1
 
 Sesi besar: keputusan Communication Automation diambil dan langsung dibangun sampai jalan di sandbox, disusul Property Module Fase 1 penuh di hari yang sama.

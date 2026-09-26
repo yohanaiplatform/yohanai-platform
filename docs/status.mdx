@@ -240,7 +240,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak. Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Kategori & manajemen lanjutan belum ada |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
@@ -347,9 +347,13 @@ Property lanjutan (permintaan Yohan setelah pakai listing pertama) — **sebagia
 - ✅ Field `contact_phone` (opsional) ditambahkan ke listing.
 - 🔴 **Download JPG/PDF (flyer promosi) DIHENTIKAN setelah 2 iterasi desain**, ditolak Yohan ("jauh dari harapan", "buang-buang waktu"). Sempat coba tiru gaya template Canva yang dilampirkan Yohan — akar masalah gagal: kode asumsikan foto listing = foto polos, padahal foto sungguhan yang dipakai Yohan sudah desain promosi jadi (post Instagram dengan teks/denah sendiri), jadi overlay teks & crop kolase otomatis tabrakan/motong konten penting. Sempat dicek juga kemungkinan pakai Canva API sungguhan (tersambung ke sesi chat) — akun Canva Yohan belum punya Brand Template/Brand Kit, dan koneksi Canva di chat terpisah dari kemampuan app production, jadi butuh setup terpisah kalau mau dilanjutkan. **Jangan desain ulang flyer ini lagi tanpa arahan baru** — detail: memory `property-flyer-autogen-failed`, `docs/modules/property.mdx` bagian "Download JPG/PDF — dihentikan sementara".
 
+Task 011
+
+Property lanjutan #2 — Manajemen Kategori (UI) — ✅ **Selesai (26 September 2026).** Halaman `/properties/categories`: tambah, edit, hapus (soft delete lewat `deleted_at`), pulihkan kategori. `src/lib/property/categories.ts` menggantikan query kategori inline yang tadinya diduplikasi di `/properties` dan `/properties/new`. Verifikasi sebelum membangun menemukan pola yang sama seperti audit 23 September: RLS policy `property.categories` (`authenticated_all`) ternyata sudah ada di database tapi tidak tercatat di migration manapun. Akses dikonfirmasi eksplisit ke Yohan: tetap `authenticated_all` (bukan admin-only), sesuai policy yang sudah ada. Detail lengkap: `docs/modules/property.mdx`.
+
 ### Next Task
 
-Task 011
+Task 012
 
 AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + percakapan WhatsApp (yang sekarang sudah tersimpan nyata di `chat.messages`) jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
 

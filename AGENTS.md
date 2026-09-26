@@ -70,9 +70,9 @@ src/lib/crm/                  getLeads()/getLeadById()/createLead()/getLeadConve
 src/components/crm/           Lead List, Lead Detail, Add Lead form, status/assign select, LeadWhatsApp (chat live)
 src/components/dashboard/     RecentChats interaktif (klik lead -> thread inline, live via Realtime)
 src/components/shared/        WhatsAppButton, ChatMessageList (dipakai CRM + dashboard, bareng)
-src/app/(dashboard)/properties/  List, Tambah, Detail listing (Property Fase 1, selesai 26 Sep 2026)
-src/lib/property/             getListings()/getListingById()/createListing()/uploadListingPhoto()/exportFlyer() dkk
-src/components/property/      AddListingForm, ListingGrid, PropertyPhotoManager, PropertyFlyer (export JPG/PDF)
+src/app/(dashboard)/properties/  List, Tambah, Detail, Kelola Kategori listing (Property Fase 1, selesai 26 Sep 2026)
+src/lib/property/             getListings()/getListingById()/createListing()/uploadListingPhoto()/exportFlyer()/categories.ts dkk
+src/components/property/      AddListingForm, ListingGrid, PropertyPhotoManager, PropertyFlyer (export JPG/PDF), CategoryManager
 src/lib/i18n/                 Bi-lingual ID/EN — kamus (dictionaries.ts), baca locale dari cookie (getLocale.ts). Baru cakupan modul CRM (selesai 26 Sep 2026), modul lain masih Indonesia tetap
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
@@ -82,7 +82,7 @@ project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Histo
 
 # Aturan kerja dengan Yohan
 
-**Selalu berikan perintah untuk dijalankan sendiri, jangan dijalankan untuk dia.** Build, commit, push, install — tulis dalam blok kode siap-copy dengan sintaks **cmd.exe**, satu perintah per blok. Perintah baca-saja untuk diagnosis (git status, lint, typecheck) boleh dijalankan sendiri.
+**Build, commit, dan push boleh dijalankan langsung** (diizinkan permanen 26 September 2026, sebelumnya harus selalu berupa perintah copy-paste). Tetap pecah commit per topik dengan pesan berbahasa Indonesia (lihat konvensi di bawah), dan tetap jalankan verifikasi (`tsc`/`eslint`/`build`) sebelum commit. **Install package baru (`npm install <paket>`) tetap harus berupa perintah siap-copy untuk Yohan jalankan sendiri** — menambah dependency dianggap lebih berisiko/susah dibalik daripada build/commit/push ke branch yang sudah ada.
 
 **Kalau ada kode untuk sistem di luar repo ini yang harus ditempel manual oleh Yohan** (Apps Script legacy, dashboard pihak ketiga, dll) — selalu kasih isi file LENGKAP siap copy-paste-save, jangan potongan kode atau instruksi "ganti fungsi X dengan ini". Ditegur eksplisit 24 September 2026 setelah kasih instruksi ganti-satu-fungsi yang berujung Yohan salah paste (nyisa karakter `}` dari kode lama, jadi syntax error). Pengecualian: perbaikan 1 karakter yang lokasinya sudah jelas ditunjuk boleh dijelaskan saja tanpa tulis ulang seluruh file.
 

@@ -21,7 +21,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
 | Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
-| Manajemen Kategori (UI) | 🔵 Belum ada — kategori cuma bisa ditambah manual lewat database |
+| Manajemen Kategori (UI) | ✅ Halaman `/properties/categories` — tambah/edit/hapus (soft delete)/pulihkan, akses `authenticated_all` (sama seperti pola tabel lain) |
 | AI Recommendation | 🔵 Planned |
 
 ---
@@ -49,6 +49,8 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 **GRANT:** `authenticated` sebelumnya **0 akses** ke schema `property` (temuan audit 23 September 2026, sengaja belum diperbaiki karena belum ada kode yang butuh) — diperbaiki di migration `041` begitu Property Module mulai dibangun. Storage bucket `properties` sudah ada dari migration `019` (public), tidak perlu bucket baru.
 
+**RLS `property.categories`:** policy `authenticated_all` (`USING core.is_authenticated()`) ternyata sudah ada di database sejak awal, tapi **tidak tercatat di migration manapun** di repo — ditemukan 26 September 2026 saat verifikasi sebelum membangun halaman Kelola Kategori (pola yang sama seperti temuan audit 23 September di `AGENTS.md`: isi repo bukan cermin isi database). GRANT `authenticated`: SELECT/INSERT/UPDATE ada (`041`), **DELETE tidak ada** — bukan masalah karena hapus kategori memakai soft delete (`deleted_at`), bukan DELETE asli.
+
 ---
 
 # Current Features
@@ -68,6 +70,10 @@ Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah list
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
 - Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.
 
+## Kelola Kategori (`/properties/categories`)
+
+Diakses lewat tombol "Kelola Kategori" di header halaman `/properties`. Form tambah kategori (nama + deskripsi opsional) di atas, daftar kategori aktif dengan tombol Edit (inline) dan Hapus di bawahnya. Hapus memakai **soft delete** (kolom `deleted_at`), bukan DELETE asli -- kategori yang dihapus hilang dari dropdown listing tapi listing lama yang masih memakainya tetap menampilkan namanya (lihat `getListings.ts`, join kategori tidak filter `deleted_at`). Kategori terhapus bisa dilihat & dipulihkan lewat toggle "Tampilkan kategori terhapus" di bagian bawah halaman. Nama kategori duplikat (termasuk yang cocok dengan kategori yang sudah dihapus, karena constraint `UNIQUE(name)` di database tidak terkecuali baris terhapus) ditolak dengan pesan error yang jelas.
+
 ### Download JPG/PDF — dihentikan sementara
 
 Tombolnya masih ada di kode (`PropertyExportButtons.tsx`, `PropertyFlyer.tsx`, `src/lib/property/exportFlyer.ts` — capture DOM ke canvas pakai `html2canvas`, lalu `jspdf` untuk versi PDF, full client-side) tapi **pengembangannya dihentikan** setelah 2 iterasi desain ditolak Yohan ("jauh dari harapan"). Akar masalah: kode mengasumsikan foto yang diupload adalah foto polos properti, padahal foto sungguhan yang dipakai Yohan sudah berupa desain promosi jadi (post Instagram dengan teks/denah sendiri) — overlay teks otomatis & crop kolase paksa jadi tabrakan/motong konten penting. Sempat dieksplorasi juga pakai Canva (tersambung ke sesi chat), tapi akun Canva Yohan belum punya Brand Template/Brand Kit, dan koneksi Canva di sesi chat terpisah dari kemampuan aplikasi production — butuh setup terpisah kalau mau dilanjutkan. Detail lengkap: memory `property-flyer-autogen-failed`. **Jangan desain ulang flyer ini lagi tanpa alasan/arahan baru dari Yohan.**
@@ -78,10 +84,14 @@ Tombolnya masih ada di kode (`PropertyExportButtons.tsx`, `PropertyFlyer.tsx`, `
 
 ```text
 src/lib/property/        getListings, getListingBySlug, createListing, slugify,
-                          uploadListingPhoto, exportFlyer, youtube, formatRupiah
+                          uploadListingPhoto, exportFlyer, youtube, formatRupiah,
+                          categories (getCategories/createCategory/updateCategory/
+                          deleteCategory/restoreCategory)
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
                           PropertyEditableFields, PropertyPhotoManager,
-                          PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons
+                          PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons,
+                          CategoryManager
+src/app/(dashboard)/properties/categories/  Halaman Kelola Kategori
 src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 ```
 
@@ -89,7 +99,6 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Current Limitations
 
-- Manajemen kategori lewat UI belum ada (9 kategori sudah tersedia di database).
 - Belum ada pagination di list.
 - Semua listing terlihat semua akun (`authenticated_all`, sama seperti pola yang sudah dipakai tabel lain) — belum ada kepemilikan per agent.
 - AI Recommendation belum aktif — menunggu AI Foundation.
