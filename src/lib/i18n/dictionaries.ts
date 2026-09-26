@@ -92,6 +92,13 @@ export interface CrmDictionary {
     noNotes: string;
     noteError: string;
     teamFallback: string;
+    whatsappTitle: string;
+    whatsappDescription: string;
+    whatsappEmpty: string;
+    whatsappPlaceholder: string;
+    whatsappSend: string;
+    whatsappSending: string;
+    whatsappSendError: string;
   };
   addLead: {
     title: string;
@@ -206,6 +213,13 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       noNotes: "Belum ada catatan.",
       noteError: "Gagal menyimpan catatan. Coba lagi.",
       teamFallback: "Tim",
+      whatsappTitle: "Percakapan WhatsApp",
+      whatsappDescription: "Kirim & terima pesan langsung dari lead ini.",
+      whatsappEmpty: "Belum ada percakapan WhatsApp.",
+      whatsappPlaceholder: "Tulis balasan...",
+      whatsappSend: "Kirim WhatsApp",
+      whatsappSending: "Mengirim...",
+      whatsappSendError: "Gagal mengirim pesan. Coba lagi.",
     },
     addLead: {
       title: "Tambah Lead",
@@ -323,6 +337,13 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       noNotes: "No notes yet.",
       noteError: "Failed to save note. Please try again.",
       teamFallback: "Team",
+      whatsappTitle: "WhatsApp Conversation",
+      whatsappDescription: "Send & receive messages directly from this lead.",
+      whatsappEmpty: "No WhatsApp conversation yet.",
+      whatsappPlaceholder: "Type a reply...",
+      whatsappSend: "Send WhatsApp",
+      whatsappSending: "Sending...",
+      whatsappSendError: "Failed to send message. Please try again.",
     },
     addLead: {
       title: "Add Lead",

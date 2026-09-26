@@ -10,11 +10,13 @@ import { LeadAssignSelect } from "@/components/crm/LeadAssignSelect";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
 import { LeadEditableFields } from "@/components/crm/LeadEditableFields";
 import { LeadNotes } from "@/components/crm/LeadNotes";
+import { LeadWhatsApp } from "@/components/crm/LeadWhatsApp";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getLeadById } from "@/lib/crm/getLeadById";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
 import { getLeadNotes } from "@/lib/crm/getLeadNotes";
+import { getLeadConversation } from "@/lib/crm/getLeadConversation";
 import { createClient } from "@/lib/supabase/server";
 import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
@@ -89,6 +91,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   }
 
   const { data: notes } = await getLeadNotes(supabase, id);
+  const { data: chatMessages } = await getLeadConversation(supabase, id);
 
   const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
   const kategori = getLeadMetadataString(lead.metadata, "kategori");
@@ -146,6 +149,10 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           komentar={komentar}
           t={t}
         />
+      </SectionCard>
+
+      <SectionCard title={t.detail.whatsappTitle} description={t.detail.whatsappDescription}>
+        <LeadWhatsApp leadId={lead.id} messages={chatMessages} t={t} />
       </SectionCard>
 
       <SectionCard title={t.detail.notesTitle} description={t.detail.notesDescription}>

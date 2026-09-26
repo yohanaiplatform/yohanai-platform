@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
+import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
 
 /**
  * Terima event webhook dari Kapso (WhatsApp Business Cloud API resmi Meta).
@@ -106,15 +107,11 @@ async function handleMessageReceived(
   let conversationId: string | null = null
 
   if (leadId) {
-    const { data: conversations } = await supabase
-      .schema('chat')
-      .from('conversations')
-      .select('id')
-      .eq('lead_id', leadId)
-      .is('deleted_at', null)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-    conversationId = conversations?.[0]?.id ?? null
+    conversationId = await findOrCreateLeadConversation(
+      supabase,
+      leadId,
+      payload.conversation?.contact_name ?? phone
+    )
   } else {
     const { data: conversations } = await supabase
       .schema('chat')
