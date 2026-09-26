@@ -43,6 +43,11 @@ interface KapsoMessageReceivedPayload {
   conversation?: KapsoConversation
 }
 
+// message.kapso.has_media dari Kapso ternyata tidak selalu terisi untuk
+// pesan media sungguhan (ketemu kosong di produksi walau type-nya "image"),
+// jadi type pesan dipakai sebagai sumber kebenaran, bukan flag itu sendiri.
+const MEDIA_MESSAGE_TYPES = new Set(['image', 'video', 'audio', 'document', 'sticker'])
+
 interface KapsoWebhookBatchBody {
   batch: true
   data: KapsoMessageReceivedPayload[]
@@ -158,7 +163,7 @@ async function handleMessageReceived(
       metadata: {
         wa_message_id: waMessageId,
         message_type: payload.message.type,
-        has_media: payload.message.kapso?.has_media ?? false,
+        has_media: MEDIA_MESSAGE_TYPES.has(payload.message.type) || (payload.message.kapso?.has_media ?? false),
       },
     })
 
