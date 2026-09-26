@@ -28,6 +28,7 @@ interface KapsoMessage {
   kapso?: {
     direction?: string
     content?: string | null
+    has_media?: boolean
   }
 }
 
@@ -154,7 +155,11 @@ async function handleMessageReceived(
       conversation_id: conversationId,
       sender_type: 'customer',
       content,
-      metadata: { wa_message_id: waMessageId, message_type: payload.message.type },
+      metadata: {
+        wa_message_id: waMessageId,
+        message_type: payload.message.type,
+        has_media: payload.message.kapso?.has_media ?? false,
+      },
     })
 
   if (insertError) return

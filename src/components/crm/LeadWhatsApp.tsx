@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChatMessageList, type ChatMessage } from "@/components/shared/ChatMessageList";
+import { ChatMessageList, toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
 import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadWhatsAppProps {
@@ -73,8 +73,7 @@ export function LeadWhatsApp({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          const row = payload.new as ChatMessage;
-          appendMessage(row);
+          appendMessage(toChatMessage(payload.new as Parameters<typeof toChatMessage>[0]));
         }
       )
       .subscribe();

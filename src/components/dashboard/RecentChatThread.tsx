@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ChatMessageList, type ChatMessage } from "@/components/shared/ChatMessageList";
+import { ChatMessageList, toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
 
 interface RecentChatThreadProps {
   conversationId: string;
@@ -32,13 +32,13 @@ export function RecentChatThread({ conversationId, leadId }: RecentChatThreadPro
     supabase
       .schema("chat")
       .from("messages")
-      .select("id, sender_type, content, created_at")
+      .select("id, sender_type, content, created_at, metadata")
       .eq("conversation_id", conversationId)
       .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .then(({ data }) => {
         if (!active) return;
-        setMessages(data ?? []);
+        setMessages((data ?? []).map(toChatMessage));
         setLoading(false);
       });
 
@@ -52,7 +52,7 @@ export function RecentChatThread({ conversationId, leadId }: RecentChatThreadPro
           table: "messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => appendMessage(payload.new as ChatMessage)
+        (payload) => appendMessage(toChatMessage(payload.new as Parameters<typeof toChatMessage>[0]))
       )
       .subscribe();
 

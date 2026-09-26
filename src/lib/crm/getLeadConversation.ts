@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type { ChatMessage } from "@/components/shared/ChatMessageList";
+import { toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
 
 export interface GetLeadConversationResult {
   conversationId: string | null;
@@ -36,7 +36,7 @@ export async function getLeadConversation(
   const { data: messages, error: messagesError } = await supabase
     .schema("chat")
     .from("messages")
-    .select("id, sender_type, content, created_at")
+    .select("id, sender_type, content, created_at, metadata")
     .eq("conversation_id", conversation.id)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
@@ -45,5 +45,7 @@ export async function getLeadConversation(
     return { conversationId: conversation.id, data: [], error: true };
   }
 
-  return { conversationId: conversation.id, data: messages, error: false };
+  const data: ChatMessage[] = messages.map(toChatMessage);
+
+  return { conversationId: conversation.id, data, error: false };
 }
