@@ -240,10 +240,10 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | 🟡 In Progress — masih placeholder murni, belum ada satu baris `property.listings` |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing, upload foto (dikompres di browser), video embed YouTube, spesifikasi standar, export flyer PDF/JPG. Kategori & manajemen lanjutan belum ada |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
-| Communication Automation | 🔵 Planned — menunggu keputusan WAHA vs Fonnte |
+| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
 
 ---
 
@@ -261,8 +261,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 ## Low
 
 - 2 dari 3 kartu AI Intelligence masih contoh ilustratif (ditandai jelas "Segera hadir" di UI, tidak dihapus supaya gampang dikembalikan begitu AI Foundation jalan) — lihat `docs/modules/crm.mdx`
-- Property Summary masih placeholder murni (`getPropertySummary.ts` return 0 hardcode, belum query `property.listings` sama sekali)
-- `authenticated` belum punya `SELECT` di `property.listings`/`property.categories` dan beberapa tabel `core.*` (RBAC) — belum jadi masalah karena belum ada kode yang menyentuhnya, tapi cek dulu sebelum mulai Property Module (lihat bagian Audit Skema Database)
+- `authenticated` belum punya `SELECT` di beberapa tabel `core.*` (RBAC: `roles`, `permissions`, `role_permissions`, `settings`, `audit_logs`) — belum jadi masalah karena belum ada kode yang menyentuhnya (property sudah diperbaiki di `041`)
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
 - OAuth consent screen Google masih menampilkan nama domain Supabase, bukan branding "YohanAI" (kosmetik, prioritas rendah)
@@ -272,9 +271,9 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 
 # Next Milestone
 
-**CRM Foundation — ✅ Selesai (25 September 2026).** Lead List, Lead Detail, ubah status dari UI, assign lead ke agent, dan filter Sumber Informasi semua live di production.
+**Kapso (Communication Automation) sandbox + Property Module Fase 1 — ✅ Selesai (26 September 2026).** Detail lengkap di `docs/modules/property.mdx` dan bagian Task 008-009 di bawah.
 
-Berikutnya (belum dimulai, urutan sesuai `AGENTS.md`): keputusan WAHA vs Fonnte untuk Communication Automation (perlu dibahas eksplisit bareng Yohan sebelum mulai bangun integrasi WA apa pun), lalu Property Module, lalu lanjutan AI Foundation.
+Berikutnya, urutan disepakati eksplisit bareng Yohan 26 Sep 2026: (1) AI Agent / Intelligent Dashboard (buyer behavior insight nyata), (2) alur dokumen tanda tangan untuk lead closing (spreadsheet + Apps Script, konteksnya dari sesi terpisah — belum dibagikan ulang ke sesi ini), (3) baru setelah itu sambungkan nomor WhatsApp produksi (Griya Indonesia Real Estate) — auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, bukan integrasi pihak ketiga, jadi risiko migrasi relatif rendah kapan pun siap.
 
 ---
 
@@ -326,11 +325,26 @@ Task 007
 
 CRM lanjutan #2 (pencarian lokasi, export, bi-lingual) — ✅ **Selesai (26 September 2026).** Search Lead List diperluas ke Minat Unit/Lokasi/Permintaan/Komentar (ketemu insight: "Serdam" jauh lebih sering dipakai daripada "Sungai Raya Dalam"), search bar dipindah ke baris sendiri + ikon kaca pembesar, dikonfirmasi Export CSV otomatis ikut filter search. Toggle bahasa ID/EN di header (`src/lib/i18n/`), baru cakupan modul CRM. Broadcast WA ke hasil filter dijawab konseptual saja (bergantung keputusan WAHA/Fonnte yang belum diambil) — tidak ada kode ditulis untuk itu. Detail lengkap: `docs/modules/crm.mdx`.
 
-### Next Task
-
 Task 008
 
-Keputusan WAHA vs Fonnte untuk Communication Automation — belum dimulai, perlu dibahas eksplisit bareng Yohan dulu sebelum ada kode integrasi WA apa pun.
+Keputusan Communication Automation + integrasi WA sandbox — ✅ **Selesai (26 September 2026).** Yohan pilih **Kapso** (BSP resmi di atas WhatsApp Cloud API Meta) dibanding WAHA/Fonnte — alasan utama: WAHA/Fonnte tidak resmi (risiko banned), Kapso native terhubung ke tooling AI (workflow/agent bawaan, MCP server). Dibangun & terverifikasi jalan di **sandbox** Kapso (bukan nomor produksi dulu, supaya bisa dites bebas tanpa risiko ke lead sungguhan):
+- `POST /api/whatsapp/webhook` — terima pesan masuk, verifikasi HMAC signature, cocokkan ke `customer.leads` lewat nomor HP, simpan ke `chat.conversations`/`chat.messages` (migration `039` grant `service_role` ke schema `chat`).
+- `POST /api/whatsapp/send` — kirim balasan keluar dari Lead Detail, sesi login (bukan secret header).
+- Live chat lewat Supabase Realtime (migration `040`) — Lead Detail & Recent Chats (dashboard) auto-update tanpa refresh, Recent Chats juga dibuat interaktif (klik lead → thread muncul inline).
+- Pesan media (foto/video) ditampilkan sebagai notice "buka WhatsApp untuk melihat", bukan link storage Kapso mentah — dan notifikasi protokol WA (mis. "pesan dihapus", error 131051) dilewati, tidak disimpan sebagai bubble chat.
+- Nomor produksi (Griya Indonesia) **sengaja belum disambungkan** — ditunda sampai Property Module + AI Foundation + alur dokumen closing selesai, keputusan eksplisit Yohan 26 Sep 2026.
+
+Task 009
+
+Property Module Fase 1 (Fondasi) — ✅ **Selesai (26 September 2026).** `authenticated` GRANT ke schema `property` diperbaiki (migration `041`, sebelumnya 0 akses sama sekali persis seperti temuan audit 23 Sep yang belum ditindaklanjuti). CRUD listing (`/properties`, `/properties/new`, `/properties/[id]`) dengan field standar (kamar tidur/mandi, luas tanah/bangunan, carport, sertifikat, status) disimpan di `metadata` JSONB (pola sama seperti `customer.leads`, bukan kolom baru). Upload foto ke Supabase Storage bucket `properties` (sudah ada, public) dengan kompresi di browser (`browser-image-compression`) sebelum upload. Video YouTube ditanam sebagai player, link lain (mis. Google Drive) tampil sebagai tautan biasa. Listing bisa diexport jadi flyer promosi JPG/PDF (`html2canvas` + `jspdf`, full client-side, tidak butuh headless browser di server). `getPropertySummary.ts` (dashboard) diganti dari stub ke query nyata. Detail lengkap: `docs/modules/property.mdx`.
+
+Belum dikerjakan (sengaja ditunda, bukan lupa): manajemen kategori lewat UI (9 kategori sudah ada di database dari sebelumnya + seed 5 tambahan idempotent), pagination list, kepemilikan listing per agent.
+
+### Next Task
+
+Task 010
+
+AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + percakapan WhatsApp (yang sekarang sudah tersimpan nyata di `chat.messages`) jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
 
 ---
 
