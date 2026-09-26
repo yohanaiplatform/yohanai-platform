@@ -22,6 +22,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
 | Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
 | Manajemen Kategori (UI) | ✅ Halaman `/properties/categories` — tambah/edit/hapus (soft delete)/pulihkan, akses `authenticated_all` (sama seperti pola tabel lain) |
+| Pagination List | ✅ `/properties` — 24/48/96 per halaman (pola sama seperti Lead List di CRM) |
 | AI Recommendation | 🔵 Planned |
 
 ---
@@ -57,7 +58,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 ## Property List (`/properties`)
 
-Grid card (foto sampul, judul, harga, badge status), filter status + kategori + pencarian judul/alamat. Belum ada pagination (volume masih kecil).
+Grid card (foto sampul, judul, harga, badge status), filter status + kategori + pencarian judul/alamat. Pagination 24/48/96 per halaman (`ListingListPagination`/`ListingPageSizeSelect`, pola sama seperti Lead List di CRM) -- `getListings()` di `src/lib/property/getListings.ts` sekarang query dengan `count: "exact"` + `.range()`, bukan ambil semua sekaligus.
 
 ## Tambah Listing (`/properties/new`)
 
@@ -88,6 +89,7 @@ src/lib/property/        getListings, getListingBySlug, createListing, slugify,
                           categories (getCategories/createCategory/updateCategory/
                           deleteCategory/restoreCategory)
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
+                          ListingListPagination, ListingPageSizeSelect,
                           PropertyEditableFields, PropertyPhotoManager,
                           PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons,
                           CategoryManager
@@ -99,7 +101,6 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Current Limitations
 
-- Belum ada pagination di list.
 - Semua listing terlihat semua akun (`authenticated_all`, sama seperti pola yang sudah dipakai tabel lain) — belum ada kepemilikan per agent.
 - AI Recommendation belum aktif — menunggu AI Foundation.
 

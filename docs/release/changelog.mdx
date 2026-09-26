@@ -51,6 +51,18 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 26 September 2026 — Pagination List Property
+
+### Added
+
+- Property List (`/properties`) sekarang dipaginasi -- 24/48/96 listing per halaman (`ListingListPagination`, `ListingPageSizeSelect`), pola sama seperti Lead List di CRM. `getListings()` di-refactor: query kategori `.select()` dengan `count: "exact"` + `.range()`, sebelumnya ambil semua baris sekaligus tanpa batas
+
+### Docs
+
+- Diverifikasi dengan 26 baris data uji sementara (dihapus lagi setelah tes) supaya pindah halaman & ganti ukuran halaman benar-benar teruji dengan data multi-halaman, bukan cuma render kosong -- data asli baru 1 listing
+
+---
+
 ## 26 September 2026 — Manajemen Kategori Properti
 
 Lanjutan Property Module setelah Fase 1 -- salah satu item "Current Limitations" (manajemen kategori cuma lewat database manual) sekarang punya UI.
