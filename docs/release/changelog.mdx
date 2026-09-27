@@ -51,6 +51,20 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 28 September 2026 — Diskusi Arsitektur AI Agent & Multi-Tenant (tanpa kode)
+
+Sesi diskusi murni (Yohan minta ditunda dulu proses follow-up manual sampai nomor WA produksi tersambung ke Kapso, ~1-2 hari lagi) -- tidak ada kode ditulis, cuma keputusan arah dan riset eksternal.
+
+### Docs
+
+- **Riset `project-docs/` (arsip era ChatGPT/Qwen):** dicari rancangan "AI Agent otomatis follow-up + update status funnel" yang Yohan yakin sudah pernah ditetapkan. Ditemukan 1 dokumen nyata dengan arsitektur 10 AI Agent (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) -- tapi setelah exhaustive search ke seluruh `project-docs/` (semua daily log, semua QWEN_HANDOFF, semua versi Master Project Documentation), **tidak pernah ada desain yang menyatukan** 3 agent relevan (CRM Intelligence, Conversation Intelligence, Notification) jadi satu alur "kirim WA -> baca balasan -> auto-update status". 2 trigger legacy yang diketahui rusak (`batchDetectConsumerIntent`, `batchExtractBudget`) juga nol referensi di dokumentasi manapun
+- **Diputuskan: bangun AI Agent tanpa n8n.** Orkestrasi dipetakan pakai pola yang sudah terbukti jalan di project ini -- webhook (`POST /api/whatsapp/webhook`) sebagai trigger pesan masuk, GitHub Actions cron (pola sama seperti `supabase-keepalive.yml`) untuk trigger terjadwal, logika interpretasi+keputusan sebagai rangkaian pemanggilan fungsi biasa di dalam handler webhook. Alternatif visual builder kalau dibutuhkan nanti: Workflow/Agent bawaan Kapso (bukan n8n) -- tidak menambah service baru
+- **Multi-tenant untuk masa depan dipetakan jadi 2 model** (Model A: SaaS multi-tenant sungguhan dengan `tenant_id`+RLS di semua tabel; Model B: duplikasi instance per pelanggan, nol perubahan kode) -- belum dipilih, ditunda sampai ada permintaan pelanggan nyata, konsisten dengan keputusan penundaan multi-tenant 26 September
+- **Riset Kapso (`docs.kapso.ai`, `kapso.com/platform`):** tier Platform ($299/bulan) mendukung "Multi-partner Solution" -- 50 nomor WA per akun, tiap tenant verifikasi bisnis sendiri lewat Meta embedded signup, dikelola dari 1 dashboard. Sisi Kapso/WhatsApp jadi bukan penghalang untuk Model A kalau nanti dipilih; penghalang aslinya tetap murni skema database/RLS
+- **Urutan roadmap berubah:** sambungkan nomor WhatsApp produksi (Griya Indonesia) dimajukan jadi ~1-2 hari ke depan (sebelumnya paling akhir dalam urutan 26 Sep), supaya follow-up manual "Lead Beku"/"Follow-up Backlog" bisa segera dimulai pakai nomor asli
+
+---
+
 ## 27 September 2026 — AI Intelligence: Insight "Lead Beku" (dikoreksi ke Cold)
 
 ### Added

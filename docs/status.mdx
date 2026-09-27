@@ -273,7 +273,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 
 **Kapso (Communication Automation) sandbox + Property Module Fase 1 — ✅ Selesai (26 September 2026).** Detail lengkap di `docs/modules/property.mdx` dan bagian Task 008-010 di bawah.
 
-Berikutnya, urutan disepakati eksplisit bareng Yohan 26 Sep 2026: (1) AI Agent / Intelligent Dashboard (buyer behavior insight nyata), (2) alur dokumen tanda tangan untuk lead closing (spreadsheet + Apps Script, konteksnya dari sesi terpisah — belum dibagikan ulang ke sesi ini), (3) baru setelah itu sambungkan nomor WhatsApp produksi (Griya Indonesia Real Estate) — auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, bukan integrasi pihak ketiga, jadi risiko migrasi relatif rendah kapan pun siap.
+Urutan awal disepakati 26 Sep 2026: (1) AI Agent / Intelligent Dashboard, (2) alur dokumen tanda tangan lead closing, (3) baru sambungkan nomor WA produksi. **Urutan ini berubah 27-28 September 2026**: Yohan mau segera mulai follow-up manual "Lead Beku"/"Follow-up Backlog" pakai nomor asli (bukan sandbox), jadi **sambungkan nomor WhatsApp produksi (Griya Indonesia Real Estate) dimajukan — ditargetkan 1-2 hari ke depan**, berjalan paralel dengan diskusi arsitektur AI Agent (lihat Task 015). Auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, bukan integrasi pihak ketiga, jadi risiko migrasi relatif rendah. Alur dokumen tanda tangan (spreadsheet + Apps Script dari sesi terpisah) masih menunggu konteksnya dibagikan ulang ke sesi ini.
 
 ---
 
@@ -370,17 +370,27 @@ AI Agent / Intelligent Dashboard — 🟡 **Sebagian selesai (27 September 2026)
 
 Detail lengkap: `docs/modules/ai.mdx`.
 
-### Next Task
-
 Task 015
 
-Lanjutan AI Intelligence — belum dimulai. Kandidat: insight baru berbasis agregasi lead lain (mis. funnel drop-off per sumber, kategori/lokasi paling diminati), atau mulai bahas keputusan arsitektur AI/LLM (Claude API sendiri vs Workflow/Agent Kapso) kalau mau kartu "Buyer Behavior Insight" diisi sungguhan.
+**Diskusi arsitektur AI Agent otomatis — 🟡 dibahas (27-28 September 2026), belum ada kode.** Yohan mau segera follow-up manual "Lead Beku" (966) dan "Follow-up Backlog" (634), tapi **ditunda 1-2 hari** sampai nomor WA produksi Griya Indonesia disambungkan ke Kapso. Sambil menunggu, dibahas rancangan AI Agent yang nanti otomasi follow-up + update status funnel:
+
+- **Riset `project-docs/` (era ChatGPT/Qwen):** ditemukan arsitektur 10 AI Agent (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) — tapi tidak pernah ada desain gabungan "kirim WA follow-up → baca balasan → auto-update status funnel". 2 trigger legacy yang diketahui rusak (`batchDetectConsumerIntent`, `batchExtractBudget`) juga nol referensi di seluruh `project-docs/` — detailnya cuma ada di kode Apps Script asli (di luar repo, belum dicek ulang).
+- **Diputuskan: bangun tanpa n8n.** Orkestrasi pakai pola yang sudah ada di project ini — webhook (`POST /api/whatsapp/webhook`) sebagai trigger pesan masuk, GitHub Actions cron (pola sama seperti `supabase-keepalive.yml`) untuk trigger terjadwal, logika interpretasi+keputusan sebagai pemanggilan fungsi biasa (bukan node visual terpisah). Kalau nanti tetap butuh visual builder, alternatifnya Workflow/Agent bawaan Kapso, bukan n8n.
+- **Pertanyaan baru muncul: multi-tenant untuk masa depan.** Dipetakan Model A (SaaS multi-tenant sungguhan, re-arsitektur besar) vs Model B (duplikasi instance per pelanggan, nol perubahan kode) — belum dipilih, nunggu ada permintaan konkret. Riset Kapso: tier Platform ($299/bulan) ternyata sudah mendukung "Multi-partner Solution" (50 nomor WA per akun, tiap tenant verifikasi bisnis sendiri) — jadi sisi Kapso/WhatsApp **bukan penghalang** untuk Model A, penghalangnya tetap skema database/RLS. Detail lengkap: `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS".
+
+Detail lengkap kedua topik: `docs/modules/ai.mdx`.
+
+### Next Task
+
+Task 016
+
+Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso. Kandidat lain yang masih terbuka: insight baru berbasis agregasi lead (funnel drop-off per sumber, kategori/lokasi paling diminati), atau mulai keputusan konkret Model A/B multi-tenant kalau ada permintaan nyata.
 
 ---
 
 # Last Updated
 
-27 September 2026
+28 September 2026
 
 ---
 

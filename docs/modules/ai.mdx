@@ -29,6 +29,20 @@ AI tidak menggantikan agen, tetapi bertindak sebagai **co-pilot** yang membantu 
 - Ditindaklanjuti (27 Sep, sore): kartu placeholder **"Priority Alert"** diganti insight nyata **"Lead Beku"** — awalnya ditarget ke Temperature "Closing", **dikoreksi Yohan langsung setelah dites** (lihat "Current Features" di bawah), dialihkan ke "Cold".
 - **Keputusan yang masih terbuka:** bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia); kalau mau insight yang benar-benar AI-generated (LLM baca konteks lead, bukan cuma agregasi), itu jalur terpisah yang butuh keputusan provider/arsitektur dulu. Kartu **"Buyer Behavior Insight"** masih menunggu ini — perlu data perilaku (browsing/klik) yang platform belum kumpulkan sama sekali, beda dari "Lead Beku" yang cukup pakai data lead yang sudah ada.
 
+## Diskusi Arsitektur AI Agent Otomatis (27-28 September 2026) — belum ada kode, murni keputusan arah
+
+Yohan minta segera mulai follow-up manual untuk "Lead Beku" (Cold, 966 lead) dan "Follow-up Backlog" (Hot/Warm, 634 lead), tapi **ditunda 1-2 hari** sampai nomor WA produksi (Griya Indonesia) disambungkan ke Kapso — supaya follow-up yang dikerjakan langsung pakai nomor asli, bukan sandbox. Sambil menunggu itu, dibahas dulu rancangan AI Agent yang nanti mengotomasi follow-up + update status funnel-nya.
+
+**1. Riset dokumentasi era ChatGPT/Qwen (`project-docs/`, arsip pra-Claude).** Yohan yakin arsitektur "beberapa AI Agent" sudah pernah ditetapkan dulu. Ditemukan satu dokumen nyata: `project-docs/archive/17 Juli 2026/AGENTS.md` (v1.8) — 10 AI Agent dengan Purpose/Responsibilities/Input/Output masing-masing (Executive Intelligence, **CRM Intelligence** — output Hot/Warm/Cold classification, **Conversation Intelligence** — sentiment/buying signal/objection detection, Property Intelligence, Marketing Intelligence, Knowledge, Workflow — platform n8n, **Notification** — kirim WA/Email untuk reminder/follow-up, Reporting, Learning). **Tapi tidak pernah ada desain yang menyatukan 3 agent itu (CRM + Conversation + Notification) jadi satu alur "kirim WA follow-up → baca balasan → otomatis update status funnel"** — itu, dan detail 2 trigger yang diketahui rusak (`batchDetectConsumerIntent`, `batchExtractBudget`, error rate 100% per catatan `AGENTS.md`), nol referensi di seluruh `project-docs/`. Kemungkinan cuma pernah dibahas lisan di sesi ChatGPT yang tidak sempat ditulis, atau ada di kode Apps Script asli (di luar repo ini) yang belum dicek ulang sesi ini.
+
+**2. Keputusan: bangun tanpa n8n.** Rancangan asli pakai n8n sebagai "Workflow Agent" untuk orkestrasi. Diputuskan tidak perlu, karena kebutuhan orkestrasinya sudah tercakup pola yang sudah ada di project ini:
+   - Trigger pesan WA masuk — sudah ada, `POST /api/whatsapp/webhook` jadi titik masuk (setara "Customer Message" di diagram lama).
+   - Trigger terjadwal (mis. follow-up otomatis untuk lead yang sudah lama tak tersentuh) — dipakai pola yang sudah terbukti jalan di project ini: GitHub Actions scheduled workflow (persis seperti `.github/workflows/supabase-keepalive.yml`), memanggil satu API route.
+   - Logika "interpretasi balasan → keputusan → tulis status → balas" — dirangkai sebagai pemanggilan fungsi biasa di dalam handler webhook (panggil LLM → update `customer.leads` → panggil `sendWhatsAppText()`), bukan node-node visual terpisah.
+   - Kalau nanti tetap butuh visual/no-code builder (supaya Yohan bisa utak-atik alur sendiri tanpa minta kode), alternatifnya Workflow/Agent bawaan **Kapso** (sudah jadi platform yang dipakai), bukan n8n — tidak menambah service baru untuk di-host & dijaga.
+
+**3. Pertanyaan baru: multi-tenant untuk masa depan (dibahas, belum diputuskan arahnya, cuma dipetakan opsinya).** Lihat detail lengkap perbandingan **Model A (SaaS multi-tenant sungguhan)** vs **Model B (duplikasi instance per pelanggan)** di `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". Ringkasan yang relevan untuk AI Agent/Kapso: dicek langsung ke dokumentasi resmi Kapso, tier **"Platform" ($299/bulan)** ternyata sudah mendukung **"Multi-partner Solution"** — satu akun Kapso bisa pegang sampai 50 nomor WA, tiap tenant tetap punya WABA/verifikasi bisnis sendiri, dikelola dari satu dashboard. Artinya **sisi Kapso/WhatsApp bukan penghalang** untuk Model A kalau nanti dipilih — penghalang aslinya tetap murni skema database (`tenant_id` + RLS di semua tabel domain), belum berubah dari keputusan penundaan 26 September.
+
 ---
 
 # Objectives
@@ -239,6 +253,6 @@ Continuous Learning Engine
 
 # Last Updated
 
-27 September 2026
+28 September 2026
 
 Sprint 011

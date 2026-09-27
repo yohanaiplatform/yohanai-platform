@@ -201,6 +201,20 @@ Diminta Yohan: download data CRM ke Excel/spreadsheet. Diputuskan CSV dulu (buka
 
 Yohan tanya soal per-user/per-bisnis punya data terpisah (untuk SaaS nanti), dengan admin platform tetap bisa akses semua untuk keperluan support. **Diputuskan ditunda**, bukan lupa — platform masih ON HOLD, baru 2 user di 1 bisnis yang sama. Ini perubahan arsitektur besar (nyentuh RLS di semua tabel domain, bukan cuma `customer.leads`), dikerjakan pas sudah dekat mau onboarding pelanggan pertama. Dicek ke `project-docs/`: multi-tenant memang bagian dari visi awal (`v1.8`: *"single multi-tenant platform capable of serving multiple property agents under one centralized administration"*), tapi **tidak pernah didesain ke skema database** — jadi ini keputusan arsitektur dari nol, bukan tinggal mengaktifkan sesuatu yang sudah direncanakan.
 
+### Lanjutan diskusi (27-28 September 2026) — dua model dipetakan, belum dipilih
+
+Dibahas ulang lebih dalam saat ngobrol soal AI Agent (lihat `docs/modules/ai.mdx`). Dipetakan 2 model berbeda, penting dipisahkan karena implikasinya beda total:
+
+**Model A — SaaS multi-tenant sungguhan.** Satu deployment (satu Vercel + satu Supabase project) melayani banyak bisnis sekaligus, data terisolasi per tenant lewat kolom `tenant_id`/`organization_id` di semua tabel domain + RLS ditulis ulang total (termasuk `leads_owner_or_admin` dan `listings_owner_or_admin` yang baru dibangun — keduanya baru scoped per-agent dalam SATU tenant, belum lintas tenant). Ini yang sesuai visi awal `v1.8`, tapi kerjaan re-arsitektur besar.
+
+**Model B — Duplikasi instance per pelanggan.** Deploy ulang seluruh stack (Supabase project baru + Vercel project baru + akun Kapso/nomor WA baru) untuk tiap bisnis baru, bukan satu platform dipakai bareng. **Nol perubahan kode** — murni kerjaan operasional (jalankan migration yang sama di database baru). Tiap instance berdiri sendiri penuh.
+
+**Rekomendasi (belum final, nunggu ada permintaan konkret):** mulai dari Model B kalau/ketika ada pelanggan pertama, jangan re-arsitektur Model A tanpa demand nyata.
+
+**Soal kepemilikan akun infrastruktur (relevan untuk Model B):** Supabase & Vercel sebaiknya dipusatkan di akun Yohan sendiri — pelanggan baru tidak pernah login ke situ (pola "managed hosting", sama seperti Ramlan sekarang tidak punya akses Supabase sama sekali, cuma login ke produk jadi). Kapso beda ceritanya karena WhatsApp mewajibkan verifikasi bisnis asli per nomor — nomor & identitas bisnis pelanggan baru harus tetap atas nama mereka sendiri, bukan atas nama Yohan.
+
+**Riset Kapso (28 September 2026):** dicek langsung ke `docs.kapso.ai` dan `kapso.com/platform` — Kapso ternyata sudah punya fitur persis untuk ini, disebut **"Multi-partner Solution"**, di tier **Platform ($299/bulan)**: satu akun Kapso bisa pegang sampai **50 nomor WA terhubung** (tambahan di atas itu $5/nomor), tiap tenant menyelesaikan verifikasi WhatsApp Business-nya sendiri (Meta embedded signup, tetap atas nama bisnis mereka) lewat link setup yang dikirim dari akun Kapso pusat, lalu webhook mengonfirmasi begitu nomor itu tersambung — semua tenant terlihat dari satu dashboard (kesehatan, pesan, usage, billing). Tidak tersedia di Free/Pro (Free cuma 1 nomor, Pro cuma 3). **Kesimpulan: sisi Kapso/WhatsApp BUKAN penghalang untuk Model A** kalau nanti dipilih — penghalang aslinya tetap murni skema database/RLS, belum berubah dari kesimpulan 26 September.
+
 ## Sentuhan Warna (26 September 2026)
 
 Ditegur Yohan: platform kelihatan hitam-putih semua. `LeadFunnel`, `PropertySummary`, `AIInsightPanel` sudah berwarna sejak awal; yang genuinely monokrom dan diperbaiki: 4 StatCard dashboard (ikon + warna beda per kartu), badge status pipeline (`qualified`/`proposal`/`negotiation` sebelumnya sama persis warnanya, sekarang progresif dingin→hangat), dan Kategori lead (sekarang badge berwarna, warnanya di-hash dari teks supaya kategori baru otomatis dapat warna stabil tanpa kode disentuh).
@@ -465,6 +479,6 @@ Automation
 
 # Last Updated
 
-27 September 2026
+28 September 2026
 
 Sprint 011 — Platform Hold
