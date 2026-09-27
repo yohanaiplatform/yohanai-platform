@@ -71,12 +71,7 @@ Menampilkan daftar lead terbaru dari Supabase.
 
 ## AI Insight
 
-🟡 **Sebagian real, sejak 23 September 2026.** 1 kartu ("Follow-up Backlog") dihitung asli dari database — lead Hot/Warm yang belum di-follow-up >48 jam, bisa diklik ke Lead List terfilter. 2 kartu lain masih contoh ilustratif, ditandai jelas di UI (badge "Segera hadir") — bukan dihapus, supaya gampang diganti begitu AI Foundation sungguhan (page-view tracking, dll) dibangun:
-
-- Buyer Intent
-- Buying Signal
-- Follow-up Recommendation
-- Conversion Prediction
+🟡 **2 dari 3 kartu real (sejak 23 & 27 September 2026).** "Follow-up Backlog" (23 Sep) — lead Hot/Warm yang belum di-follow-up >48 jam. "Lead Beku" (27 Sep) — lead ber-Temperature Closing yang belum ada follow-up >30 hari, berisiko batal. Keduanya dihitung asli dari `customer.leads`, bisa diklik ke Lead List terfilter. 1 kartu sisa ("Buyer Behavior Insight") masih contoh ilustratif, ditandai jelas di UI (badge "Segera hadir") — butuh data page-view/klik yang belum dikumpulkan platform. Detail: `docs/modules/ai.mdx`.
 
 ---
 
@@ -228,6 +223,6 @@ Predictive Analytics
 
 # Last Updated
 
-26 September 2026
+27 September 2026
 
 Sprint 011 — Lead Funnel & 1 AI Insight jadi real (23 Sep), stat card/Quick Actions dapat ikon & warna + "Add Lead" jadi fungsional (25-26 Sep). Detail lengkap di `docs/modules/crm.mdx`

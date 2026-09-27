@@ -23,7 +23,7 @@ CRM dirancang sebagai **AI-assisted CRM**, bukan sekadar penyimpanan data pelang
 | RLS policy | ✅ Ada (`leads_owner_or_admin`/`notes_owner_or_admin` sejak `035`/`038`, sebelumnya `authenticated_all`) |
 | GRANT | ✅ Ada untuk `authenticated` & `service_role` di schema `customer` (`027`, `032`, `038`) |
 | UI | ✅ Lead List, Lead Detail, ubah status, assign agent, filter, tambah/edit lead manual, catatan, export CSV selesai |
-| AI Integration | 🟡 1 insight nyata (Follow-up Backlog) di dashboard, sisanya masih Planned -- lihat catatan kecukupan data di bawah |
+| AI Integration | 🟡 2 insight nyata (Follow-up Backlog, Lead Beku) di dashboard, 1 kartu masih Planned -- lihat catatan kecukupan data di bawah dan `docs/modules/ai.mdx` |
 | Jalur masuk lead | Google Form (otomatis, Fase 1) **dan** input manual dari dashboard (`/crm/new`, 26 September 2026) -- satu arah, **tidak** sinkron balik ke spreadsheet |
 | Bahasa | 🟡 Bi-lingual ID/EN sejak 26 September 2026 -- toggle di header, baru cakupan modul CRM, modul lain masih Indonesia tetap |
 
@@ -123,7 +123,7 @@ Dikerjakan langsung setelah Fase 1 live, berdasarkan feedback Yohan memakai hala
 
 1. **Lead Funnel dulu selalu 0% semua temperature** — bug: query `getLeadSummary.ts` memfilter `leads.status = 'hot'/'warm'/'cold'`, padahal kolom itu pipeline (`new`/.../`won`/`lost`), CHECK constraint-nya bahkan menolak nilai itu. Temperature asli ada di `metadata->>status_funnel_awal`. Diperbaiki, DAN diperluas dari 3 jadi 5 kategori (Hot/Warm/Cold/Closing/Batal, sesuai 5 status funnel di spreadsheet legacy). Tiap tile sekarang **link ke `/crm?temperature=<x>`** dan dipindah ke atas halaman (sebelum Recent Leads/Chats).
 2. **Recent Leads** — baris "Source ID: `<uuid>`" (tidak berguna) diganti Kategori lead; badge status "new" (selalu sama, tidak informatif — namanya "Recent" pasti baru) diganti tombol WA.
-3. **AI Intelligence** — sebelumnya 100% teks statis/fiktif ("Lead #8821" tidak pernah ada). Diganti **sementara** (bukan dihapus): 1 kartu nyata "Follow-up Backlog" (`src/lib/dashboard/getDashboardInsights.ts`) menghitung lead Hot/Warm yang `metadata->>follow_up_terakhir`-nya kosong atau >48 jam, klik → `/crm?temperature=hot,warm`. 2 kartu lain **tetap ada di kode**, ditandai `isPlaceholder: true` + prefix "(Contoh)" + badge "Segera hadir" di UI — supaya gampang dikembalikan (cabut flag-nya) begitu AI Foundation (page-view tracking, dll) beneran dibangun.
+3. **AI Intelligence** — sebelumnya 100% teks statis/fiktif ("Lead #8821" tidak pernah ada). Diganti **sementara** (bukan dihapus): 1 kartu nyata "Follow-up Backlog" (`src/lib/dashboard/getDashboardInsights.ts`) menghitung lead Hot/Warm yang `metadata->>follow_up_terakhir`-nya kosong atau >48 jam, klik → `/crm?temperature=hot,warm`. 2 kartu lain **tetap ada di kode**, ditandai `isPlaceholder: true` + prefix "(Contoh)" + badge "Segera hadir" di UI — supaya gampang dikembalikan (cabut flag-nya) begitu AI Foundation (page-view tracking, dll) beneran dibangun. **Update 27 September 2026:** 1 dari 2 placeholder itu ("Priority Alert") sudah diganti insight nyata kedua, "Lead Beku" — detail lengkap di `docs/modules/ai.mdx`, bukan di sini.
 
 **Bug data terkait, ditemukan & diperbaiki di jalan:**
 
@@ -186,7 +186,7 @@ Ditanya Yohan, dicek ke `project-docs/` (arsip pra-Claude). Temuan:
 - Field mentah yang sudah tersimpan sekarang (kategori, permintaan, komentar, minat unit/lokasi, dll) **cukup sebagai bahan baku** — ini persis field yang dulu jadi input AI Processor legacy (`AI_Intent`, `Budget Min/Max`, `Property Match Score`, `Lead Score`, dll, lihat bagian "Rencana Lead Intake" di atas).
 - Yang tadinya **belum ada**: riwayat interaksi berwaktu. Sudah ditutup sebagian oleh `customer.notes` (lihat di atas). Yang masih kosong: `chat.conversations`/`chat.messages` (skema ada, data kosong — nunggu keputusan WAHA/Fonnte).
 
-**Kesimpulan:** data mentahnya cukup untuk dianalisis, riwayat perilakunya baru mulai tercatat lewat Notes. Belum ada AI Processor beneran yang mengonsumsi data ini (Follow-up Backlog di dashboard cuma 1 insight sederhana, bukan model AI).
+**Kesimpulan:** data mentahnya cukup untuk dianalisis, riwayat perilakunya baru mulai tercatat lewat Notes. Belum ada AI Processor beneran yang mengonsumsi data ini (Follow-up Backlog dan Lead Beku di dashboard cuma agregasi data sederhana, bukan model AI -- lihat `docs/modules/ai.mdx`).
 
 ## Export CSV (26 September 2026)
 
@@ -425,7 +425,7 @@ Future
 - Belum ada sinkronisasi balik ke Google Sheet "Input Data" — lead manual & perubahan dari dashboard tidak tercermin di spreadsheet
 - Export CSV belum jadi `.xlsx` asli (belum ada dependency `xlsx`/`exceljs` di project)
 - Multi-tenant (data terpisah per bisnis untuk SaaS) sengaja ditunda — lihat bagian "Multi-Tenant untuk SaaS" di atas
-- AI baru sebagian aktif (1 insight nyata: Follow-up Backlog)
+- AI baru sebagian aktif (2 insight nyata: Follow-up Backlog, Lead Beku -- keduanya agregasi data, bukan model AI)
 - Automation belum aktif
 
 ---
@@ -465,6 +465,6 @@ Automation
 
 # Last Updated
 
-26 September 2026
+27 September 2026
 
 Sprint 011 — Platform Hold

@@ -242,7 +242,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
 | Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
 | Sales | 🟡 Planned |
-| AI Intelligence | 🟡 In Progress — 1 insight nyata (Follow-up Backlog), 2 kartu contoh ditandai placeholder |
+| AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
 
 ---
@@ -260,7 +260,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 
 ## Low
 
-- 2 dari 3 kartu AI Intelligence masih contoh ilustratif (ditandai jelas "Segera hadir" di UI, tidak dihapus supaya gampang dikembalikan begitu AI Foundation jalan) — lihat `docs/modules/crm.mdx`
+- 1 dari 3 kartu AI Intelligence ("Buyer Behavior Insight") masih contoh ilustratif (ditandai jelas "Segera hadir" di UI) — butuh data page-view/klik yang belum dikumpulkan platform. Detail: `docs/modules/ai.mdx`
 - `authenticated` belum punya `SELECT` di beberapa tabel `core.*` (RBAC: `roles`, `permissions`, `role_permissions`, `settings`, `audit_logs`) — belum jadi masalah karena belum ada kode yang menyentuhnya (property sudah diperbaiki di `041`)
 - Upload foto profil masih input URL manual, belum ada file upload (kamera/galeri/Drive)
 - "System Information" di Profile page masih tampil ke semua user, termasuk detail environment/build — perlu keputusan hapus atau gating role admin
@@ -359,13 +359,22 @@ Task 013
 
 Property lanjutan #4 — Kepemilikan Listing per Agent — ✅ **Selesai (27 September 2026).** Migration `043`: kolom `assigned_to` di `property.listings` + policy `listings_owner_or_admin`, pola identik `leads_owner_or_admin` (`035`) — reuse `core.is_admin_or_above()` dan `core.list_assignable_users()`, tidak ada fungsi baru. Sebelum membangun, dikonfirmasi eksplisit ke Yohan: akses dibatasi (bukan cuma field tracking) — agent cuma lihat/edit listing miliknya, admin lihat & assign semua, konsisten dengan pola leads. Listing lama di-assign ke `admin@yohanai.id` (sama seperti backfill leads di `035`). Verifikasi lewat simulasi JWT langsung: admin lihat listing, Ramlan (belum ditugaskan apa pun) lihat 0 — juga diverifikasi ulang lewat UI setelah Yohan login manual (dropdown "Ditugaskan ke" di form tambah listing & halaman detail, ganti penanggung jawab tersimpan benar di database). `AddListingForm.tsx` dan `PropertyAssignSelect.tsx` meniru pola `AddLeadForm.tsx`/`LeadAssignSelect.tsx` di CRM persis. Detail lengkap: `docs/modules/property.mdx`.
 
-### Next Task
-
 Task 014
 
-AI Agent / Intelligent Dashboard — belum dimulai, didiskusikan 27 September 2026 (dilanjutkan sesi berikutnya, bukan sesi ini). Tujuan: olah data lead + percakapan WhatsApp jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder ("Buyer Behavior Insight", "Priority Alert") di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
+AI Agent / Intelligent Dashboard — 🟡 **Sebagian selesai (27 September 2026).** Tujuan awal: olah data lead + percakapan WhatsApp jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder ("Buyer Behavior Insight", "Priority Alert") di AI Intelligence.
 
-**Temuan awal sebelum mulai coding:** `chat.messages` ternyata cuma **16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup volume untuk insight dari isi percakapan WhatsApp. `customer.leads` (metadata kaya, ribuan baris) jadi sumber data yang realistis dipakai duluan. Rekomendasi arah: mulai dari insight berbasis agregasi metadata lead (pola kategori/lokasi paling diminati, funnel drop-off per sumber, lead mendekati "batal" berdasar gap follow-up) — konsisten gaya dengan Follow-up Backlog yang sudah terbukti jalan, dan ini agregasi data, bukan model/LLM. Detail lengkap: `docs/modules/ai.mdx`.
+- **Temuan sebelum mulai coding:** `chat.messages` ternyata cuma **16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup volume untuk insight dari isi percakapan WhatsApp. `customer.leads` (metadata kaya, ribuan baris) jadi sumber data yang realistis dipakai duluan.
+- **✅ Kartu "Priority Alert" diganti insight nyata "Lead Beku"** — lead ber-Temperature Closing (39 lead) yang belum ada follow-up >30 hari, berisiko batal padahal sudah dekat closing. Ditemukan lewat eksplorasi data: kolom pipeline `customer.leads.status` ternyata nyaris tidak pernah dipakai (1966/1969 masih "new"), dan `follow_up_terakhir` untuk lead Hot/Warm/Closing rata-rata berumur ratusan hari (median Closing: 365 hari) — jadi ambang waktu yang sama seperti Follow-up Backlog (48 jam) tidak membedakan apa pun. Fokus ke kategori Closing memberi daftar pendek (39 vs 634 Hot+Warm) yang genuinely lebih berisiko. Diverifikasi: angka di kartu (39) cocok persis dengan hasil klik ke `/crm?temperature=closing`.
+- **🔵 "Buyer Behavior Insight" masih placeholder** — butuh data page-view/klik yang platform belum kumpulkan sama sekali, beda kelas masalah dari Lead Beku.
+- **Keputusan arsitektur masih terbuka:** bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia); relevan kalau nanti mau insight yang benar-benar AI-generated (LLM baca konteks lead), bukan agregasi data seperti Lead Beku/Follow-up Backlog.
+
+Detail lengkap: `docs/modules/ai.mdx`.
+
+### Next Task
+
+Task 015
+
+Lanjutan AI Intelligence — belum dimulai. Kandidat: insight baru berbasis agregasi lead lain (mis. funnel drop-off per sumber, kategori/lokasi paling diminati), atau mulai bahas keputusan arsitektur AI/LLM (Claude API sendiri vs Workflow/Agent Kapso) kalau mau kartu "Buyer Behavior Insight" diisi sungguhan.
 
 ---
 

@@ -51,6 +51,20 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 27 September 2026 — AI Intelligence: Insight "Lead Beku"
+
+### Added
+
+- Insight nyata kedua di AI Intelligence dashboard: **"Lead Beku"** (`getFrozenLeadInsight()` di `src/lib/dashboard/getDashboardInsights.ts`) -- lead ber-Temperature **Closing** yang belum ada follow-up dalam **30 hari**, mengganti placeholder "Priority Alert". Bisa diklik, mengarah ke `/crm?temperature=closing`
+
+### Docs
+
+- Riset sebelum coding menemukan kolom pipeline `customer.leads.status` nyaris tidak pernah dipakai (1966/1969 masih "new") -- sinyal progres lead yang sebenarnya ada di `metadata->>status_funnel_awal` ("Temperature" di UI). Juga ditemukan `follow_up_terakhir` untuk lead Hot/Warm/Closing rata-rata berumur ratusan hari (median Closing: 365 hari) -- data historis dari backfill, bukan aktivitas berkelanjutan. Karena itu ambang 48 jam (seperti Follow-up Backlog) tidak akan membedakan apa pun untuk kategori ini; dipilih fokus ke Closing (39 lead, bukan 634 Hot+Warm) dengan ambang 30 hari supaya jadi daftar pendek yang genuinely berisiko, bukan duplikasi Follow-up Backlog
+- `docs/modules/ai.mdx` disinkronkan penuh dengan realita -- sebelumnya masih isi template pra-Claude 24 Juli 2026 (nyebut tabel `customer.activities` yang tidak ada, dependency "OpenAI API" yang tidak pernah diputuskan)
+- Diverifikasi end-to-end di browser: angka di kartu (39) cocok persis dengan jumlah hasil filter setelah diklik
+
+---
+
 ## 27 September 2026 — Kepemilikan Listing per Agent
 
 ### Added
