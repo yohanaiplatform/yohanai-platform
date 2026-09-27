@@ -59,12 +59,15 @@ async function getFollowUpBacklogInsight(
 }
 
 /**
- * Lead "Closing" (Temperature) = sudah dekat closing, bukan cuma Hot/Warm
- * biasa. Kalau sudah lama tanpa follow-up (ambang lebih longgar dari
- * Follow-up Backlog -- ini soal risiko batal jangka panjang, bukan
- * cadence rutin), itu sinyal risiko batal yang lebih tajam karena lead-nya
- * sudah dekat garis finish. Field yang sama seperti Follow-up Backlog
- * (follow_up_terakhir), cuma beda kategori Temperature dan ambang waktu.
+ * Awalnya dicoba pakai Temperature "Closing", TERNYATA SALAH -- dikoreksi
+ * Yohan 27 September 2026: lead "Closing" di data ini artinya SUDAH
+ * closing/booking (sebagian bahkan sudah akad & menempati rumah), bukan
+ * "menuju closing". Diarahkan ulang ke "Cold": lead yang tak pernah
+ * tersentuh lagi sejak komunikasi terakhir. Hot/Warm sudah dicakup
+ * Follow-up Backlog, jadi Cold pelengkapnya -- volume besar (lihat
+ * catatan Batal di getDashboardInsights.ts) sengaja tidak dipangkas,
+ * karena itu justru temuan aslinya: pool lead dingin yang belum pernah
+ * direaktivasi.
  */
 async function getFrozenLeadInsight(
   supabase: SupabaseClient<Database>
@@ -75,7 +78,7 @@ async function getFrozenLeadInsight(
     .schema("customer")
     .from("leads")
     .select("metadata")
-    .ilike("metadata->>status_funnel_awal", "closing")
+    .ilike("metadata->>status_funnel_awal", "cold")
     .is("deleted_at", null);
 
   const overdueCount =
@@ -96,12 +99,12 @@ async function getFrozenLeadInsight(
     title: "Lead Beku",
     description:
       overdueCount > 0
-        ? `${overdueCount} lead di tahap Closing belum ada tindak lanjut lebih dari ${FROZEN_LEAD_OVERDUE_DAYS} hari -- berisiko batal padahal sudah dekat closing. Klik untuk lihat daftarnya.`
-        : "Semua lead di tahap Closing sudah ditindaklanjuti dalam 30 hari terakhir.",
-    category: "alert",
+        ? `${overdueCount} lead Cold belum tersentuh sejak komunikasi terakhir (lebih dari ${FROZEN_LEAD_OVERDUE_DAYS} hari) -- berpotensi masih bisa diaktifkan lagi. Klik untuk lihat daftarnya.`
+        : "Semua lead Cold sudah tersentuh dalam 30 hari terakhir.",
+    category: "action",
     priority: overdueCount > 20 ? PRIORITY.HIGH.toLowerCase() as "high" : overdueCount > 0 ? PRIORITY.MEDIUM.toLowerCase() as "medium" : PRIORITY.LOW.toLowerCase() as "low",
     created_at: new Date().toISOString(),
-    href: "/crm?temperature=closing",
+    href: "/crm?temperature=cold",
   };
 }
 
