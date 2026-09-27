@@ -363,7 +363,9 @@ Property lanjutan #4 — Kepemilikan Listing per Agent — ✅ **Selesai (27 Sep
 
 Task 014
 
-AI Agent / Intelligent Dashboard — belum dimulai. Tujuan: olah data lead + percakapan WhatsApp (yang sekarang sudah tersimpan nyata di `chat.messages`) jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
+AI Agent / Intelligent Dashboard — belum dimulai, didiskusikan 27 September 2026 (dilanjutkan sesi berikutnya, bukan sesi ini). Tujuan: olah data lead + percakapan WhatsApp jadi insight buyer behavior sungguhan, gantikan 2 kartu placeholder ("Buyer Behavior Insight", "Priority Alert") di AI Intelligence. Keputusan arsitektur belum dibahas: bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia yang relevan kalau nanti butuh human takeover).
+
+**Temuan awal sebelum mulai coding:** `chat.messages` ternyata cuma **16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup volume untuk insight dari isi percakapan WhatsApp. `customer.leads` (metadata kaya, ribuan baris) jadi sumber data yang realistis dipakai duluan. Rekomendasi arah: mulai dari insight berbasis agregasi metadata lead (pola kategori/lokasi paling diminati, funnel drop-off per sumber, lead mendekati "batal" berdasar gap follow-up) — konsisten gaya dengan Follow-up Backlog yang sudah terbukti jalan, dan ini agregasi data, bukan model/LLM. Detail lengkap: `docs/modules/ai.mdx`.
 
 ---
 

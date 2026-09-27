@@ -17,11 +17,17 @@ AI tidak menggantikan agen, tetapi bertindak sebagai **co-pilot** yang membantu 
 
 | Item | Status |
 |------|--------|
-| Development | 🟡 In Progress |
+| Development | 🟡 In Progress — 1 insight nyata jalan (Follow-up Backlog), 2 kartu masih contoh ilustratif |
 | Production Ready | ❌ No |
-| Backend | 🟡 Foundation |
-| UI | 🟡 Placeholder |
-| AI Engine | 🔵 Planned |
+| Backend | 🟡 Foundation — `getDashboardInsights.ts` cuma hitung 1 insight dari data lead, belum ada AI Processor/model sungguhan |
+| UI | 🟡 Sebagian nyata (`AIInsightPanel.tsx`), sebagian placeholder ditandai "Segera hadir" |
+| AI Engine | 🔵 Planned — keputusan arsitektur belum diambil (lihat "Task 014" di bawah) |
+
+**Task 014 (AI Agent / Intelligent Dashboard) — belum dimulai, didiskusikan 27 September 2026, dilanjutkan sesi berikutnya.** Temuan awal sebelum mulai coding:
+
+- **`chat.messages` cuma 16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup volume untuk insight yang digali dari isi percakapan WhatsApp. `customer.leads` (metadata kaya, ribuan baris) jadi sumber data yang realistis dipakai duluan.
+- **Rekomendasi arah:** mulai dari insight berbasis agregasi metadata lead (pola kategori/lokasi paling diminati, funnel drop-off per sumber, lead mendekati "batal" berdasar gap follow-up) — konsisten gaya dengan Follow-up Backlog yang sudah terbukti jalan. Ini agregasi data, **bukan** model/LLM.
+- **Keputusan yang masih terbuka:** bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia); kalau mau insight yang benar-benar AI-generated (LLM baca konteks lead, bukan cuma agregasi), itu jalur terpisah yang butuh keputusan provider/arsitektur dulu.
 
 ---
 
@@ -39,27 +45,16 @@ AI Intelligence bertujuan untuk:
 
 # Current Features
 
-## AI Insight Panel
+## AI Insight Panel (`AIInsightPanel.tsx`)
 
-Menampilkan placeholder insight pada Dashboard.
+Tampil di Dashboard, di-populate dari `getDashboardInsights.ts`. Isinya campuran:
 
----
+- **Follow-up Backlog** — nyata, dihitung dari `customer.leads` (lead Hot/Warm yang belum di-follow-up >48 jam). Bisa diklik, mengarah ke `/crm?temperature=hot,warm`.
+- **Buyer Behavior Insight** & **Priority Alert** — masih contoh ilustratif (`isPlaceholder: true`), ditandai badge "Segera hadir -- belum aktif" di UI, bukan dihapus supaya gampang dikembalikan begitu ada penggantinya.
 
-## Recommendation Engine
+## Recommendation Engine, AI Processing Pipeline
 
-Framework untuk menghasilkan rekomendasi otomatis berdasarkan data CRM dan aktivitas pengguna.
-
----
-
-## AI Processing Pipeline
-
-Tahapan pemrosesan AI:
-
-- Data Collection
-- Data Enrichment
-- Behavior Analysis
-- Recommendation
-- Insight Delivery
+Belum dibangun — masih kerangka aspirasi di bawah, bukan kode yang ada.
 
 ---
 
@@ -153,10 +148,11 @@ types/
 
 Current Sources
 
-- customer.leads
-- customer.activities
-- chat.conversations
-- property.listings
+- `customer.leads` (metadata JSONB) — sumber utama, volume cukup (ribuan baris), dipakai Follow-up Backlog
+- `chat.conversations`/`chat.messages` — schema ada dan sudah dipakai live chat CRM, tapi baru **16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup untuk insight dari isi percakapan
+- `property.listings`
+
+`customer.activities` **tidak ada** di database (dicek 27 September 2026, `information_schema.tables` schema `customer` cuma berisi `contacts`/`lead_sources`/`leads`/`notes`) — dihapus dari daftar ini, sebelumnya cuma aspirasi yang belum pernah dibangun.
 
 Future Tables
 
@@ -185,7 +181,8 @@ Future Tables
 - Sales
 - Communication Automation
 - Supabase
-- OpenAI API
+
+**Provider AI/LLM belum diputuskan** — sebelumnya tertulis "OpenAI API" di sini, tapi itu cuma aspirasi lama yang tidak pernah diimplementasi atau diputuskan (dihapus 27 September 2026). Kalau nanti dipilih pakai LLM sungguhan (bukan cuma agregasi data), pilihannya termasuk Claude (dipakai project ini sendiri lewat Claude Code) atau Workflow/Agent bawaan Kapso — belum dibahas.
 
 ---
 
@@ -234,6 +231,6 @@ Continuous Learning Engine
 
 # Last Updated
 
-24 July 2026
+27 September 2026
 
-Sprint 009
+Sprint 011
