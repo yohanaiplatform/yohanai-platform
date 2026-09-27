@@ -26,7 +26,7 @@ AI tidak menggantikan agen, tetapi bertindak sebagai **co-pilot** yang membantu 
 **Task 014 (AI Agent / Intelligent Dashboard) — sebagian jalan (27 September 2026), keputusan arsitektur AI/LLM masih terbuka.**
 
 - Diskusi awal (27 Sep, pagi): **`chat.messages` cuma 16 baris** (sandbox Kapso, nomor produksi belum disambungkan) — belum cukup volume untuk insight dari isi percakapan WhatsApp. `customer.leads` (metadata kaya, ribuan baris) jadi sumber data yang realistis dipakai duluan.
-- Ditindaklanjuti (27 Sep, sore): kartu placeholder **"Priority Alert"** diganti insight nyata **"Lead Beku"** — lihat "Current Features" di bawah untuk detail dan alasan pemilihan sinyalnya.
+- Ditindaklanjuti (27 Sep, sore): kartu placeholder **"Priority Alert"** diganti insight nyata **"Lead Beku"** — awalnya ditarget ke Temperature "Closing", **dikoreksi Yohan langsung setelah dites** (lihat "Current Features" di bawah), dialihkan ke "Cold".
 - **Keputusan yang masih terbuka:** bangun sendiri vs pakai Workflow/Agent bawaan Kapso (ada fitur "Handoff node" untuk pindah tangan AI→manusia); kalau mau insight yang benar-benar AI-generated (LLM baca konteks lead, bukan cuma agregasi), itu jalur terpisah yang butuh keputusan provider/arsitektur dulu. Kartu **"Buyer Behavior Insight"** masih menunggu ini — perlu data perilaku (browsing/klik) yang platform belum kumpulkan sama sekali, beda dari "Lead Beku" yang cukup pakai data lead yang sudah ada.
 
 ---
@@ -50,7 +50,10 @@ AI Intelligence bertujuan untuk:
 Tampil di Dashboard, di-populate dari `getDashboardInsights.ts`. Isinya campuran:
 
 - **Follow-up Backlog** — nyata, dihitung dari `customer.leads` (lead Hot/Warm yang belum di-follow-up >48 jam). Bisa diklik, mengarah ke `/crm?temperature=hot,warm`.
-- **Lead Beku** (27 September 2026) — nyata, dihitung dari lead ber-Temperature **Closing** (39 lead, bukan Hot/Warm biasa -- ini lead yang sudah dekat closing) yang belum ada follow-up dalam **30 hari** (`FROZEN_LEAD_OVERDUE_DAYS`). Bisa diklik, mengarah ke `/crm?temperature=closing`. Dipilih setelah eksplorasi data menemukan bahwa kolom pipeline `customer.leads.status` nyaris seluruhnya masih "new" (1966 dari 1969, tidak pernah diupdate agen) dan `follow_up_terakhir` untuk Hot/Warm/Closing rata-rata berumur ratusan hari (median Closing: 365 hari) -- jadi ambang yang sama seperti Follow-up Backlog (48 jam) tidak akan membedakan apa pun. Fokus ke kategori Closing (bukan Hot/Warm yang sudah dicakup Follow-up Backlog) memberi sinyal yang genuinely berbeda: daftar pendek (39, bukan 634) berisiko tinggi karena paling dekat garis finish.
+- **Lead Beku** (27 September 2026) — nyata, dihitung dari lead ber-Temperature **Cold** yang belum tersentuh sejak komunikasi terakhir lebih dari **30 hari** (`FROZEN_LEAD_OVERDUE_DAYS`), yaitu **966 dari 1280** lead Cold. Bisa diklik, mengarah ke `/crm?temperature=cold`.
+  - **Percobaan pertama SALAH, dikoreksi Yohan:** awalnya ditarget ke Temperature "Closing" (39 lead) dengan asumsi "sudah dekat closing tapi mandek, berisiko batal". Ternyata **salah total** -- Yohan mengonfirmasi lead berkategori Closing di data ini **sudah closing/booking, bahkan sebagian sudah akad dan menempati rumahnya**. Bukan "menuju closing", tapi "sudah selesai". Detail arti Temperature yang benar: lihat memory `lead-temperature-semantics`.
+  - **Arah yang benar (setelah dikoreksi):** Hot/Warm sudah dicakup Follow-up Backlog (ambang 48 jam, urgensi tinggi/jangka pendek), jadi Cold jadi pelengkap alami untuk lead jangka panjang yang berpotensi masih bisa diaktifkan lagi. Volume besar (966) sengaja tidak dipangkas lebih lanjut -- itu justru temuannya: pool lead dingin yang belum pernah direaktivasi sejak data di-backfill.
+  - Sama seperti Follow-up Backlog, `href` cuma filter berdasar Temperature (`?temperature=cold`, total 1280), bukan subset 966 yang overdue secara spesifik -- klik kartu membawa ke daftar Cold penuh, bukan daftar 966 yang persis sama. Trade-off yang sama sudah ada di Follow-up Backlog, cuma baru kelihatan sekarang karena Cold tidak 100% overdue (beda dari Hot/Warm yang kebetulan 100%).
 - **Buyer Behavior Insight** — masih contoh ilustratif (`isPlaceholder: true`), ditandai badge "Segera hadir -- belum aktif" di UI, bukan dihapus supaya gampang dikembalikan begitu ada penggantinya (butuh data page-view/klik yang belum dikumpulkan platform).
 
 ## Recommendation Engine, AI Processing Pipeline
@@ -156,6 +159,8 @@ Current Sources
 `customer.activities` **tidak ada** di database (dicek 27 September 2026, `information_schema.tables` schema `customer` cuma berisi `contacts`/`lead_sources`/`leads`/`notes`) — dihapus dari daftar ini, sebelumnya cuma aspirasi yang belum pernah dibangun.
 
 **Catatan penting soal field mana yang benar-benar "hidup" di `customer.leads`** (ditemukan 27 September 2026 saat riset Lead Beku): kolom pipeline `status` (`new`→...→`won`/`lost`) nyaris tidak pernah dipakai -- 1966 dari 1969 lead masih `new`, cuma 3 `contacted`. Field yang benar-benar mencerminkan progres lead adalah `metadata->>status_funnel_awal` (ditampilkan sebagai **"Temperature"** di UI CRM: Hot/Warm/Cold/Closing/Batal, editable lewat `LeadEditableFields`) -- meski nama kolom aslinya "awal" (initial), field ini yang dipakai aktif, bukan `status`. `customer.notes` (catatan berwaktu) juga masih 0 baris (fitur baru 26 Sep). **Kalau mau bangun insight baru dari data lead, pakai `status_funnel_awal`/metadata, jangan asumsikan kolom `status` mencerminkan kondisi lead yang sebenarnya.**
+
+**Jangan asumsikan arti kategori Temperature dari namanya saja** -- khususnya "Closing" **BUKAN** "menuju closing/berisiko batal", tapi **sudah closing/booking/akad** (dikonfirmasi Yohan 27 September 2026, lihat memory `lead-temperature-semantics`). Urutan prioritas follow-up yang benar: Hot/Warm (mendesak) → Cold (jangka panjang, reaktivasi) → Closing/Batal (tidak perlu follow-up, sudah selesai/mati).
 
 Future Tables
 
