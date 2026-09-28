@@ -1,0 +1,23 @@
+name: Daily Report
+
+on:
+  schedule:
+    # 00:00 UTC = 07:00 WIB
+    - cron: "0 0 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger daily report email
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            "https://yohanai.id/api/reports/daily" \
+            -H "x-report-secret: ${{ secrets.DAILY_REPORT_SECRET }}")
+          echo "HTTP Status: $HTTP_CODE"
+          cat /tmp/response.json
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Daily report failed with status $HTTP_CODE"
+            exit 1
+          fi

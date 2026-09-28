@@ -28,6 +28,9 @@ export const LOCK_NOTICE_PATH = '/under-development'
  * - /api/whatsapp/webhook: dipanggil server Kapso, tidak pernah punya sesi
  *   login. Diamankan sendiri lewat HMAC signature (KAPSO_WEBHOOK_SECRET),
  *   bukan lewat gate ini.
+ * - /api/reports/daily: dipanggil GitHub Actions cron (.github/workflows/
+ *   daily-report.yml), tidak pernah punya sesi login. Diamankan sendiri
+ *   lewat secret header (DAILY_REPORT_SECRET), bukan lewat gate ini.
  */
 const PUBLIC_PATHS = [
   LOCK_NOTICE_PATH,
@@ -40,6 +43,7 @@ const PUBLIC_PATHS = [
   '/api/health',
   '/api/leads/intake',
   '/api/whatsapp/webhook',
+  '/api/reports/daily',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */
