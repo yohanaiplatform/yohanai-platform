@@ -1,5 +1,8 @@
+"use client";
+
 // src/components/shared/ChatMessageList.tsx
 
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface ChatMessage {
@@ -54,6 +57,14 @@ function formatDateTime(value: string) {
 
 /** Bubble list dipakai bareng oleh Lead Detail dan Recent Chats (dashboard). */
 export function ChatMessageList({ messages, emptyLabel }: ChatMessageListProps) {
+  const bottomRef = useRef<HTMLLIElement>(null);
+
+  // Scroll ke pesan terbaru tiap kali jumlah pesan berubah (pesan baru dari
+  // Realtime atau kirim manual) -- WA di HP auto-scroll, di sini dulu tidak.
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [messages.length]);
+
   if (messages.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
   }
@@ -74,6 +85,7 @@ export function ChatMessageList({ messages, emptyLabel }: ChatMessageListProps) 
           <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(m.created_at)}</p>
         </li>
       ))}
+      <li ref={bottomRef} aria-hidden className="h-px" />
     </ul>
   );
 }
