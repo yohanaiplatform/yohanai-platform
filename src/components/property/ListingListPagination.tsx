@@ -19,6 +19,7 @@ function buildHref(page: number, filters: ListingFilters, pageSize: number): str
   if (filters.status) params.set("status", filters.status);
   if (filters.categoryId) params.set("categoryId", filters.categoryId);
   if (filters.search) params.set("search", filters.search);
+  if (filters.showHidden) params.set("showHidden", "1");
   return `/properties?${params.toString()}`;
 }
 

@@ -23,6 +23,7 @@ interface PropertiesPageProps {
     status?: string;
     categoryId?: string;
     search?: string;
+    showHidden?: string;
   }>;
 }
 
@@ -33,11 +34,13 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
   const pageSize = (LISTING_PAGE_SIZE_OPTIONS as readonly number[]).includes(requestedPageSize)
     ? requestedPageSize
     : LISTINGS_PAGE_SIZE;
+  const showHidden = params.showHidden === "1";
 
   const filters: ListingFilters = {
     status: params.status || undefined,
     categoryId: params.categoryId || undefined,
     search: params.search || undefined,
+    showHidden,
   };
 
   const supabase = await createClient();
@@ -72,6 +75,7 @@ export default async function PropertiesPage({ searchParams }: PropertiesPagePro
             categoryId={params.categoryId}
             search={params.search}
             pageSize={pageSize}
+            showHidden={showHidden}
           />
           <div className="flex justify-end">
             <ListingPageSizeSelect pageSize={pageSize} />

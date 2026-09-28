@@ -17,6 +17,7 @@ interface ListingListFiltersProps {
   categoryId?: string;
   search?: string;
   pageSize?: number;
+  showHidden?: boolean;
 }
 
 /** Pola sama seperti LeadListFilters.tsx: form native GET, tanpa JS, jalan lewat searchParams. */
@@ -26,6 +27,7 @@ export function ListingListFilters({
   categoryId,
   search,
   pageSize,
+  showHidden,
 }: ListingListFiltersProps) {
   return (
     <form method="GET" className="space-y-4 border-b border-border pb-4">
@@ -91,6 +93,11 @@ export function ListingListFilters({
             ))}
           </select>
         </div>
+
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <input type="checkbox" name="showHidden" value="1" defaultChecked={showHidden} />
+          Tampilkan yang disembunyikan
+        </label>
 
         <Button type="submit" size="sm">
           Terapkan

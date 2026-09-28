@@ -7,6 +7,7 @@ import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PropertyEditableFields } from "@/components/property/PropertyEditableFields";
 import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFieldsEditable";
+import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
 import { PropertyVideoEmbed } from "@/components/property/PropertyVideoEmbed";
@@ -59,11 +60,19 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const videoUrl = getListingMetadataValue<string>(listing.metadata, "video_url");
   const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
+  const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
 
   return (
     <div className="space-y-6 p-6">
       <SetBreadcrumbLabel segment={listing.slug} label={listing.title} />
       {backLink}
+
+      {hidden && (
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+          <strong>Listing ini disembunyikan.</strong> Tidak muncul di daftar `/properties` dan tidak boleh
+          direferensikan ke lead/konsumen (termasuk oleh AI Agent nanti) sampai ditampilkan kembali.
+        </div>
+      )}
 
       <SectionCard
         title={listing.title}
@@ -96,9 +105,12 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
             address={listing.address}
             description={listing.description}
           />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Ditugaskan ke</span>
-            <PropertyAssignSelect listingId={listing.id} assignedTo={listing.assigned_to} />
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Ditugaskan ke</span>
+              <PropertyAssignSelect listingId={listing.id} assignedTo={listing.assigned_to} />
+            </div>
+            <PropertyVisibilityToggle listingId={listing.id} metadata={listing.metadata} hidden={hidden} />
           </div>
         </div>
       </SectionCard>

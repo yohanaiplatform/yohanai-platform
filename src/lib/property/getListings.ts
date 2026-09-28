@@ -23,6 +23,8 @@ export interface ListingFilters {
   categoryId?: string;
   /** Cari di judul atau alamat (substring). */
   search?: string;
+  /** Default (false/undefined): listing hidden disembunyikan dari hasil. true: tampilkan semua termasuk hidden. */
+  showHidden?: boolean;
 }
 
 export interface GetListingsResult {
@@ -48,6 +50,13 @@ function buildFilteredListingsQuery(
   }
   if (filters.status) {
     query = query.eq("metadata->>status", filters.status);
+  }
+  if (!filters.showHidden) {
+    // Listing lama (sebelum fitur hidden ada) tidak punya key "hidden" sama sekali di
+    // metadata -- metadata->>hidden mengembalikan NULL untuk baris itu, dan `.neq()`
+    // biasa akan diam-diam MENGECUALIKAN baris ber-NULL (semantik SQL: NULL != 'true'
+    // itu UNKNOWN, bukan TRUE). Makanya di sini eksplisit "is null OR eq false".
+    query = query.or("metadata->>hidden.is.null,metadata->>hidden.eq.false");
   }
   if (filters.search) {
     const pattern = `%${filters.search.trim().replace(/[%,()]/g, "")}%`;

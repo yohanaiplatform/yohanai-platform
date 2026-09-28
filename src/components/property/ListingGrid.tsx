@@ -35,6 +35,7 @@ export function ListingGrid({ data, error }: ListingGridProps) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {data.map((listing) => {
         const status = getListingMetadataValue<string>(listing.metadata, "status");
+        const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
         const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls");
         const coverPhoto = photoUrls?.[0];
 
@@ -42,14 +43,19 @@ export function ListingGrid({ data, error }: ListingGridProps) {
           <Link
             key={listing.id}
             href={`/properties/${listing.slug}`}
-            className="overflow-hidden rounded-xl border bg-card shadow-sm transition-colors hover:border-foreground/20"
+            className={`overflow-hidden rounded-xl border bg-card shadow-sm transition-colors hover:border-foreground/20 ${hidden ? "opacity-60" : ""}`}
           >
-            <div className="flex h-40 items-center justify-center bg-muted">
+            <div className="relative flex h-40 items-center justify-center bg-muted">
               {coverPhoto ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={coverPhoto} alt={listing.title} className="h-full w-full object-cover" />
               ) : (
                 <Building2 className="h-10 w-10 text-muted-foreground" />
+              )}
+              {hidden && (
+                <span className="absolute left-2 top-2 rounded bg-amber-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                  Disembunyikan
+                </span>
               )}
             </div>
             <div className="space-y-2 p-4">
