@@ -4,7 +4,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { uploadListingPhoto } from "@/lib/property/uploadListingPhoto";
 import { Button } from "@/components/ui/button";
@@ -78,27 +78,63 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
     router.refresh();
   }
 
+  /**
+   * Fetch blob dulu baru trigger save -- href+download biasa DIABAIKAN browser
+   * untuk URL cross-origin (Supabase Storage beda domain dari app), jadi tidak
+   * bisa cuma andalkan atribut download di <a>.
+   */
+  async function handleDownload(url: string, index: number) {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const ext = blob.type.split("/").pop() || "jpg";
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `foto-${index + 1}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // Gagal fetch (mis. offline) -- fallback buka tab baru, biar user save manual.
+      window.open(url, "_blank");
+    }
+  }
+
   return (
     <div className="space-y-3">
       {photoUrls.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {photoUrls.map((url, index) => (
             <div key={url} className="group relative aspect-square overflow-hidden rounded-lg border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt={`Foto ${index + 1}`} className="h-full w-full object-cover" />
+              <a href={url} target="_blank" rel="noopener noreferrer" title="Buka ukuran penuh">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt={`Foto ${index + 1}`} className="h-full w-full object-cover" />
+              </a>
               {index === 0 && (
                 <span className="absolute left-1 top-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
                   Sampul
                 </span>
               )}
-              <button
-                type="button"
-                onClick={() => handleRemove(url)}
-                aria-label="Hapus foto"
-                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  onClick={() => handleDownload(url, index)}
+                  aria-label="Download foto"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(url)}
+                  aria-label="Hapus foto"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
