@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
+import { syncLeadToGoogleContacts } from '@/lib/google/syncLeadContact'
 
 /**
  * Pintu masuk lead dari Google Form legacy (Apps Script -> UrlFetchApp.fetch).
@@ -129,6 +130,17 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+
+  // after() -- jalan setelah respons dikirim, tapi tetap dijamin selesai
+  // dieksekusi runtime (beda dari void-tanpa-await yang berisiko dipotong
+  // serverless function sebelum promise-nya settle). Gagal sync kontak
+  // tidak boleh menggagalkan respons intake.
+  after(() =>
+    syncLeadToGoogleContacts({
+      first_name: (body.nama as string).trim(),
+      phone: normalizePhone(body.phone as string),
+    })
+  )
 
   return NextResponse.json({ success: true, leadId: inserted.id })
 }

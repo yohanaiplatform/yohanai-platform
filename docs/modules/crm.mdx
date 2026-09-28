@@ -165,6 +165,16 @@ Ditanya Yohan setelah sadar tombol "Add Lead" di dashboard ternyata cuma link ke
 
 **Agent AI dari WhatsApp yang bisa input lead otomatis (permintaan Yohan yang sama) belum dibangun** — itu bergantung keputusan WAHA vs Fonnte yang belum diambil. Struktur `createLead.ts` dibuat generik supaya nanti bisa dipakai ulang oleh jalur itu juga, bukan eksklusif untuk form manual.
 
+## Auto-create Google Contact (28 September 2026)
+
+Diminta Yohan: begitu lead baru masuk (dari jalur mana pun), otomatis dibuatkan kontak di Google Contacts akun `yohan.ai.platform@gmail.com`. 🟡 **Kode selesai, aktivasi butuh setup manual Yohan** — lihat `docs/status.mdx` Task 019 poin 6 untuk status & langkah setup lengkap.
+
+- `src/lib/google/contacts.ts` — Google People API, OAuth2 refresh-token flow (bukan service account — `yohan.ai.platform@gmail.com` akun Gmail biasa, bukan Google Workspace, jadi tidak bisa domain-wide delegation).
+- `src/lib/google/syncLeadContact.ts` — helper bersama, dipanggil dari **kedua** jalur insert lead: `POST /api/leads/intake` (lewat `after()` dari `next/server`, jalan setelah respons dikirim tapi dijamin selesai) dan lead manual `/crm/new` lewat route baru `POST /api/leads/[id]/sync-contact` (karena `createLead.ts` jalan di browser, secret OAuth tidak boleh sampai ke sana).
+- Sengaja **fire-and-forget** di kedua jalur — gagal sync kontak tidak boleh menggagalkan simpan lead, yang tetap data utama.
+- No-op diam-diam kalau `GOOGLE_CONTACTS_REFRESH_TOKEN` belum diisi env var (dianggap fitur belum diaktifkan, bukan error).
+- Setup 1x: `/api/google-contacts/authorize` (admin-only, redirect ke consent screen Google) → `/api/google-contacts/callback` (tukar `code` jadi refresh token, ditampilkan sekali untuk di-copy manual ke env var — tidak disimpan otomatis di mana pun).
+
 ## Edit Lead & Catatan Berwaktu (26 September 2026)
 
 Ditanya Yohan: field seperti "Sudah Survey" cuma bisa dilihat, padahal kondisinya berubah seiring follow-up (mis. awalnya "Belum", setelah follow-up ketiga jadi "Sudah"). Juga minta jejak waktu tiap ada update penting ("Lead sudah dapat unit di lokasi lain", "Lead batal booking", dst) — bukan cuma field yang di-overwrite dan riwayatnya hilang.
@@ -302,6 +312,8 @@ CRM membantu agen untuk:
 ## Percakapan WhatsApp
 
 ✅ **Selesai (26 September 2026).** Section baru di Lead Detail — kirim & terima pesan WhatsApp langsung dari CRM, live lewat Supabase Realtime (tidak perlu refresh manual). Bagian dari integrasi Kapso (Communication Automation), lihat `docs/status.mdx` Task 008 untuk detail arsitektur lengkap. Pesan media (foto/video) tampil sebagai notice "buka WhatsApp untuk melihat", bukan link storage mentah. Komponen: `src/components/crm/LeadWhatsApp.tsx`.
+
+**Auto-scroll (28 September 2026)** — `ChatMessageList.tsx` (dipakai bareng Lead Detail & Recent Chats) sebelumnya tidak pernah scroll otomatis ke pesan terbaru saat ada pesan baru masuk lewat Realtime, beda dari WhatsApp di HP. Diperbaiki dengan ref ke elemen terakhir + `scrollIntoView` tiap jumlah pesan berubah.
 
 ---
 

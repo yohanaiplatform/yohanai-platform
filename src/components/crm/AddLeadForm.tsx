@@ -113,6 +113,11 @@ export function AddLeadForm({ t }: AddLeadFormProps) {
       return;
     }
 
+    // Fire-and-forget dari browser -- gagal sync kontak tidak boleh
+    // menahan navigasi ke Lead Detail. Route-nya sendiri no-op kalau
+    // GOOGLE_CONTACTS_REFRESH_TOKEN belum dikonfigurasi.
+    fetch(`/api/leads/${leadId}/sync-contact`, { method: "POST" }).catch(() => {});
+
     router.push(`/crm/${leadId}`);
   }
 
