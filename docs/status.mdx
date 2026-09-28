@@ -240,7 +240,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010) |
 | Sales | 🟡 Planned |
 | AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox**. Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
@@ -380,11 +380,24 @@ Task 015
 
 Detail lengkap kedua topik: `docs/modules/ai.mdx`.
 
-### Next Task
-
 Task 016
 
-Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso. Kandidat lain yang masih terbuka: insight baru berbasis agregasi lead (funnel drop-off per sumber, kategori/lokasi paling diminati), atau mulai keputusan konkret Model A/B multi-tenant kalau ada permintaan nyata.
+**Migrasi listing dari spreadsheet + fitur lanjutan Property Detail — ✅ Selesai (28 September 2026).** Sesi ini diselipkan di antara diskusi AI Agent (Task 015) atas permintaan Yohan ("hold dulu obrolan sebelumnya, lanjut urusan listing").
+
+- **Migrasi 91 listing** dari spreadsheet legacy Griya Indonesia ("Listing Baru 2024 Terbaru", sheet "Input Data") ke `property.listings`, lewat skrip Node.js satu-kali (tidak disimpan di repo). **91/91 listing masuk, 285/285 foto berhasil diunduh ulang dari Google Drive & diupload ke Storage** (jauh lebih baik dari ekspektasi -- log AutoCrat lama sempat catat 55/91 link rusak). Keputusan dikonfirmasi dulu ke Yohan: kepemilikan semua ke admin, `contact_phone` diseragamkan ke nomor kantor, data pribadi pemilik (KTP dkk) sengaja tidak diimpor.
+- **Migration `044`:** `service_role` ternyata 0 akses ke schema `property` (pola sama seperti temuan `customer`/`chat` sebelumnya) -- ketemu saat skrip migrasi butuh service role key, diperbaiki.
+- **Bug ditemukan & diperbaiki:** 1 listing sempat salah harga jadi `Rp 16` (harga asli teks "1.6 M per kapling", bukan format angka standar) -- ketemu lewat pengecekan visual manual, bukan cuma percaya laporan "0 gagal" dari skrip. Diperbaiki manual ke `Rp 1.600.000.000`.
+- **Ditemukan, sengaja belum ditindaklanjuti:** 9 kelompok (20 listing) kemungkinan duplikat di data sumber (pemilik+harga identik, judul beda) -- perlu ditinjau manual oleh Yohan, tidak dihapus otomatis karena sebagian mungkin memang unit berbeda dalam satu kompleks.
+- **Fitur baru Property Detail:** edit Judul/Harga/Alamat/Deskripsi (`PropertyMainFieldsEditable.tsx`), tombol Hapus (soft delete), dan **watermark logo Yohan.AI otomatis** di tengah tiap foto yang diupload (`watermarkPhoto.ts`, Canvas API browser bawaan, tanpa dependency baru).
+- **Storage foto dibahas:** saat ini ~100MB terpakai dari 1GB free tier Supabase. Opsi Cloudflare R2 (10GB gratis, egress selalu gratis, dicek langsung ke `developers.cloudflare.com/r2/pricing`) dipetakan sebagai opsi masa depan kalau volume foto terus bertambah -- **belum diputuskan/dieksekusi**, given usage masih jauh di bawah limit.
+
+Detail lengkap: `docs/modules/property.mdx`.
+
+### Next Task
+
+Task 017
+
+Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso (Task 015 yang di-hold). Item lain yang masih terbuka: tinjau manual 9 kelompok listing duplikat hasil migrasi, keputusan pindah storage foto ke R2 kalau volume bertambah.
 
 ---
 

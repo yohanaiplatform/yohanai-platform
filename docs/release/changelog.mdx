@@ -51,6 +51,28 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 28 September 2026 — Migrasi 91 Listing + Edit/Hapus/Watermark Property
+
+### Added
+
+- **91 listing dimigrasikan** dari spreadsheet legacy Griya Indonesia ke `property.listings`, termasuk **285 foto** diunduh ulang dari Google Drive dan diupload ke Storage bucket `properties` (skrip Node.js satu-kali, tidak disimpan di repo)
+- **Edit Judul/Harga/Alamat/Deskripsi** di halaman Property Detail (`PropertyMainFieldsEditable.tsx`)
+- **Hapus listing** (soft delete via `deleted_at`) dengan konfirmasi, tombol di halaman detail
+- **Watermark logo Yohan.AI otomatis** di tengah setiap foto yang diupload (`watermarkPhoto.ts`) -- Canvas API bawaan browser, tanpa dependency npm baru, opacity 55% + shadow supaya kebaca di foto terang maupun gelap
+- Migration `044`: `GRANT USAGE`+hak tabel schema `property` ke `service_role` (pola sama seperti `032`/`039` untuk `customer`/`chat`)
+
+### Fixed
+
+- 1 listing hasil migrasi sempat salah harga jadi `Rp 16` (harga asli ditulis teks "1.6 M per kapling" di spreadsheet, bukan format angka standar) -- ketemu lewat pengecekan visual manual di `/properties`, diperbaiki ke `Rp 1.600.000.000`
+
+### Docs
+
+- Ditemukan (belum ditindaklanjuti): 9 kelompok (20 listing) kemungkinan duplikat di data sumber spreadsheet (pemilik+harga identik, judul beda) -- perlu ditinjau manual, tidak dihapus otomatis
+- Storage foto dibahas: ~100MB terpakai dari 1GB free tier Supabase saat ini. Cloudflare R2 (10GB gratis, egress selalu gratis) dipetakan sebagai opsi masa depan, belum diputuskan/dieksekusi
+- Urutan kerja: sesi ini diselipkan di antara diskusi AI Agent (Task 015, di-hold) atas permintaan Yohan
+
+---
+
 ## 28 September 2026 — Diskusi Arsitektur AI Agent & Multi-Tenant (tanpa kode)
 
 Sesi diskusi murni (Yohan minta ditunda dulu proses follow-up manual sampai nomor WA produksi tersambung ke Kapso, ~1-2 hari lagi) -- tidak ada kode ditulis, cuma keputusan arah dan riset eksternal.

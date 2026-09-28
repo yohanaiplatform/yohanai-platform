@@ -24,6 +24,10 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Manajemen Kategori (UI) | ✅ Halaman `/properties/categories` — tambah/edit/hapus (soft delete)/pulihkan, akses `authenticated_all` (sama seperti pola tabel lain) |
 | Pagination List | ✅ `/properties` — 24/48/96 per halaman (pola sama seperti Lead List di CRM) |
 | Kepemilikan per Agent | ✅ Kolom `assigned_to` + RLS `listings_owner_or_admin` (migration `043`) — agent cuma lihat listing miliknya, admin lihat & assign semua |
+| Migrasi Data Lama | ✅ 91 listing dari spreadsheet legacy Griya Indonesia dimigrasikan (28 Sep 2026) — lihat "Migrasi dari Spreadsheet" di bawah |
+| Edit Judul/Harga/Alamat/Deskripsi | ✅ `PropertyMainFieldsEditable.tsx` di halaman detail |
+| Hapus Listing | ✅ Soft delete (`deleted_at`), tombol "Hapus" di halaman detail |
+| Watermark Foto | ✅ Logo Yohan.AI otomatis di tengah tiap foto yang diupload (`watermarkPhoto.ts`, Canvas API browser) |
 | AI Recommendation | 🔵 Planned |
 
 ---
@@ -49,7 +53,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 
 `photo_urls[0]` = foto sampul, dipakai di grid list & (rencananya) flyer promosi.
 
-**GRANT:** `authenticated` sebelumnya **0 akses** ke schema `property` (temuan audit 23 September 2026, sengaja belum diperbaiki karena belum ada kode yang butuh) — diperbaiki di migration `041` begitu Property Module mulai dibangun. Storage bucket `properties` sudah ada dari migration `019` (public), tidak perlu bucket baru.
+**GRANT:** `authenticated` sebelumnya **0 akses** ke schema `property` (temuan audit 23 September 2026, sengaja belum diperbaiki karena belum ada kode yang butuh) — diperbaiki di migration `041` begitu Property Module mulai dibangun. Storage bucket `properties` sudah ada dari migration `019` (public), tidak perlu bucket baru. **`service_role` juga sempat 0 akses ke schema `property`** (pola yang sama seperti temuan `customer`/`chat` di `AGENTS.md`) — ditemukan 28 September 2026 saat skrip migrasi bulk listing (pakai `service_role` key) gagal dengan "permission denied for schema property", diperbaiki di migration `044`.
 
 **RLS `property.categories`:** policy `authenticated_all` (`USING core.is_authenticated()`) ternyata sudah ada di database sejak awal, tapi **tidak tercatat di migration manapun** di repo — ditemukan 26 September 2026 saat verifikasi sebelum membangun halaman Kelola Kategori (pola yang sama seperti temuan audit 23 September di `AGENTS.md`: isi repo bukan cermin isi database). GRANT `authenticated`: SELECT/INSERT/UPDATE ada (`041`), **DELETE tidak ada** — bukan masalah karena hapus kategori memakai soft delete (`deleted_at`), bukan DELETE asli.
 
@@ -69,11 +73,33 @@ Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah list
 
 ## Property Detail (`/properties/[slug]`)
 
-- Galeri foto dengan tombol tambah/hapus (foto pertama = sampul).
+- **Edit Judul/Harga/Alamat/Deskripsi** (28 Sep 2026, `PropertyMainFieldsEditable.tsx`) — tombol Edit/Save/Batal, field kolom asli tabel (bukan metadata), beda komponen dari `PropertyEditableFields` yang cuma edit metadata JSONB.
+- **Hapus Listing** (28 Sep 2026) — tombol "Hapus" di sebelah Edit, soft delete (`deleted_at`), konfirmasi `window.confirm`, redirect ke `/properties` setelah berhasil. Belum ada UI pulihkan listing terhapus (beda dari kategori) -- kalau perlu, langsung lewat database.
+- Galeri foto dengan tombol tambah/hapus (foto pertama = sampul). Foto baru otomatis diberi **watermark logo Yohan.AI** di tengah (lihat "Watermark Foto" di bawah).
 - Video embed (YouTube) kalau ada.
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
 - "Ditugaskan ke" — dropdown ganti penanggung jawab (`PropertyAssignSelect.tsx`, admin/super_admin saja; non-admin cuma lihat teks statis "Saya"), pola identik `LeadAssignSelect.tsx` di CRM.
 - Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.
+
+## Watermark Foto (28 September 2026)
+
+Setiap foto yang diupload lewat `uploadListingPhoto.ts` (baik dari form Tambah Listing maupun halaman Detail) otomatis dikasih watermark logo Yohan.AI di tengah, sebelum diupload ke Storage. Implementasi murni **Canvas API bawaan browser** (`src/lib/property/watermarkPhoto.ts`) -- tidak nambah dependency npm apa pun. Pakai `logo-dark.png` (versi teks putih, dipakai header saat dark mode) dengan opacity 55% + shadow hitam, supaya tetap kebaca di foto terang maupun gelap -- **bukan** `app-icon.png` yang dipakai boot/loading screen. Kalau logo gagal dimuat atau canvas tidak didukung, foto tetap diupload tanpa watermark daripada gagal total.
+
+## Migrasi dari Spreadsheet (28 September 2026)
+
+**91 listing** dari spreadsheet legacy Griya Indonesia ("Listing Baru 2024 Terbaru", sheet "Input Data") dimigrasikan ke `property.listings` lewat skrip Node.js satu-kali (tidak disimpan di repo -- one-off, bukan reusable, dijalankan lokal pakai `SUPABASE_SERVICE_ROLE_KEY`). Hasil: **91/91 listing masuk, 285/285 foto berhasil diunduh ulang dari Google Drive dan diupload ke Storage bucket `properties`** (jauh lebih baik dari ekspektasi -- log AutoCrat lama di spreadsheet sempat mencatat 55/91 link foto rusak, ternyata sebagian besar sudah bisa diakses lagi sekarang).
+
+**Keputusan yang diambil sebelum migrasi (dikonfirmasi eksplisit ke Yohan):**
+- **Kepemilikan (`assigned_to`):** semua 91 listing di-assign ke admin dulu (bukan dipetakan ke 9 agen berbeda di data lama, cuma 2 yang punya akun platform sekarang -- Yohan & Ramlan).
+- **`contact_phone`:** diseragamkan ke nomor kantor Griya Indonesia (`0821-5041-5012`), bukan nomor pribadi pemilik properti yang ada di data lama.
+- **Data pribadi pemilik** (KTP, tanggal lahir, pekerjaan, alamat, No. HP pemilik) -- **sengaja tidak diimpor sama sekali**, tidak ada tempat/fitur untuk itu di schema sekarang.
+- **Foto:** dicoba migrasikan yang linknya masih valid (bukan skip) -- hasilnya 100% berhasil dari yang dicoba.
+
+**Masalah data yang ditemukan & ditangani saat migrasi:**
+- **Bug parsing harga:** 1 listing ("Tanah Ruko Tepi Jalan Pak Benceng Pontianak") sempat salah jadi `Rp 16` karena harga aslinya ditulis teks "1.6 M per kapling" (bukan format angka standar) -- parser digit-only salah menafsirkannya. Diperbaiki manual jadi `Rp 1.600.000.000` setelah ditemukan lewat pengecekan visual di `/properties`, bukan cuma percaya laporan "0 gagal" dari skrip migrasi.
+- **Luas tanah/bangunan ambigu** (7 nilai, mis. "36, 45, 60" untuk kompleks multi-tipe, "65+") -- sengaja dikosongkan sebagai angka, teks aslinya tetap masuk deskripsi supaya tidak ada data yang salah tebak.
+- **Listing kemungkinan duplikat:** ditemukan 9 kelompok (20 listing) dengan pemilik+harga identik tapi judul/baris berbeda di spreadsheet asli (kemungkinan disubmit ulang via Google Form) -- **sengaja tidak dihapus otomatis**, karena sebagian bisa jadi memang listing berbeda dalam satu kompleks. Perlu ditinjau manual oleh Yohan.
+- Kolom pipeline `customer.leads.status`-style yang serupa tidak ada masalah di sini karena `property.listings` tidak punya kolom pipeline seperti itu -- field `status` (available/booked/sold/hold) di metadata semuanya di-default `"available"`, belum ada sumber data yang bisa dipercaya untuk status sebenarnya (data spreadsheet dari 2024, sebagian mungkin sudah terjual).
 
 ## Kelola Kategori (`/properties/categories`)
 
@@ -89,13 +115,13 @@ Tombolnya masih ada di kode (`PropertyExportButtons.tsx`, `PropertyFlyer.tsx`, `
 
 ```text
 src/lib/property/        getListings, getListingBySlug, createListing, slugify,
-                          uploadListingPhoto, exportFlyer, youtube, formatRupiah,
-                          categories (getCategories/createCategory/updateCategory/
-                          deleteCategory/restoreCategory)
+                          uploadListingPhoto, watermarkPhoto, exportFlyer, youtube,
+                          formatRupiah, categories (getCategories/createCategory/
+                          updateCategory/deleteCategory/restoreCategory)
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
                           ListingListPagination, ListingPageSizeSelect,
-                          PropertyEditableFields, PropertyAssignSelect,
-                          PropertyPhotoManager,
+                          PropertyEditableFields, PropertyMainFieldsEditable,
+                          PropertyAssignSelect, PropertyPhotoManager,
                           PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons,
                           CategoryManager
 src/app/(dashboard)/properties/categories/  Halaman Kelola Kategori
@@ -107,6 +133,9 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 # Current Limitations
 
 - AI Recommendation belum aktif — menunggu AI Foundation.
+- **9 kelompok (20 listing) kemungkinan duplikat** dari hasil migrasi spreadsheet (28 Sep 2026) belum ditinjau manual -- lihat daftar lengkap di percakapan/riwayat sesi, atau query ulang lewat `description` yang mengandung `[Migrasi dari spreadsheet, GDI/2026/<n>]`.
+- **Storage foto masih di Supabase** (free tier 1GB, saat ini terpakai ~100MB dari migrasi 91 listing + listing manual) -- dibahas opsi pindah ke Cloudflare R2 (10GB gratis, egress selalu gratis) tapi belum diputuskan/dieksekusi, lihat catatan di `docs/status.mdx`.
+- Belum ada UI untuk memulihkan listing yang sudah dihapus (soft delete) -- beda dari kategori yang sudah punya toggle "Tampilkan terhapus".
 
 ---
 
@@ -120,4 +149,4 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Last Updated
 
-27 September 2026
+28 September 2026
