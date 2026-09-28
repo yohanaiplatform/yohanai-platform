@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
     "@base-ui/react": "^1.6.0",
     "@radix-ui/react-avatar": "^1.2.4",
     "@radix-ui/react-separator": "^1.1.13",
