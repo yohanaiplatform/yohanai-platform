@@ -51,6 +51,25 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 28 September 2026 — Sembunyikan Listing, Download Foto, Watermark Retroaktif
+
+### Added
+
+- **Sembunyikan/Tampilkan listing** (`PropertyVisibilityToggle.tsx`, `metadata.hidden`) -- beda dari Hapus (permanen), buat kasus sementara (mis. pemilik tak bisa dihubungi). Otomatis hilang dari `/properties` secara default, toggle "Tampilkan yang disembunyikan" untuk staff yang perlu meninjau. **Wajib dicek AI Agent (nanti) sebelum referensi listing ke lead** -- didokumentasikan eksplisit di kode & docs
+- **Klik foto buka ukuran penuh + tombol Download** di `PropertyPhotoManager.tsx` -- sebelumnya thumbnail sama sekali tidak bisa diklik
+- **Watermark retroaktif** ke 291 foto yang sudah terupload sebelum fitur watermark ada (`sharp`, skrip Node.js satu-kali, tidak disimpan di repo) -- hasil akhir 291/291 berhasil, 0 gagal
+
+### Fixed
+
+- 1 listing test sempat ke-watermark dobel saat development skrip retroaktif (dijalankan 2x ke foto yang sama) -- diperbaiki dengan ambil ulang foto asli dari Google Drive
+
+### Docs
+
+- Dicek ke dokumentasi resmi Kapso: WhatsApp API (Meta Cloud API) mendukung kirim gambar langsung via `image.link` (URL publik) tanpa upload dulu -- relevan untuk Task 015 (AI Agent) nanti, karena `photo_urls` sudah berupa URL publik. Murni riset, belum ada kode
+- Debugging watermark retroaktif sempat salah duga "bug plakat/shadow" -- ternyata penyebab sebenarnya adalah skrip test dijalankan berulang ke file yang sama, bukan logika composite-nya. Pelajaran: isolasi variabel sebelum menyimpulkan penyebab bug, terutama saat testing script yang overwrite file yang sama berkali-kali
+
+---
+
 ## 28 September 2026 — Migrasi 91 Listing + Edit/Hapus/Watermark Property
 
 ### Added

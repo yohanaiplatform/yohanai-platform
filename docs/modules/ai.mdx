@@ -43,6 +43,12 @@ Yohan minta segera mulai follow-up manual untuk "Lead Beku" (Cold, 966 lead) dan
 
 **3. Pertanyaan baru: multi-tenant untuk masa depan (dibahas, belum diputuskan arahnya, cuma dipetakan opsinya).** Lihat detail lengkap perbandingan **Model A (SaaS multi-tenant sungguhan)** vs **Model B (duplikasi instance per pelanggan)** di `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". Ringkasan yang relevan untuk AI Agent/Kapso: dicek langsung ke dokumentasi resmi Kapso, tier **"Platform" ($299/bulan)** ternyata sudah mendukung **"Multi-partner Solution"** — satu akun Kapso bisa pegang sampai 50 nomor WA, tiap tenant tetap punya WABA/verifikasi bisnis sendiri, dikelola dari satu dashboard. Artinya **sisi Kapso/WhatsApp bukan penghalang** untuk Model A kalau nanti dipilih — penghalang aslinya tetap murni skema database (`tenant_id` + RLS di semua tabel domain), belum berubah dari keputusan penundaan 26 September.
 
+**4. Pertanyaan baru (28 Sep, malam): kalau lead minta foto properti saat di-follow-up AI via WA, dikirim foto asli atau cuma link?** Dicek langsung ke dokumentasi resmi Kapso (`docs.kapso.ai/api/meta/whatsapp/messages/send-a-message`) — API WhatsApp (via Meta Cloud API, yang dipakai Kapso) **mendukung kirim gambar langsung pakai URL publik**, tidak wajib upload dulu:
+```json
+{ "messaging_product": "whatsapp", "to": "...", "type": "image", "image": { "link": "<url>", "caption": "..." } }
+```
+Karena `photo_urls` di `property.listings.metadata` **sudah berupa URL publik Supabase Storage**, AI Agent nanti (begitu dibangun) bisa langsung kirim foto asli inline di chat WA (bukan cuma link teks yang harus diklik) — tinggal panggil endpoint kirim pesan Kapso dengan `type: "image"` dan `image.link` = salah satu `photo_urls`. Belum ada kode ditulis (AI Agent masih di-hold), ini murni temuan riset untuk referensi Task 015 nanti. **Catatan penting:** logika ini WAJIB cek flag `metadata.hidden` dulu sebelum mengirim/mereferensikan foto atau data listing manapun ke lead — lihat "Sembunyikan/Tampilkan Listing" di `docs/modules/property.mdx`.
+
 ---
 
 # Objectives

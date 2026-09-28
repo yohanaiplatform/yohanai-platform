@@ -393,9 +393,21 @@ Task 016
 
 Detail lengkap: `docs/modules/property.mdx`.
 
+Task 017
+
+**Lanjutan Property (hide/show, download foto, watermark retroaktif) — ✅ Selesai (28 September 2026).** Ditanya Yohan setelah pakai fitur migrasi/watermark dari Task 016.
+
+- **Sembunyikan/Tampilkan Listing** (`PropertyVisibilityToggle.tsx`, `metadata.hidden`) — beda dari Hapus (permanen): buat kasus sementara (mis. pemilik tak bisa dihubungi). Listing hidden hilang dari `/properties` (toggle "Tampilkan yang disembunyikan" untuk staff), dan **wajib dicek AI Agent (nanti) sebelum referensi ke lead** — didokumentasikan eksplisit di kode & `docs/modules/ai.mdx` supaya tidak lupa begitu Task 015 dilanjutkan.
+- **Klik foto buka ukuran penuh + tombol Download** (`PropertyPhotoManager.tsx`) — sebelumnya thumbnail tidak bisa diklik sama sekali (ketemu saat Yohan tanya "kenapa foto tak bisa dibuka di laptop").
+- **Watermark retroaktif ke 291 foto lama** — pakai `sharp` (server-side, `npm install sharp`) lewat skrip satu-kali, karena `watermarkPhoto.ts` (Canvas browser) tidak bisa dipakai untuk file yang sudah ada di Storage. Sempat ketemu bug (watermark pecah/tidak sejajar) saat development — ternyata BUKAN bug asli, skrip sempat dijalankan 2x ke foto tes yang sama sehingga bertumpuk. Disederhanakan (logo+opacity saja, tanpa plakat/shadow tambahan), diverifikasi bersih di foto yang belum pernah disentuh, baru dijalankan ke semua 291 foto — **hasil akhir 291/291 berhasil, 0 gagal**, dicek ulang dengan spot-check acak setelah selesai.
+- **Riset: AI kirim foto asli via WA atau cuma link?** Dicek ke dokumentasi resmi Kapso — API WhatsApp (Meta Cloud API) mendukung kirim gambar langsung pakai `image.link` (URL publik), tanpa upload dulu. Karena `photo_urls` sudah berupa URL publik Supabase Storage, AI Agent nanti (begitu dibangun) bisa kirim foto asli inline di chat, bukan cuma link. Murni temuan riset untuk Task 015, belum ada kode.
+- Bonus: 1 listing test sempat ke-watermark dobel saat debugging — diperbaiki dengan ambil ulang foto asli dari Google Drive.
+
+Detail lengkap: `docs/modules/property.mdx` dan `docs/modules/ai.mdx`.
+
 ### Next Task
 
-Task 017
+Task 018
 
 Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso (Task 015 yang di-hold). Item lain yang masih terbuka: tinjau manual 9 kelompok listing duplikat hasil migrasi, keputusan pindah storage foto ke R2 kalau volume bertambah.
 

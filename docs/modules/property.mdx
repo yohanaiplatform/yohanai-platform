@@ -27,7 +27,9 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Migrasi Data Lama | ✅ 91 listing dari spreadsheet legacy Griya Indonesia dimigrasikan (28 Sep 2026) — lihat "Migrasi dari Spreadsheet" di bawah |
 | Edit Judul/Harga/Alamat/Deskripsi | ✅ `PropertyMainFieldsEditable.tsx` di halaman detail |
 | Hapus Listing | ✅ Soft delete (`deleted_at`), tombol "Hapus" di halaman detail |
-| Watermark Foto | ✅ Logo Yohan.AI otomatis di tengah tiap foto yang diupload (`watermarkPhoto.ts`, Canvas API browser) |
+| Watermark Foto | ✅ Logo Yohan.AI otomatis di tengah tiap foto yang diupload (`watermarkPhoto.ts`, Canvas API browser) + retroaktif ke 291 foto lama (`sharp`, one-off) |
+| Klik Foto / Download | ✅ Klik foto buka ukuran penuh, tombol Download terpisah (fetch+blob) |
+| Sembunyikan/Tampilkan Listing | ✅ Beda dari Hapus -- sementara, listing hilang dari `/properties` + wajib dicek AI Agent (nanti) sebelum referensi ke lead |
 | AI Recommendation | 🔵 Planned |
 
 ---
@@ -47,7 +49,8 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
   "certificate_type": "SHM" | "HGB" | "Girik" | "Lainnya" | null,
   "video_url": string | null,
   "contact_phone": string | null,
-  "photo_urls": string[]
+  "photo_urls": string[],
+  "hidden": boolean
 }
 ```
 
@@ -75,15 +78,28 @@ Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah list
 
 - **Edit Judul/Harga/Alamat/Deskripsi** (28 Sep 2026, `PropertyMainFieldsEditable.tsx`) — tombol Edit/Save/Batal, field kolom asli tabel (bukan metadata), beda komponen dari `PropertyEditableFields` yang cuma edit metadata JSONB.
 - **Hapus Listing** (28 Sep 2026) — tombol "Hapus" di sebelah Edit, soft delete (`deleted_at`), konfirmasi `window.confirm`, redirect ke `/properties` setelah berhasil. Belum ada UI pulihkan listing terhapus (beda dari kategori) -- kalau perlu, langsung lewat database.
-- Galeri foto dengan tombol tambah/hapus (foto pertama = sampul). Foto baru otomatis diberi **watermark logo Yohan.AI** di tengah (lihat "Watermark Foto" di bawah).
+- **Sembunyikan/Tampilkan Listing** (28 Sep 2026, `PropertyVisibilityToggle.tsx`) — lihat "Sembunyikan/Tampilkan Listing" di bawah untuk detail lengkap kenapa ini beda dari Hapus.
+- Galeri foto dengan tombol tambah/hapus (foto pertama = sampul), **klik foto buka ukuran penuh di tab baru, tombol Download terpisah** (28 Sep 2026 -- sebelumnya thumbnail tidak bisa diklik sama sekali). Foto baru otomatis diberi **watermark logo Yohan.AI** di tengah (lihat "Watermark Foto" di bawah).
 - Video embed (YouTube) kalau ada.
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
 - "Ditugaskan ke" — dropdown ganti penanggung jawab (`PropertyAssignSelect.tsx`, admin/super_admin saja; non-admin cuma lihat teks statis "Saya"), pola identik `LeadAssignSelect.tsx` di CRM.
 - Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.
 
+## Sembunyikan/Tampilkan Listing (28 September 2026)
+
+Beda dari **Hapus** (soft delete permanen, buat listing yang memang sudah tidak relevan): **Sembunyikan** untuk kasus sementara -- misalnya pemilik properti tiba-tiba tidak bisa dihubungi, tapi listing-nya mungkin aktif lagi nanti. Listing yang disembunyikan (`metadata.hidden = true`):
+
+- **Otomatis hilang dari `/properties`** -- `getListings()` mengecualikannya secara default (lihat filter `showHidden` di `src/lib/property/getListings.ts`). Ada toggle "Tampilkan yang disembunyikan" di filter list untuk staff yang perlu meninjau/menampilkan kembali.
+- Ditandai badge kuning "Disembunyikan" di grid list (kalau toggle di atas aktif) dan banner peringatan di halaman detail-nya.
+- **WAJIB dicek oleh logika apa pun yang mereferensikan listing ke lead/konsumen di masa depan** -- termasuk AI Agent (Task 015, masih di-hold) dan fitur flyer (kalau nanti dilanjutkan). Ini didokumentasikan eksplisit di komentar kode `PropertyVisibilityToggle.tsx` dan `docs/modules/ai.mdx`, supaya tidak lupa begitu AI Agent mulai dibangun.
+
+Listing lama (91 hasil migrasi + yang sudah ada sebelumnya) tidak punya key `hidden` sama sekali di metadata -- `getListings()` menanganinya sebagai "tidak hidden" (`metadata->>hidden IS NULL` diperlakukan sama seperti `false`), bukan diam-diam dikecualikan.
+
 ## Watermark Foto (28 September 2026)
 
 Setiap foto yang diupload lewat `uploadListingPhoto.ts` (baik dari form Tambah Listing maupun halaman Detail) otomatis dikasih watermark logo Yohan.AI di tengah, sebelum diupload ke Storage. Implementasi murni **Canvas API bawaan browser** (`src/lib/property/watermarkPhoto.ts`) -- tidak nambah dependency npm apa pun. Pakai `logo-dark.png` (versi teks putih, dipakai header saat dark mode) dengan opacity 55% + shadow hitam, supaya tetap kebaca di foto terang maupun gelap -- **bukan** `app-icon.png` yang dipakai boot/loading screen. Kalau logo gagal dimuat atau canvas tidak didukung, foto tetap diupload tanpa watermark daripada gagal total.
+
+**Watermark retroaktif ke foto lama** -- Yohan minta semua foto yang sudah terupload sebelum fitur ini ada (91 hasil migrasi spreadsheet + beberapa listing manual, total **291 foto**) juga dikasih watermark. Karena file-file itu ada di Storage (bukan di browser lagi), dipakai `sharp` (server-side, `npm install sharp`) lewat skrip Node.js satu-kali (tidak disimpan di repo), bukan `watermarkPhoto.ts` yang berbasis Canvas browser. **Bug sempat ketemu saat development skrip ini**: percobaan pertama pakai "plakat" latar gelap di belakang logo (meniru shadow versi Canvas) menghasilkan watermark yang pecah/tidak sejajar -- setelah diselidiki, penyebabnya BUKAN plakat-nya, tapi skrip sempat dijalankan 2x ke foto tes yang sama sehingga watermark bertumpuk. Disederhanakan jadi cuma logo + opacity (tanpa plakat/shadow tambahan), diverifikasi bersih di foto yang belum pernah disentuh sebelum dijalankan ke semua 291 foto. **Hasil akhir: 291/291 berhasil, 0 gagal** (diverifikasi lagi dengan spot-check acak setelah batch selesai).
 
 ## Migrasi dari Spreadsheet (28 September 2026)
 
@@ -121,9 +137,9 @@ src/lib/property/        getListings, getListingBySlug, createListing, slugify,
 src/components/property/ AddListingForm, ListingGrid, ListingListFilters,
                           ListingListPagination, ListingPageSizeSelect,
                           PropertyEditableFields, PropertyMainFieldsEditable,
-                          PropertyAssignSelect, PropertyPhotoManager,
-                          PropertyVideoEmbed, PropertyFlyer, PropertyExportButtons,
-                          CategoryManager
+                          PropertyVisibilityToggle, PropertyAssignSelect,
+                          PropertyPhotoManager, PropertyVideoEmbed, PropertyFlyer,
+                          PropertyExportButtons, CategoryManager
 src/app/(dashboard)/properties/categories/  Halaman Kelola Kategori
 src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 ```
