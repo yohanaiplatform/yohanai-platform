@@ -1,8 +1,6 @@
 // src/lib/property/uploadListingPhoto.ts
 
 import imageCompression from "browser-image-compression";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
 import { watermarkPhoto } from "@/lib/property/watermarkPhoto";
 
 const COMPRESSION_OPTIONS = {
@@ -11,9 +9,14 @@ const COMPRESSION_OPTIONS = {
   useWebWorker: true,
 };
 
-/** Kompres file gambar di browser lalu upload ke bucket `properties`, return public URL. */
+/**
+ * Kompres + watermark file gambar di browser, lalu upload ke Cloudflare R2
+ * lewat POST /api/properties/upload-photo (Secret Access Key R2 cuma boleh
+ * dipegang server, tidak boleh sampai ke browser -- beda dari versi lama
+ * yang upload langsung dari browser ke Supabase Storage pakai anon key).
+ * Return public URL R2.
+ */
 export async function uploadListingPhoto(
-  supabase: SupabaseClient<Database>,
   listingId: string,
   file: File
 ): Promise<{ url: string | null; error: string | null }> {
@@ -33,17 +36,17 @@ export async function uploadListingPhoto(
     watermarked = compressed;
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const path = `listings/${listingId}/${crypto.randomUUID()}.${ext}`;
+  const formData = new FormData();
+  formData.append("listingId", listingId);
+  formData.append("file", watermarked, file.name);
 
-  const { error: uploadError } = await supabase.storage
-    .from("properties")
-    .upload(path, watermarked, { contentType: file.type || "image/jpeg" });
+  const res = await fetch("/api/properties/upload-photo", { method: "POST", body: formData });
 
-  if (uploadError) {
-    return { url: null, error: uploadError.message };
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    return { url: null, error: body?.error ?? "Upload gagal" };
   }
 
-  const { data } = supabase.storage.from("properties").getPublicUrl(path);
-  return { url: data.publicUrl, error: null };
+  const { url } = await res.json();
+  return { url: url ?? null, error: url ? null : "Upload gagal" };
 }

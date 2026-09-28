@@ -50,7 +50,7 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
     const uploadedUrls: string[] = [];
 
     for (const file of files) {
-      const { url, error: uploadError } = await uploadListingPhoto(supabase, listingId, file);
+      const { url, error: uploadError } = await uploadListingPhoto(listingId, file);
       if (uploadError || !url) {
         setError(`Gagal upload ${file.name}: ${uploadError}`);
         continue;
