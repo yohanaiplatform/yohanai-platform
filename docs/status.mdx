@@ -405,17 +405,30 @@ Task 017
 
 Detail lengkap: `docs/modules/property.mdx` dan `docs/modules/ai.mdx`.
 
-### Next Task
-
 Task 018
 
-Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso (Task 015 yang di-hold). Item lain yang masih terbuka: tinjau manual 9 kelompok listing duplikat hasil migrasi, keputusan pindah storage foto ke R2 kalau volume bertambah.
+**Infrastruktur: region Vercel dipindah ke Singapura — ✅ Selesai (28 September 2026).** Dipicu rencana migrasi storage foto ke Cloudflare R2 malam ini, Yohan tanya soal kecepatan loading untuk user Indonesia.
+
+- **Riset geografi infra**: Cloudflare/Vercel/Supabase dikonfirmasi tiga perusahaan terpisah (Cloudflare cuma dipakai untuk DNS di project ini). Supabase project YohanAI ternyata di `ap-northeast-2` (Seoul) — dicek langsung lewat MCP `get_project`, bukan asumsi. Supabase belum ada region Indonesia; Singapura (`ap-southeast-1`) adalah yang terdekat.
+- **Temuan penting**: Supabase **tidak bisa** pindah region project yang sama secara in-place (dikonfirmasi dari docs resmi) — harus bikin project baru di region baru + migrasi penuh data/storage/auth. Effort besar untuk project yang sudah ada ~1968 lead + 291 foto — **belum dieksekusi**, masih opsi masa depan.
+- **Vercel function ternyata jalan di `iad1` (US East)**, bukan dekat Indonesia sama sekali, dan belum pernah dikonfigurasi (tidak ada `vercel.json` sebelumnya) — ini quick win karena cuma config file, tanpa migrasi data. Dibuat `vercel.json` dengan `{"regions": ["sin1"]}`, di-push, deployment baru terkonfirmasi `regions: ["sin1"]` dan sudah live di `yohanai.id`.
+- **Catatan batas perbaikan**: percepatan ini menolong jalur yang lewat Vercel function (Server Component render, API routes). **Tidak menolong** live chat WhatsApp (Supabase Realtime, browser connect langsung ke Seoul) — itu baru ikut membaik kalau Supabase-nya sendiri pindah ke Singapura.
+
+### Next Task
+
+Task 019
+
+Lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso (Task 015 yang di-hold). Item lain yang masih terbuka: tinjau manual 9 kelompok listing duplikat hasil migrasi, keputusan pindah storage foto ke R2 (dan/atau Supabase project ke Singapura) kalau volume bertambah.
+
+**Antrian baru (diminta 28 September 2026 malam, belum dikerjakan):**
+- **Laporan harian gabungan** (lead, listing, chat, lead baru, dll yang relevan) — Yohan tunjukkan contoh lama "Yohan.AI Daily Intelligence Report" dari sistem Apps Script legacy (`cvdevthan@gmail.com`) sebagai referensi. **Catatan penting: data di contoh itu rusak/tidak bisa dipercaya** — "52419 Total Leads" jauh melebihi ~1968 lead sungguhan di Supabase, dan "Average Confidence: 30837.00%" jelas bug perhitungan. Ini konsisten dengan yang sudah didokumentasikan di `AGENTS.md` soal trigger AI legacy (`batchDetectConsumerIntent`, `batchExtractBudget`) error rate 100% — jadi contoh ini dipakai sebagai referensi **format/struktur laporan saja**, bukan sumber angka atau logika perhitungan.
+- **Laporan penggunaan/analytics**: token AI yang terpakai, jumlah AI crawler yang mengakses situs, jumlah visitor ke listing/foto, jumlah download foto/video. Belum ada sumber data untuk sebagian ini di codebase sekarang (mis. tracking visitor/crawler ke `/properties/[slug]` dan hit ke Supabase Storage belum ada instrumentasi) — perlu didesain dulu sebelum dibangun.
 
 ---
 
 # Last Updated
 
-28 September 2026
+28 September 2026 (malam)
 
 ---
 
