@@ -3,6 +3,7 @@
 import imageCompression from "browser-image-compression";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { watermarkPhoto } from "@/lib/property/watermarkPhoto";
 
 const COMPRESSION_OPTIONS = {
   maxSizeMB: 1,
@@ -24,12 +25,20 @@ export async function uploadListingPhoto(
     compressed = file;
   }
 
+  let watermarked: Blob;
+  try {
+    watermarked = await watermarkPhoto(compressed, file.type || "image/jpeg");
+  } catch {
+    // Watermark gagal (mis. logo gagal dimuat) -- upload versi tanpa watermark daripada gagal total.
+    watermarked = compressed;
+  }
+
   const ext = file.name.split(".").pop() || "jpg";
   const path = `listings/${listingId}/${crypto.randomUUID()}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from("properties")
-    .upload(path, compressed, { contentType: file.type || "image/jpeg" });
+    .upload(path, watermarked, { contentType: file.type || "image/jpeg" });
 
   if (uploadError) {
     return { url: null, error: uploadError.message };
