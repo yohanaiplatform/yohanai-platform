@@ -17,7 +17,8 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 |------|--------|
 | CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[slug]`) |
 | URL Listing | ✅ Slug manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042` |
-| Upload Foto | ✅ Ke Supabase Storage bucket `properties`, dikompres di browser dulu |
+| Upload Foto | ✅ Ke Supabase Storage bucket `properties`, dikompres di browser dulu. 🟡 Pindah ke Cloudflare R2 (28 Sep 2026) — kode sudah diarahkan ke R2 lewat `POST /api/properties/upload-photo`, aktivasi nunggu setup manual Yohan (lihat `docs/status.mdx` Task 019) |
+| Data Pemilik & Nilai Komisi | ✅ Rahasia (28 Sep 2026) — `metadata.owner`/`metadata.commission`, admin+agent yang di-assign saja yang lihat, edit admin-only |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
 | Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
@@ -50,11 +51,15 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
   "video_url": string | null,
   "contact_phone": string | null,
   "photo_urls": string[],
-  "hidden": boolean
+  "hidden": boolean,
+  "owner": { "name": string | null, "phone": string | null } | null,
+  "commission": { "type": "percentage" | "fixed" | null, "value": number | null } | null
 }
 ```
 
 `photo_urls[0]` = foto sampul, dipakai di grid list & (rencananya) flyer promosi.
+
+**`owner`/`commission` (28 September 2026) — rahasia, admin + agent yang di-assign saja.** Tidak perlu migration/RLS baru: policy `listings_owner_or_admin` (`043`) yang sudah ada kebetulan pas persis dengan kebutuhan ini — kalau sebuah listing kelihatan sama sekali oleh seorang user, user itu pasti admin atau agent yang di-assign (satu-satunya audiens yang disetujui Yohan lihat data ini), jadi RLS row-level yang sudah ada otomatis cukup. Yang perlu dibatasi tambahan cuma EDIT-nya (admin-only) — dilakukan di level UI (`PropertyConfidentialFields.tsx`), pola sama seperti dropdown "Ditugaskan ke" (`PropertyAssignSelect.tsx`): deteksi admin lewat `core.list_assignable_users()` (array kosong = bukan admin). **Field ini sengaja TIDAK PERNAH dikirim** ke `PropertyExportButtons`/`exportFlyer.ts` atau path publik apa pun — kalau nanti ada halaman listing publik (buat SEO/crawler), `metadata.owner`/`metadata.commission` wajib di-strip eksplisit sebelum dikirim ke client, jangan spread `metadata` mentah.
 
 **GRANT:** `authenticated` sebelumnya **0 akses** ke schema `property` (temuan audit 23 September 2026, sengaja belum diperbaiki karena belum ada kode yang butuh) — diperbaiki di migration `041` begitu Property Module mulai dibangun. Storage bucket `properties` sudah ada dari migration `019` (public), tidak perlu bucket baru. **`service_role` juga sempat 0 akses ke schema `property`** (pola yang sama seperti temuan `customer`/`chat` di `AGENTS.md`) — ditemukan 28 September 2026 saat skrip migrasi bulk listing (pakai `service_role` key) gagal dengan "permission denied for schema property", diperbaiki di migration `044`.
 

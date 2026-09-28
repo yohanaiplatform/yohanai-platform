@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PropertyEditableFields } from "@/components/property/PropertyEditableFields";
+import { PropertyConfidentialFields } from "@/components/property/PropertyConfidentialFields";
 import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFieldsEditable";
 import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
@@ -61,6 +62,14 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
   const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
+  const owner = getListingMetadataValue<{ name: string | null; phone: string | null }>(
+    listing.metadata,
+    "owner"
+  );
+  const commission = getListingMetadataValue<{
+    type: "percentage" | "fixed" | null;
+    value: number | null;
+  }>(listing.metadata, "commission");
 
   return (
     <div className="space-y-6 p-6">
@@ -137,6 +146,18 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           carport={carport}
           certificateType={certificateType}
           contactPhone={contactPhone}
+        />
+      </SectionCard>
+
+      <SectionCard
+        title="Data Pemilik & Komisi"
+        description="Rahasia -- hanya admin dan agent yang ditugaskan yang bisa lihat, tidak pernah dikirim ke flyer/export."
+      >
+        <PropertyConfidentialFields
+          listingId={listing.id}
+          metadata={listing.metadata}
+          owner={owner}
+          commission={commission}
         />
       </SectionCard>
     </div>
