@@ -17,7 +17,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 |------|--------|
 | CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[slug]`) |
 | URL Listing | ✅ Slug manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042` |
-| Upload Foto | ✅ Ke Cloudflare R2 (aktif penuh 29 Sep 2026, custom domain `img.yohanai.id`), dikompres di browser dulu, upload lewat `POST /api/properties/upload-photo` (server-side, secret R2 tidak sampai browser). Menggantikan Supabase Storage bucket `properties` — 272/272 foto lama sudah dimigrasi, file lama belum dihapus |
+| Upload Foto | ✅ Ke Cloudflare R2 (aktif penuh 29 Sep 2026, custom domain `img.yohanai.id`), dikompres di browser dulu, upload lewat `POST /api/properties/upload-photo` (server-side, secret R2 tidak sampai browser). Menggantikan Supabase Storage bucket `properties` — 272/272 foto lama sudah dimigrasi, 298 file lama di Supabase Storage sudah dihapus (29 Sep 2026 malam) |
 | Data Pemilik & Nilai Komisi | ✅ Rahasia (28 Sep 2026) — `metadata.owner`/`metadata.commission`, admin+agent yang di-assign saja yang lihat, edit admin-only |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
@@ -155,7 +155,6 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 - AI Recommendation belum aktif — menunggu AI Foundation.
 - **9 kelompok (20 listing) kemungkinan duplikat** dari hasil migrasi spreadsheet (28 Sep 2026) belum ditinjau manual -- lihat daftar lengkap di percakapan/riwayat sesi, atau query ulang lewat `description` yang mengandung `[Migrasi dari spreadsheet, GDI/2026/<n>]`.
-- **File foto lama di Supabase Storage belum dihapus** — sudah tergantikan penuh oleh Cloudflare R2 (272/272 foto dimigrasi, 29 Sep 2026), tapi keputusan hapus vs simpan sebagai backup belum diambil, lihat catatan Task 022 di `docs/status.mdx`.
 - Belum ada UI untuk memulihkan listing yang sudah dihapus (soft delete) -- beda dari kategori yang sudah punya toggle "Tampilkan terhapus".
 
 ---
