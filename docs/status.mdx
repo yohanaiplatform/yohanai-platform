@@ -520,6 +520,7 @@ Task 024
 
 **Checklist buat sesi berikutnya:**
 
+0. **Cek status.claude.com** — 29 Sep 2026 malam ada incident aktif ("Degraded Performance" di Claude Console `platform.claude.com`) yang memblokir Yohan bikin `ANTHROPIC_API_KEY`. Kalau sudah pulih, lanjutkan ke poin 1. Kalau di sesi berikutnya masih terganggu, tanyakan Yohan apakah mau tetap tunggu atau pindah ke provider lain (OpenAI/Gemini — arsitektur `interpretLeadReply.ts` sudah ditulis modular supaya provider gampang diganti tanpa bongkar `applyAgentDecision()`).
 1. **Verifikasi AI Agent end-to-end** setelah `ANTHROPIC_API_KEY` diisi & schema `ai` di-expose (lihat Task 023) — kirim beberapa skenario pesan uji ke sandbox Kapso (lead baru semangat, lead minta batal, lead tanya harga spesifik yang tidak ada datanya, dll), cek `ai.agent_runs` dan hasil di CRM.
 2. **Tambahkan rate-limit/cooldown auto-reply** kalau hasil tes menunjukkan risiko balasan berulang terlalu cepat.
 3. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda 2x sekarang — sengaja, bukan lupa) — baru relevan setelah AI Agent terverifikasi aman di sandbox.
@@ -528,6 +529,7 @@ Task 024
 6. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai (sekarang sudah ada pemanggilan Claude API sungguhan lewat AI Agent, jadi ini mulai relevan), jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang.
 7. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja, tidak urgent.
 8. Docs sweep penuh (`docs/database/schema.mdx`, `erd.mdx`, `docs/release/changelog.mdx`) untuk migration `048`/`049` dan schema `ai` — sesi ini cuma sempat update `status.mdx`, `AGENTS.md` inti, dan `docs/modules/ai.mdx`.
+9. **Backlog "10 AI Agent"** dari arsip pra-Claude (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) sudah didokumentasikan lengkap di `docs/modules/ai.mdx` bagian "Backlog 10 AI Agent dari Arsip Pra-Claude" — jadikan referensi kalau AI Agent butuh dipecah tanggung jawabnya lebih lanjut (Property Intelligence buat rekomendasi listing, Reporting Agent terpisah, dll), TIDAK perlu dibangun ke-10-nya sekaligus.
 
 ---
 
