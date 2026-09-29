@@ -244,8 +244,8 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
 | Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto ✅ pindah penuh ke Cloudflare R2 (29 Sep 2026, 272/272 foto) |
 | Sales | 🟡 Planned |
-| AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder. Roadmap KPI-nya sudah dirujuk di Daily/Platform Report (bukan data nyata) |
-| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) belum disambungkan — prioritas #1 sesi berikutnya (Task 022) |
+| AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder. **AI Agent otomatis (29 Sep 2026 malam) sudah punya kode** — interpretasi balasan WA + update Temperature + auto-reply lewat Claude API, audit trail `ai.agent_runs` — aktivasi nunggu `ANTHROPIC_API_KEY` + expose schema `ai` di Data API |
+| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) **sengaja ditunda 2x** — AI Agent dimajukan jadi prioritas duluan (29 Sep 2026 malam) |
 | Reporting | ✅ Daily Report (personal per user, dashboard 1 halaman berwarna, link interaktif) & Platform Report (developer, kesehatan infra + biaya + status integrasi) aktif via cron GitHub Actions harian. Instrumentasi token AI/crawler/visitor/download belum didesain |
 | Google Contacts Sync | ✅ Personal per user (29 Sep 2026) — lead manual (`/crm/new`) auto-sync ke Google Contacts & HP milik user yang connect. Lead dari Google Form (`/api/leads/intake`) sengaja tidak ikut sync (tidak ada pemilik user) |
 
@@ -482,26 +482,58 @@ Task 021
 
 Verifikasi sesi ini: TypeScript PASS, ESLint 8 error pre-existing saja (sempat sempat nambah 1 baru di `GoogleContactsConnection.tsx` — `react-hooks/set-state-in-effect` — diperbaiki sebelum commit, kembali ke baseline 8), build PASS, deployment Production Ready, Google Contacts terverifikasi jalan end-to-end di `yohanai.id/settings`.
 
-### Next Task
-
 Task 022
 
-**Belum ada kode ditulis untuk ini — murni checklist keputusan & langkah lanjutan buat sesi berikutnya:**
+**Setup manual checklist dari sesi sebelumnya — status per 29 September 2026 malam:** poin 1 (hapus foto lama) sedang dieksekusi Yohan (skrip disiapkan, lihat Task 023). Poin 2 (test user Ramlan) sudah beres duluan — Ramlan sudah didaftarkan manual. Poin 3 (sambungkan nomor WA produksi) **sengaja DITUNDA** — urutan prioritas diubah Yohan, AI Agent (poin 4) dimajukan jadi prioritas malam ini. Poin 4 (AI Agent) — ✅ dibangun, lihat Task 023. Poin 5 (dokumen tanda tangan) dan 6 (multi-tenant) masih menunggu, lihat Task 024.
 
-1. **Supabase Storage lama (foto listing)** — ✅ file R2 sudah lengkap (272/272), tapi file lama di Supabase Storage bucket `properties` **belum dihapus**. Tanyakan ke Yohan: hapus sekarang untuk bebaskan kuota Free tier, atau simpan lebih lama sebagai backup? (Pertanyaan ini sudah diajukan sesi sebelumnya, belum dijawab — Yohan sempat pivot ke Google Contacts duluan.)
-2. **Google Contacts — verifikasi test user Ramlan.** Pastikan `ramlan.hadiansyah@gmail.com` (kalau dia mau pakai fitur ini juga) sudah ditambahkan sebagai test user di Google Cloud Console OAuth consent screen (mode "Testing", maks 100 test user manual) — dia perlu email-nya didaftarkan dulu sebelum bisa connect, beda dari `admin@yohanai.id` yang sudah lebih dulu jadi bagian project (developer).
-3. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda dari 27-28 Sep, prioritas #1 begitu sesi ini dilanjutkan) — auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, risiko migrasi relatif rendah.
-4. **AI Agent / Intelligent Dashboard otomatis** (Task 015 lanjutan) — desain webhook → interpretasi → update status funnel → balas otomatis, dibangun **tanpa n8n** (webhook yang sudah ada + GitHub Actions cron, pola sama seperti `supabase-keepalive.yml`/`daily-report.yml`), baru menyentuh Workflow/Agent bawaan Kapso kalau nanti benar-benar butuh visual builder.
-5. **Alur dokumen tanda tangan lead closing** — pakai spreadsheet + Apps Script yang disiapkan Yohan di sesi **terpisah** (bukan sesi manapun yang tercatat di sini) — kalau belum ada konteksnya saat sesi berikutnya mulai, minta Yohan share ulang link spreadsheet + lokasi Apps Script-nya, jangan asumsikan atau menebak strukturnya.
-6. **Multi-tenant SaaS** (Model A vs Model B, dibahas 27-28 Sep) — masih belum dipilih, jangan mulai coding arah manapun tanpa dikonfirmasi ulang lebih dulu; kemungkinan besar belum jadi prioritas sampai AI Agent (poin 4) beres.
-7. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai, jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang, didesain terpisah nanti kalau relevan (kemungkinan sejalan dengan Task 4/AI Agent).
-8. **`DAILY_REPORT_RECIPIENT`** (env var lama, sudah tidak dipakai kode manapun sejak redesain per-user) — boleh dihapus dari Vercel kapan saja, cuma clutter, tidak urgent.
+Task 023
+
+**Urutan kerja diubah Yohan (29 September 2026, malam) — prioritas jadi: (1) hapus foto lama, (2) fitur ajukan-akses Google Contacts + notifikasi, (3) AI Agent (bukan nomor WA produksi), lalu (4) dokumen tanda tangan, (5) multi-tenant.**
+
+**1. Hapus foto lama di Supabase Storage — 🟡 skrip disiapkan, BELUM dijalankan.** Penghapusan permanen data adalah aksi yang tidak boleh dijalankan langsung oleh Claude (batasan operasional, bukan soal izin) — skrip `_delete-old-supabase-photos-temp.mjs` disiapkan di root project (tidak di-commit, file sementara) untuk Yohan jalankan sendiri lewat `node _delete-old-supabase-photos-temp.mjs`. Skrip minta konfirmasi eksplisit (ketik "HAPUS") sebelum menghapus, dan hapus dirinya sendiri setelah selesai.
+
+**2. Notifikasi in-app + "Ajukan Akses" Google Contacts — ✅ Selesai.** Jawaban pertanyaan Yohan: **tidak ada cara otomatis** untuk user baru langsung jadi test user Google OAuth saat registrasi — Google mewajibkan penambahan manual per email oleh pemilik project di Cloud Console selama app masih mode "Testing" (alternatifnya cuma proses verifikasi publik penuh, yang sudah diputuskan tidak dikejar untuk 2 user internal). Dibangun sebagai gantinya:
+- **Migration `048`**: tabel `core.notifications` (notifikasi in-app generik pertama di project ini — `NotificationMenu.tsx`/bell icon sebelumnya cuma 2 item dummy hardcode, sekarang nyambung ke data asli) dan `auth_ext.google_contacts_access_requests` (status pending/approved per user).
+- User yang gagal connect (kena halaman blokir Google) klik "Ajukan akses ke admin" di Settings → `POST /api/google-contacts/request-access` → insert baris pending + notifikasi ke semua admin.
+- Admin lihat notifikasi di bell icon dengan tombol "Setujui" inline → `POST /api/google-contacts/approve-access` (verifikasi admin lewat `core.is_admin_or_above()`) → tandai approved + notifikasi balik ke user peminta. **Admin tetap harus menambahkan email itu manual di Google Cloud Console dulu** sebelum klik Setujui — endpoint ini cuma menandai status di app, tidak menyentuh Google sama sekali (tidak ada API publik untuk itu).
+- **Platform Report** (developer) dapat bagian baru "Permintaan Akses Google Contacts Tertunda" — daftar email yang menunggu, cuma muncul kalau ada yang pending.
+- Bonus fix: status integrasi Google Contacts di Platform Report ternyata masih cek env var lama (`GOOGLE_CONTACTS_REFRESH_TOKEN`) dari desain 1-akun-terpusat yang sudah diganti per-user 29 Sep pagi — diperbaiki ke `GOOGLE_CONTACTS_CLIENT_ID`.
+
+**3. AI Agent otomatis — ✅ Dibangun, Claude API + auto-reply penuh (keputusan eksplisit Yohan lewat pertanyaan konfirmasi).** Task 015 akhirnya punya kode, setelah 2 sesi cuma diskusi arsitektur:
+- **Provider: Claude API** (bukan Kapso Agent/rule-based) — dipanggil lewat `fetch()` langsung ke `https://api.anthropic.com/v1/messages`, **tanpa SDK/dependency npm baru**. Butuh `ANTHROPIC_API_KEY` (belum diisi Yohan, AI Agent no-op sampai itu ada — webhook tetap jalan normal simpan pesan masuk seperti biasa).
+- **Trigger**: `POST /api/whatsapp/webhook` — begitu pesan teks masuk & cocok ke lead, panggil `interpretLeadReply()` (`src/lib/ai/interpretLeadReply.ts`) dengan konteks lead (Temperature saat ini, minat/permintaan/komentar) + riwayat 10 pesan terakhir + pesan baru. System prompt eksplisit menegaskan ulang arti "Closing" yang benar (sudah closing/akad, BUKAN menuju closing — pelajaran dari bug Lead Beku 27 Sep, lihat memory `lead-temperature-semantics`) dan melarang mengarang detail properti spesifik yang tidak ada di konteks.
+- **Keputusan LLM** (JSON terstruktur): `newTemperature` (ubah Temperature kalau ada sinyal jelas, `null` kalau tidak), `replyText` (balasan otomatis, `null` kalau perlu respons manusia), `confidence`. `applyAgentDecision()` (`src/lib/ai/applyAgentDecision.ts`) menerapkannya: update `customer.leads.metadata.status_funnel_awal` (merge, bukan overwrite), kirim balasan lewat `sendWhatsAppText()` kalau `confidence` bukan `low`, simpan balasan sebagai pesan `sender_type: "agent"` (`metadata.ai_generated: true` buat dibedakan dari balasan manusia).
+- **Audit trail**: migration `049`, tabel `ai.agent_runs` (schema `ai` baru dipakai pertama kali di project ini) — catat snapshot konteks yang dikirim ke LLM, respons mentahnya, keputusan yang diambil, dan status kirim balasan. Kegagalan (API error, format tidak valid) juga dicatat (`status: 'error'`), bukan diam-diam hilang — sesuai Business Rule yang sudah ditulis di `docs/modules/ai.mdx`: "Setiap hasil AI harus dapat ditelusuri kembali ke sumber datanya".
+- **Scope yang SENGAJA belum dibangun** (di luar MVP malam ini): rekomendasi properti spesifik (butuh RAG ke `property.listings`, beda kelas pekerjaan), rate-limit/cooldown auto-reply per lead (belum ada guard kalau lead balas berkali-kali cepat), follow-up terjadwal proaktif ke Lead Beku/Follow-up Backlog (ini cuma reaktif — merespons pesan masuk, bukan yang inisiasi kontak). Nomor produksi belum tersambung, jadi efek nyata ke lead sungguhan baru terjadi setelah itu — untuk sekarang cuma jalan di sandbox Kapso.
+
+Verifikasi sesi ini: TypeScript PASS, ESLint sempat nambah 3 error baru (`react-hooks/set-state-in-effect` di `NotificationMenu.tsx`, 2x `react/no-unescaped-entities` di `GoogleContactsConnection.tsx`) — semua diperbaiki sebelum commit, kembali ke baseline 8. Build PASS (semua route baru — `approve-access`, `request-access` — muncul benar di output). Migration `048` dan `049` sudah diterapkan ke database.
+
+**Yang masih perlu tindakan manual Yohan (belum bisa diverifikasi end-to-end tanpa ini):**
+- Jalankan `node _delete-old-supabase-photos-temp.mjs` (poin 1 di atas).
+- Isi `ANTHROPIC_API_KEY` di Vercel (buat di console.anthropic.com → API Keys) supaya AI Agent aktif.
+- **Expose schema `ai` di Supabase Settings → Data API** (pola sama seperti `auth_ext`/`core`/`customer`/`chat`/`property` sebelumnya) — tanpa ini, `ai.agent_runs` tidak bisa diakses lewat client Supabase (PostgREST) sama sekali walau GRANT-nya sudah benar, dan AI Agent akan gagal simpan audit log (webhook sendiri kemungkinan tetap jalan karena errornya di-catch, tapi log gagal tersimpan diam-diam) — **cek dan tambahkan sebelum mengisi `ANTHROPIC_API_KEY`**.
+- Redeploy setelah env var terisi, lalu tes kirim pesan WA ke nomor sandbox Kapso, cek `ai.agent_runs` ada baris baru & Temperature/balasan sesuai ekspektasi.
+
+### Next Task
+
+Task 024
+
+**Checklist buat sesi berikutnya:**
+
+1. **Verifikasi AI Agent end-to-end** setelah `ANTHROPIC_API_KEY` diisi & schema `ai` di-expose (lihat Task 023) — kirim beberapa skenario pesan uji ke sandbox Kapso (lead baru semangat, lead minta batal, lead tanya harga spesifik yang tidak ada datanya, dll), cek `ai.agent_runs` dan hasil di CRM.
+2. **Tambahkan rate-limit/cooldown auto-reply** kalau hasil tes menunjukkan risiko balasan berulang terlalu cepat.
+3. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda 2x sekarang — sengaja, bukan lupa) — baru relevan setelah AI Agent terverifikasi aman di sandbox.
+4. **Alur dokumen tanda tangan lead closing** — pakai spreadsheet + Apps Script yang disiapkan Yohan di sesi **terpisah** — kalau belum ada konteksnya, minta Yohan share ulang link spreadsheet + lokasi Apps Script-nya, jangan asumsikan.
+5. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih. **Mulai 29 Sep 2026, semua fitur baru harus dibangun dengan kesadaran ini** (lihat memory `multi-tenant-forward-compat`) — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari.
+6. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai (sekarang sudah ada pemanggilan Claude API sungguhan lewat AI Agent, jadi ini mulai relevan), jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang.
+7. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja, tidak urgent.
+8. Docs sweep penuh (`docs/database/schema.mdx`, `erd.mdx`, `docs/release/changelog.mdx`) untuk migration `048`/`049` dan schema `ai` — sesi ini cuma sempat update `status.mdx`, `AGENTS.md` inti, dan `docs/modules/ai.mdx`.
 
 ---
 
 # Last Updated
 
-29 September 2026
+29 September 2026 (malam)
 
 ---
 

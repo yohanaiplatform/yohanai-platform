@@ -21,7 +21,7 @@ AI tidak menggantikan agen, tetapi bertindak sebagai **co-pilot** yang membantu 
 | Production Ready | ❌ No |
 | Backend | 🟡 Foundation — `getDashboardInsights.ts` cuma agregasi data lead (bukan model AI), belum ada AI Processor/LLM sungguhan |
 | UI | 🟡 Sebagian nyata (`AIInsightPanel.tsx`), sebagian placeholder ditandai "Segera hadir" |
-| AI Engine | 🔵 Planned — keputusan arsitektur (LLM/Kapso Agent) belum diambil, lihat "Task 014" di bawah |
+| AI Engine | 🟡 In Progress — AI Agent otomatis (Claude API) sudah dibangun 29 Sep 2026 malam, interpretasi balasan WA + update Temperature + auto-reply, aktivasi nunggu `ANTHROPIC_API_KEY` + expose schema `ai`, lihat bagian "AI Agent Otomatis" di bawah |
 
 **Task 014 (AI Agent / Intelligent Dashboard) — sebagian jalan (27 September 2026), keputusan arsitektur AI/LLM masih terbuka.**
 
@@ -40,6 +40,19 @@ Yohan minta segera mulai follow-up manual untuk "Lead Beku" (Cold, 966 lead) dan
    - Trigger terjadwal (mis. follow-up otomatis untuk lead yang sudah lama tak tersentuh) — dipakai pola yang sudah terbukti jalan di project ini: GitHub Actions scheduled workflow (persis seperti `.github/workflows/supabase-keepalive.yml`), memanggil satu API route.
    - Logika "interpretasi balasan → keputusan → tulis status → balas" — dirangkai sebagai pemanggilan fungsi biasa di dalam handler webhook (panggil LLM → update `customer.leads` → panggil `sendWhatsAppText()`), bukan node-node visual terpisah.
    - Kalau nanti tetap butuh visual/no-code builder (supaya Yohan bisa utak-atik alur sendiri tanpa minta kode), alternatifnya Workflow/Agent bawaan **Kapso** (sudah jadi platform yang dipakai), bukan n8n — tidak menambah service baru untuk di-host & dijaga.
+
+## AI Agent Otomatis — ✅ Dibangun (29 September 2026, malam)
+
+Setelah 2 sesi cuma diskusi arsitektur (27-28 Sep), Yohan minta AI Agent jadi prioritas malam ini (menggeser sambung nomor WA produksi ke urutan berikutnya) dan langsung konfirmasi 2 keputusan yang sebelumnya terbuka: **provider Claude API** (bukan Kapso Agent/rule-based) dan **scope penuh termasuk auto-reply** (bukan cuma interpretasi+update status).
+
+- **Trigger**: `POST /api/whatsapp/webhook` — begitu pesan teks masuk & cocok ke lead (leadId ketemu), panggil `interpretLeadReply()` (`src/lib/ai/interpretLeadReply.ts`). Pesan media/non-teks dilewati (content-nya cuma placeholder `[image]` dst, tidak bisa diinterpretasi).
+- **Provider**: Claude API lewat `fetch()` langsung ke `https://api.anthropic.com/v1/messages` — **tanpa SDK/dependency npm baru**, konsisten dengan pola project ini (Resend juga fetch langsung). Model default `claude-sonnet-5-5` (`ANTHROPIC_MODEL`, override opsional). Tanpa `ANTHROPIC_API_KEY`, AI Agent no-op sepenuhnya (webhook tetap simpan pesan masuk seperti biasa, cuma skip pemanggilan LLM).
+- **Konteks yang dikirim ke LLM**: data lead (Temperature saat ini, sudah survey, minat unit/lokasi, permintaan, komentar) + 10 pesan terakhir di percakapan + pesan baru. System prompt eksplisit menegaskan ulang arti "Closing" yang benar (**sudah closing/akad, BUKAN menuju closing** — pelajaran dari bug insight Lead Beku 27 Sep, lihat memory `lead-temperature-semantics`) dan melarang mengarang detail properti spesifik (harga/unit/ketersediaan) yang tidak ada di konteks.
+- **Keputusan LLM** (JSON terstruktur): `newTemperature` (ubah Temperature kalau ada sinyal jelas dari pesan, `null` kalau tidak — LLM diinstruksikan jangan asal isi), `replyText` (balasan otomatis, `null` kalau perlu respons manusia — mis. komplain, negosiasi harga), `confidence` (`high`/`medium`/`low`).
+- **Penerapan** (`applyAgentDecision()`, `src/lib/ai/applyAgentDecision.ts`): update `customer.leads.metadata.status_funnel_awal` (merge, bukan overwrite field metadata lain) kalau ada perubahan Temperature; kirim balasan lewat `sendWhatsAppText()` (Kapso) kalau `replyText` ada DAN `confidence` bukan `low`; balasan tersimpan sebagai pesan `sender_type: "agent"`, `sender_id: null`, `metadata.ai_generated: true` (dibedakan dari balasan manusia yang `sender_id`-nya diisi user login).
+- **Audit trail**: migration `049`, tabel `ai.agent_runs` (schema `ai` dipakai pertama kali di project ini) — snapshot konteks yang dikirim, respons mentah LLM, keputusan yang diambil, status kirim balasan. Kegagalan (API error, format JSON tidak valid dari LLM) juga dicatat (`status: 'error'`, `logAgentRunFailure()`), bukan diam-diam hilang — memenuhi Business Rule "Setiap hasil AI harus dapat ditelusuri kembali ke sumber datanya" yang sudah ditulis di bagian bawah dokumen ini.
+- **Sengaja BELUM dibangun** (di luar MVP malam ini): rekomendasi properti spesifik ke lead (butuh RAG ke `property.listings`, beda kelas pekerjaan dari klasifikasi+balasan generik), rate-limit/cooldown auto-reply per lead (belum ada guard kalau lead balas cepat berkali-kali), follow-up proaktif terjadwal ke Lead Beku/Follow-up Backlog (ini AI Agent REAKTIF — merespons pesan masuk, bukan yang inisiasi kontak duluan).
+- **Aktivasi masih butuh 2 langkah manual**: isi `ANTHROPIC_API_KEY` di Vercel, dan **expose schema `ai` di Supabase Settings → Data API** (pola sama seperti schema lain — tanpa ini, `ai.agent_runs` tidak bisa diakses PostgREST walau GRANT sudah benar, lihat jebakan di `AGENTS.md`). Nomor produksi WA belum tersambung, jadi efek nyata ke lead sungguhan baru berlaku setelah itu — untuk sekarang cuma jalan di sandbox Kapso.
 
 **3. Pertanyaan baru: multi-tenant untuk masa depan (dibahas, belum diputuskan arahnya, cuma dipetakan opsinya).** Lihat detail lengkap perbandingan **Model A (SaaS multi-tenant sungguhan)** vs **Model B (duplikasi instance per pelanggan)** di `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". Ringkasan yang relevan untuk AI Agent/Kapso: dicek langsung ke dokumentasi resmi Kapso, tier **"Platform" ($299/bulan)** ternyata sudah mendukung **"Multi-partner Solution"** — satu akun Kapso bisa pegang sampai 50 nomor WA, tiap tenant tetap punya WABA/verifikasi bisnis sendiri, dikelola dari satu dashboard. Artinya **sisi Kapso/WhatsApp bukan penghalang** untuk Model A kalau nanti dipilih — penghalang aslinya tetap murni skema database (`tenant_id` + RLS di semua tabel domain), belum berubah dari keputusan penundaan 26 September.
 
@@ -259,6 +272,6 @@ Continuous Learning Engine
 
 # Last Updated
 
-28 September 2026
+29 September 2026 (malam)
 
 Sprint 011
