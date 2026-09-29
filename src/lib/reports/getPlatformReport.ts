@@ -47,8 +47,12 @@ const RESEND_FREE_MONTHLY_LIMIT = 3000;
 export { SUPABASE_FREE_DB_LIMIT_BYTES, SUPABASE_FREE_STORAGE_LIMIT_BYTES, R2_FREE_STORAGE_LIMIT_BYTES, RESEND_FREE_MONTHLY_LIMIT };
 
 async function getResendUsage(): Promise<PlatformReport["resend"]> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { sentRecentApprox: 0, approxCapped: false, error: "RESEND_API_KEY belum dikonfigurasi." };
+  // Key terpisah dari RESEND_API_KEY (yang dipakai kirim email) -- key
+  // kirim cuma permission "Sending access", tidak bisa panggil GET
+  // /emails (baca riwayat kirim). Butuh key "Full access" tersendiri,
+  // khusus buat baca-baca laporan ini.
+  const apiKey = process.env.RESEND_REPORTING_API_KEY;
+  if (!apiKey) return { sentRecentApprox: 0, approxCapped: false, error: "RESEND_REPORTING_API_KEY belum dikonfigurasi." };
 
   const res = await fetch("https://api.resend.com/emails?limit=100", {
     headers: { Authorization: `Bearer ${apiKey}` },
@@ -132,19 +136,25 @@ async function getVercelStatus(): Promise<PlatformReport["vercel"]> {
 /**
  * Status tiap integrasi API pihak ketiga yang dipakai platform ini --
  * dicek dari keberadaan env var (belum tentu = koneksinya sehat, cuma
- * "sudah diisi atau belum"), kecuali Resend & Vercel yang sudah dites live
- * di atas jadi statusnya diambil dari hasil tes itu. R2 & Google Contacts
- * belum ada env var-nya sama sekali (masih tahap setup manual Yohan),
- * jadi otomatis tampil "Belum Dikonfigurasi" -- bukan bug, itu memang
- * status sebenarnya per hari laporan ini dibuat.
+ * "sudah diisi atau belum"), kecuali Vercel yang sudah dites live di atas
+ * jadi statusnya diambil dari hasil tes itu. R2 & Google Contacts belum
+ * ada env var-nya sama sekali (masih tahap setup manual Yohan), jadi
+ * otomatis tampil "Belum Dikonfigurasi" -- bukan bug, itu memang status
+ * sebenarnya per hari laporan ini dibuat.
+ *
+ * Resend sengaja TIDAK diambil dari `resend.error` -- itu error dari key
+ * baca-riwayat terpisah (RESEND_REPORTING_API_KEY), bukan dari kirim email
+ * yang sebenarnya (RESEND_API_KEY). Kalau laporan ini sampai terkirim,
+ * pengiriman jelas jalan, jadi statusnya "aktif" ditentukan dari keberadaan
+ * RESEND_API_KEY itu sendiri, bukan dari fitur baca-riwayat yang terpisah.
  */
-function getIntegrationsStatus(resend: PlatformReport["resend"], vercel: PlatformReport["vercel"]): IntegrationStatus[] {
+function getIntegrationsStatus(vercel: PlatformReport["vercel"]): IntegrationStatus[] {
   return [
     { name: "Supabase", detail: "Database, Auth, Storage", status: "aktif" },
     {
       name: "Resend",
       detail: "Email transactional",
-      status: resend.error ? "error" : "aktif",
+      status: process.env.RESEND_API_KEY ? "aktif" : "belum_dikonfigurasi",
     },
     {
       name: "Vercel API",
@@ -216,6 +226,6 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     },
     resend: resendUsage,
     vercel: vercelStatus,
-    integrations: getIntegrationsStatus(resendUsage, vercelStatus),
+    integrations: getIntegrationsStatus(vercelStatus),
   };
 }
