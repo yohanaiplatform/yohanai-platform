@@ -40,7 +40,11 @@ Profil pengguna: nama, kontak, alamat, `business_role_id`, tautan media sosial, 
 
 ### notification_preferences
 
-Preferensi notifikasi per user, satu baris per user. Empat kategori toggle; kategori Keamanan Akun sengaja tidak punya toggle dan selalu aktif.
+Preferensi notifikasi per user, satu baris per user. Empat kategori toggle; kategori Keamanan Akun sengaja tidak punya toggle dan selalu aktif. Kolom `daily_report_email` (migration `045`, default `true`) — toggle kelima, kontrol kirim/tidaknya Daily Report ke email login user.
+
+### google_contacts_connections
+
+Koneksi OAuth Google Contacts **per user** (migration `047`, 29 September 2026). `user_id` (PK, `REFERENCES auth.users`), `refresh_token`, `google_email`. RLS own-row-only — tiap user cuma bisa lihat/hapus koneksinya sendiri. Diisi lewat `/api/google-contacts/callback` setelah user sambungkan akun Google pribadinya di halaman Settings; dipakai `POST /api/leads/[id]/sync-contact` untuk auto-create kontak saat lead manual (`/crm/new`) dibuat.
 
 ## core
 
@@ -53,6 +57,7 @@ Role-based access control. `role_permissions` masih 0 baris — keputusan admin/
 - `is_authenticated()` — dipanggil dari policy RLS seluruh tabel domain. **Jangan pernah cabut EXECUTE-nya** — melumpuhkan RLS di seluruh database.
 - `is_admin_or_above()` (`035`) — true kalau pemanggil (`auth.uid()`) admin/super_admin. Dipakai policy `leads_owner_or_admin`.
 - `list_assignable_users()` (`036`) — daftar user (id, nama, email, role) untuk dropdown assign lead. Return **kosong** (bukan raise exception) kalau pemanggil bukan admin/super_admin — UI CRM pakai ini buat auto-hide dropdown assign untuk non-admin.
+- `get_platform_stats()` (`046`) — ukuran database & storage Supabase (bytes, jumlah objek storage), dipakai Platform Report. EXECUTE cuma untuk `service_role` (dipanggil dari cron `GET /api/reports/daily`, bukan dari browser).
 
 ### business_roles
 
@@ -170,6 +175,7 @@ Seluruh tabel domain (`customer`, `property`, `chat`, `ai`, `workflow`, `marketi
 4. `service_role` × schema `chat` — dibutuhkan begitu webhook WhatsApp (`POST /api/whatsapp/webhook`) mulai ditulis dan dipanggil pakai `createAdminClient()`. Diperbaiki `039`.
 5. `authenticated` × schema `property` (schema **dan** tabel `categories`/`listings`) — 0 akses sama sekali sebelum Property Module mulai dibangun. Diperbaiki `041`.
 6. Beberapa tabel `core.*` (RBAC: `roles`, `permissions`, `role_permissions`, `settings`, `audit_logs`) masih belum punya GRANT `authenticated` sama sekali per hari ini — **cek dulu** `has_table_privilege()` sebelum membangun fitur yang menyentuhnya.
+7. `service_role` × `auth_ext`/`core` (`profiles`, `notification_preferences`, `roles`) — dibutuhkan begitu Daily Report (`GET /api/reports/daily`, jalan pakai service-role key dari cron) mulai ditulis, untuk resolve daftar penerima laporan + cek toggle `daily_report_email`. Diperbaiki `045`. `service_role` masih belum punya `USAGE` di `chat`/`property` (belum ada kode yang butuh dari jalur service-role).
 
 **RLS aktif tanpa policy sama sekali berarti semua akses ditolak.** `public.profile_completeness_rules` sempat berada dalam kondisi ini, sehingga query langsung dari client di `EditProfileForm.tsx` selalu mengembalikan nol baris — daftar field wajib diam-diam kosong, sementara progress bar tetap tampak benar karena dihitung RPC `SECURITY DEFINER` yang menembus RLS. Policy SELECT-nya ditambahkan di `025_profile_completeness.sql`.
 
@@ -181,7 +187,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`043` secara berurutan, dan riwayat itu **cocok persis dengan yang tercatat di database** (diverifikasi 23 September 2026, migration `036`–`043` ditambahkan 25–27 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`047` secara berurutan (per 29 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -202,6 +208,10 @@ Folder `supabase/migrations/` berisi `001`–`043` secara berurutan, dan riwayat
 | `041` | Fondasi Property Module: `GRANT USAGE`+hak tabel schema `property` ke `authenticated`, seed 5 kategori default (idempotent) |
 | `042` | Kolom `slug` (unik, NOT NULL) di `property.listings` — URL listing jadi manusiawi, bukan UUID |
 | `043` | Kolom `assigned_to` di `property.listings`, policy `listings_owner_or_admin` (reuse `core.is_admin_or_above()`) — pemisahan akses listing per agent, pola identik `035` |
+| `044` | `GRANT USAGE` + hak tabel schema `property` ke `service_role` (pola sama seperti `032`/`039`) |
+| `045` | Kolom `daily_report_email` di `auth_ext.notification_preferences`; `GRANT USAGE` schema `auth_ext`/`core` + `GRANT SELECT` `profiles`/`notification_preferences`/`core.roles` ke `service_role` — dibutuhkan cron Daily Report |
+| `046` | Fungsi `core.get_platform_stats()` (SECURITY DEFINER, EXECUTE cuma `service_role`) — ukuran DB & storage Supabase untuk Platform Report |
+| `047` | Tabel `auth_ext.google_contacts_connections` (refresh token per user), RLS own-row-only, GRANT ke `authenticated` — dasar Google Contacts sync personal per user |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -211,6 +221,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-27 September 2026
+29 September 2026
 
 Sprint 011 — Platform Hold

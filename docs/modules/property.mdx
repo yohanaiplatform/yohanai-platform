@@ -17,7 +17,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 |------|--------|
 | CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[slug]`) |
 | URL Listing | ✅ Slug manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042` |
-| Upload Foto | ✅ Ke Supabase Storage bucket `properties`, dikompres di browser dulu. 🟡 Pindah ke Cloudflare R2 (28 Sep 2026) — kode sudah diarahkan ke R2 lewat `POST /api/properties/upload-photo`, aktivasi nunggu setup manual Yohan (lihat `docs/status.mdx` Task 019) |
+| Upload Foto | ✅ Ke Cloudflare R2 (aktif penuh 29 Sep 2026, custom domain `img.yohanai.id`), dikompres di browser dulu, upload lewat `POST /api/properties/upload-photo` (server-side, secret R2 tidak sampai browser). Menggantikan Supabase Storage bucket `properties` — 272/272 foto lama sudah dimigrasi, file lama belum dihapus |
 | Data Pemilik & Nilai Komisi | ✅ Rahasia (28 Sep 2026) — `metadata.owner`/`metadata.commission`, admin+agent yang di-assign saja yang lihat, edit admin-only |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
@@ -155,7 +155,7 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 - AI Recommendation belum aktif — menunggu AI Foundation.
 - **9 kelompok (20 listing) kemungkinan duplikat** dari hasil migrasi spreadsheet (28 Sep 2026) belum ditinjau manual -- lihat daftar lengkap di percakapan/riwayat sesi, atau query ulang lewat `description` yang mengandung `[Migrasi dari spreadsheet, GDI/2026/<n>]`.
-- **Storage foto masih di Supabase** (free tier 1GB, saat ini terpakai ~100MB dari migrasi 91 listing + listing manual) -- dibahas opsi pindah ke Cloudflare R2 (10GB gratis, egress selalu gratis) tapi belum diputuskan/dieksekusi, lihat catatan di `docs/status.mdx`.
+- **File foto lama di Supabase Storage belum dihapus** — sudah tergantikan penuh oleh Cloudflare R2 (272/272 foto dimigrasi, 29 Sep 2026), tapi keputusan hapus vs simpan sebagai backup belum diambil, lihat catatan Task 022 di `docs/status.mdx`.
 - Belum ada UI untuk memulihkan listing yang sudah dihapus (soft delete) -- beda dari kategori yang sudah punya toggle "Tampilkan terhapus".
 
 ---
@@ -170,4 +170,4 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 # Last Updated
 
-28 September 2026
+29 September 2026

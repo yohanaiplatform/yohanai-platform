@@ -51,6 +51,40 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 29 September 2026 — Daily/Platform Report, Cloudflare R2 Aktif, Google Contacts Per-User
+
+Sesi lanjutan dari 6-item request 28 Sep (Task 019/020) — 3 item aktivasi manual (R2, Daily Report, Google Contacts) berkembang jadi redesain penuh setelah feedback Yohan pakai fitur-fitur itu langsung.
+
+### Added
+
+- **Platform Report** — fitur baru untuk developer, dikirim harian ke `admin@yohanai.id` (`PLATFORM_REPORT_RECIPIENT`), terpisah dari Daily Report bisnis. Agregat user/lead/listing, ukuran DB & storage Supabase (`core.get_platform_stats()`, migration `046`), volume email Resend bulan berjalan, status deployment Vercel, status tiap integrasi (Resend/Vercel/R2/Google Contacts/Supabase/GitHub Actions) + jumlah API dipakai, referensi tier biaya (gratis vs berbayar) tiap layanan, dan Agregat KPI AI Agent (roadmap, ditandai ilustratif)
+- **Daily Report jadi personal per user** — bukan lagi 1 email statis. `getDailyReportRecipients.ts` kirim ke email login tiap user yang belum matikan toggle `daily_report_email` (migration `045`) di Notification Preferences. Admin/super_admin dapat data agregat, role lain di-scope ke `assigned_to` miliknya sendiri. `DAILY_REPORT_EMAIL_OVERRIDES` (format `email_login=email_tujuan`) untuk override tujuan per akun
+- **Daily Report redesain visual** — dashboard 1 halaman berwarna (KPI tile, bar chart warna senada app, kartu alert), semua item/angka jadi link interaktif ke halaman app terkait, CSS cetak (`@media print`/`@page`), footer info platform
+- **Agregat KPI AI Agent (roadmap)** di kedua laporan (`src/lib/reports/aiAgentRoadmap.ts`) — sumber dari "Planned AI Features" di `docs/modules/ai.mdx`, ditandai jelas sebagai rencana/ilustratif, bukan data nyata (AI Agent belum dibangun)
+- **Cloudflare R2 aktif penuh** — bucket `yohanai-property-photos`, custom domain `img.yohanai.id`, 272/272 foto listing dimigrasi dari Supabase Storage lewat skrip satu-kali (tidak disimpan di repo)
+- **Google Contacts jadi personal per user** (migration `047`, tabel `auth_ext.google_contacts_connections`) — tiap user sambungkan akun Google pribadinya sendiri lewat halaman Settings (baru), bukan lagi 1 akun terpusat `yohan.ai.platform@gmail.com`. Lead manual (`/crm/new`) otomatis jadi kontak di Google Contacts & HP milik user yang connect
+- Halaman **Settings** (`/settings`) — sebelumnya stub `EmptyState`, sekarang berisi kartu Integrasi dengan koneksi Google Contacts
+
+### Fixed
+
+- Resend "Sending access" key tidak bisa baca riwayat kirim (`GET /emails` balas 401) — dibuat key terpisah `RESEND_REPORTING_API_KEY` (Full access) khusus Platform Report
+- Status integrasi Resend di Platform Report sempat salah tampil "Error" karena nempel ke hasil cek key pembaca (bukan key kirim) — dipisahkan, status kirim sekarang cek `RESEND_API_KEY` langsung
+- `usageBar()` di Platform Report selalu format angka pakai `fmtBytes()`, bikin volume email Resend tampil satuan "KB" alih-alih count polos — ditambahkan parameter `formatValue` opsional
+- Bug timezone Daily Report: batas "hari ini" dihitung pakai jam server (UTC di Vercel), meleset 7 jam dari WIB — ditambahkan `startOfTodayWIB()`/`todayDateWIB()`
+- `Error 400: redirect_uri_mismatch` saat tes OAuth Google Contacts — `GOOGLE_CONTACTS_REDIRECT_URI` di Vercel tidak cocok persis dengan "Authorized redirect URIs" di Google Cloud Console, diperbaiki dengan menambahkan URI persis di Console
+
+### Removed / Changed
+
+- `POST /api/leads/intake` (jalur Google Form legacy) **tidak lagi** sync ke Google Contacts — tidak ada user pemilik untuk lead dari jalur itu, konsisten dengan desain baru yang 100% personal
+- `DAILY_REPORT_RECIPIENT` (env var lama, 1 alamat statis) sudah tidak dipakai kode manapun, boleh dihapus dari Vercel
+
+### Docs
+
+- Resend MCP connector's `create-api-key` tool sempat 3x menghasilkan key tidak fungsional (401 invalid meski dites langsung curl) — root cause di connector itu sendiri (dibuktikan lewat `send-email` MCP tool yang jalan normal pakai auth internal berbeda), diselesaikan dengan Yohan buat key manual lewat dashboard Resend
+- Riset OAuth verification Google: mode "Testing" (maks 100 test user manual, tanpa verifikasi) direkomendasikan tetap dipakai untuk kebutuhan sekarang (2 user internal) — proses verifikasi publik untuk scope sensitif (`contacts`) gratis tapi makan waktu, sengaja tidak dikejar. Google One/langganan berbayar tidak relevan di sini (beda kuota dari OAuth verification)
+
+---
+
 ## 28 September 2026 — Sembunyikan Listing, Download Foto, Watermark Retroaktif
 
 ### Added
@@ -489,6 +523,6 @@ Sebelum membuat release baru:
 
 # Last Updated
 
-26 September 2026
+29 September 2026
 
 Sprint 011 — Platform Hold

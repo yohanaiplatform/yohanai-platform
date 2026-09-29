@@ -224,9 +224,9 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Vercel | ✅ |
 | Mintlify | ✅ |
 | Cloudflare DNS | ✅ (MX Record `@yohanai.id`, SPF, DKIM, DMARC semua aktif) |
-| Resend (SMTP outbound) | ✅ Domain `yohanai.id` (subdomain `send.yohanai.id`) verified, terhubung ke Supabase Auth SMTP. Sejak 28 Sep 2026 juga dipakai kirim email Daily Report lewat REST API langsung (`RESEND_API_KEY`, tanpa dependency npm baru) |
-| Cloudflare R2 | 🟡 Bucket `yohanai-property-photos` sudah dibuat (28 Sep 2026), kode upload sudah diarahkan ke sana. Belum aktif — nunggu Yohan buat R2 API Token, sambungkan custom domain, `npm install @aws-sdk/client-s3` |
-| Google Contacts (People API) | 🟡 Kode sync lead→kontak sudah ada (28 Sep 2026, no-op sampai diaktifkan), nunggu Yohan setup OAuth Client ID + otorisasi 1x lewat `/api/google-contacts/authorize` |
+| Resend (SMTP outbound) | ✅ Domain `yohanai.id` (subdomain `send.yohanai.id`) verified, terhubung ke Supabase Auth SMTP. Juga dipakai kirim Daily Report & Platform Report lewat REST API langsung (`RESEND_API_KEY`, tanpa dependency npm baru). Key terpisah `RESEND_REPORTING_API_KEY` (Full access) untuk Platform Report baca volume kirim bulanan |
+| Cloudflare R2 | ✅ Aktif penuh (29 Sep 2026) — bucket `yohanai-property-photos`, custom domain `img.yohanai.id`, 272/272 foto listing dimigrasi dari Supabase Storage. File lama di Supabase Storage belum dihapus (opsional, lihat Task 022) |
+| Google Contacts (People API) | ✅ Aktif, personal per user (29 Sep 2026) — tiap user sambungkan akun Google pribadinya sendiri lewat Settings (`auth_ext.google_contacts_connections`, migration `047`), lead manual otomatis jadi kontak di Google Contacts & HP user itu sendiri. OAuth consent screen masih mode "Testing" (maks 100 test user manual, sengaja tidak diajukan verifikasi publik — cukup untuk 2 user internal) |
 | Meta / Facebook App | ⚫ Tidak digunakan — Facebook Login dibatalkan permanen |
 | Supabase Data API — Exposed Schemas | ✅ `public`, `graphql_public`, `auth_ext`, `core`, `customer`, `chat`, `property` (7 dari 12) |
 | Twilio Verify (Phone provider) | ⏸️ Belum di-setup, sengaja ditunda sampai butuh volume user besar |
@@ -242,11 +242,12 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. Backlog kecil tersisa: upload foto profil masih URL manual, keputusan visibility "System Information" |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata |
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live |
-| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto 🟡 pindah ke Cloudflare R2 (kode selesai, aktivasi tertunda) |
+| Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto ✅ pindah penuh ke Cloudflare R2 (29 Sep 2026, 272/272 foto) |
 | Sales | 🟡 Planned |
-| AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder |
-| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) belum disambungkan, sengaja ditunda |
-| Reporting | 🟡 Daily Report (lead/listing/chat) selesai lewat email terjadwal (28 Sep 2026), aktivasi tertunda setup Resend+GitHub secret. Laporan token AI/crawler/visitor belum didesain |
+| AI Intelligence | 🟡 In Progress — 2 insight nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh ditandai placeholder. Roadmap KPI-nya sudah dirujuk di Daily/Platform Report (bukan data nyata) |
+| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) belum disambungkan — prioritas #1 sesi berikutnya (Task 022) |
+| Reporting | ✅ Daily Report (personal per user, dashboard 1 halaman berwarna, link interaktif) & Platform Report (developer, kesehatan infra + biaya + status integrasi) aktif via cron GitHub Actions harian. Instrumentasi token AI/crawler/visitor/download belum didesain |
+| Google Contacts Sync | ✅ Personal per user (29 Sep 2026) — lead manual (`/crm/new`) auto-sync ke Google Contacts & HP milik user yang connect. Lead dari Google Form (`/api/leads/intake`) sengaja tidak ikut sync (tidak ada pemilik user) |
 
 ---
 
@@ -274,9 +275,9 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 
 # Next Milestone
 
-**Kapso (Communication Automation) sandbox + Property Module Fase 1 — ✅ Selesai (26 September 2026).** Detail lengkap di `docs/modules/property.mdx` dan bagian Task 008-010 di bawah.
+**Setup infrastruktur (R2, Daily/Platform Report, Google Contacts) — ✅ Selesai (29 September 2026).** Detail lengkap Task 021 di atas.
 
-Urutan awal disepakati 26 Sep 2026: (1) AI Agent / Intelligent Dashboard, (2) alur dokumen tanda tangan lead closing, (3) baru sambungkan nomor WA produksi. **Urutan ini berubah 27-28 September 2026**: Yohan mau segera mulai follow-up manual "Lead Beku"/"Follow-up Backlog" pakai nomor asli (bukan sandbox), jadi **sambungkan nomor WhatsApp produksi (Griya Indonesia Real Estate) dimajukan — ditargetkan 1-2 hari ke depan**, berjalan paralel dengan diskusi arsitektur AI Agent (lihat Task 015). Auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, bukan integrasi pihak ketiga, jadi risiko migrasi relatif rendah. Alur dokumen tanda tangan (spreadsheet + Apps Script dari sesi terpisah) masih menunggu konteksnya dibagikan ulang ke sesi ini.
+Urutan berikutnya (lihat Task 022 untuk checklist lengkap): (1) sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — prioritas utama, tertunda dari 27-28 Sep, (2) lanjut AI Agent / Intelligent Dashboard otomatis (webhook → interpretasi → update status funnel → balas, tanpa n8n), (3) alur dokumen tanda tangan lead closing — masih menunggu Yohan share ulang spreadsheet + lokasi Apps Script dari sesi terpisah. Multi-tenant SaaS (Model A vs Model B) masih dibahas konseptual, belum dipilih — jangan mulai coding ke arah manapun tanpa konfirmasi ulang.
 
 ---
 
@@ -436,23 +437,71 @@ Task 019
 
 Verifikasi sesi ini: TypeScript PASS, ESLint 8 error pre-existing saja (tidak nambah baru), `npm run build` PASS penuh (setelah `npm install`), deployment Production terkonfirmasi Ready & route baru terverifikasi reachable di `yohanai.id`.
 
-### Next Task
-
 Task 020
 
-**Setup manual yang masih tersisa dari Task 019** (checklist buat sesi berikutnya):
+**Setup manual Task 019 — ✅ Semua selesai (29 September 2026).** Ketiga item checklist tuntas, tapi scope-nya melebar jauh dari sekadar "isi env var" karena beberapa keputusan desain berubah di tengah jalan (lihat Task 021 untuk detail lengkap tiap perubahan):
 
-- **Daily Report**: (1) generate nilai baru untuk `DAILY_REPORT_SECRET` di Vercel (nilai lama tidak bisa dilihat lagi -- tipe "Secret", lihat catatan di atas), catat di password manager dulu sebelum disimpan; samakan juga di GitHub Actions repo secret. (2) Tambahkan `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `DAILY_REPORT_RECIPIENT` yang masih kosong. (3) Setelah semua terisi & redeploy, tes ulang lewat curl (`GET /api/reports/daily` + header `x-report-secret`), pastikan email beneran masuk (cek Spam juga).
-- **Cloudflare R2**: buat R2 API Token (Object Read & Write, scope ke bucket `yohanai-property-photos`), sambungkan custom domain (mis. `cdn.yohanai.id`), isi env var R2 di Vercel. Setelah itu jalankan skrip migrasi foto lama (`migrate-photos-to-r2.mjs`).
-- **Google Contacts**: buat OAuth Client ID di Google Cloud Console, isi 3 env var, otorisasi lewat `/api/google-contacts/authorize` (login sebagai admin, pakai akun `yohan.ai.platform@gmail.com`).
+- **Daily Report** — ✅ aktif & terkirim, tapi **desainnya berubah total** dari rencana awal (1 email statis ke 1 alamat) jadi dashboard personal per user. Lihat Task 021.
+- **Cloudflare R2** — ✅ aktif penuh, 272/272 foto listing berhasil dimigrasi dari Supabase Storage. Lihat Task 021.
+- **Google Contacts** — ✅ aktif, tapi **desainnya berubah total** dari 1 akun terpusat (`yohan.ai.platform@gmail.com` connect sekali untuk semua lead) jadi OAuth per user (tiap user sambungkan akun Google pribadinya sendiri). Lihat Task 021.
 
-**Setelah semua di atas beres**, lanjut diskusi/mulai coding AI Agent otomatis (webhook → interpretasi → update status → balas), setelah nomor WA produksi Griya Indonesia tersambung ke Kapso (Task 015 yang di-hold). Desain instrumentasi tracking (token AI, AI crawler, visitor listing/foto, download) untuk pelengkap Daily Report juga masih terbuka.
+Task 021
+
+**Sesi lanjutan 29 September 2026 — Daily Report redesign, Platform Report (baru), R2 aktivasi penuh, Google Contacts redesign per-user.**
+
+**1. Daily Report — redesain 2x dari rencana awal Task 019/020:**
+- **Redesain visual**: dari daftar teks polos jadi dashboard 1 halaman berwarna (KPI tile, bar chart warna senada app, kartu alert, semua angka/item jadi link ke halaman app terkait), plus CSS cetak (`@media print`/`@page`) supaya rapi kalau di-print/save-PDF. Footer info platform ditambahkan.
+- **Redesain scope — personal per user** (permintaan eksplisit Yohan: *"saya mau nomor 2... setiap user hanya melihat laporannya sendiri"*): bukan lagi 1 email ke 1 alamat statis. `getDailyReportRecipients.ts` (baru) query semua user terdaftar lewat `supabaseAdmin.auth.admin.listUsers()`, cek toggle `daily_report_email` di Notification Preferences (default aktif), kirim ke email login masing-masing. Admin/super_admin dapat data agregat (semua lead/listing/chat), role lain (`agent` dkk) di-scope ke `assigned_to = diri sendiri` lewat `GetDailyReportOptions.assignedTo`. Bug timezone ditemukan & diperbaiki sekalian: batas "hari ini" tadinya dihitung pakai jam server (UTC di Vercel), meleset 7 jam dari WIB — ditambahkan `startOfTodayWIB()`/`todayDateWIB()`.
+- **`DAILY_REPORT_EMAIL_OVERRIDES`** (env var baru, format `email_login=email_tujuan` dipisah koma) — dipakai untuk `admin@yohanai.id` → `cvdevthan@gmail.com` karena Yohan pakai akun admin untuk develop/testing tapi jarang cek inbox aslinya. `DAILY_REPORT_RECIPIENT` (env var lama, 1 alamat statis) sudah **tidak dipakai lagi**, boleh dihapus dari Vercel.
+- **KPI AI Agent (roadmap)** ditambahkan di laporan personal — `src/lib/reports/aiAgentRoadmap.ts` (baru), sumber dari "Planned AI Features" di `docs/modules/ai.mdx`, ditandai jelas sebagai rencana/ilustratif (AI Agent belum dibangun, Task 015 masih di-hold), bukan data nyata.
+- Terverifikasi: email personal masuk ke `yohanbenyamin@gmail.com` (dulu sempat tidak masuk Outlook mobile, ternyata cuma masalah setting Outlook di HP — email-nya sendiri terkonfirmasi masuk lewat webmail).
+
+**2. Platform Report — fitur baru, tidak ada di rencana Task 019 awal.** Diminta terpisah oleh Yohan sebagai developer: laporan kesehatan infrastruktur harian, dikirim ke `admin@yohanai.id` (env var `PLATFORM_REPORT_RECIPIENT`, tidak terikat preferensi user manapun, tidak seperti Daily Report). `src/lib/reports/getPlatformReport.ts` (baru) mengagregasi:
+- Jumlah user/lead/listing agregat (tanpa scoping).
+- `core.get_platform_stats()` (migration `046`, SECURITY DEFINER, EXECUTE cuma untuk `service_role`) — ukuran database & storage Supabase.
+- Volume email Resend bulan berjalan — butuh **API key terpisah** (`RESEND_REPORTING_API_KEY`, permission "Full access") karena key kirim (`RESEND_API_KEY`) cuma permission "Sending access" dan **tidak bisa** panggil `GET /emails` (401). Key full-access sempat 3x gagal dibuat lewat Resend MCP connector (`create-api-key` selalu balas 401 invalid meski dites langsung curl dari terminal Yohan) — root cause di connector-nya sendiri (dibuktikan lewat `send-email` MCP tool yang jalan normal pakai auth internal berbeda), akhirnya Yohan buat manual lewat dashboard Resend dan langsung jalan.
+- Status deployment Vercel terakhir (`VERCEL_API_TOKEN`/`PROJECT_ID`/`TEAM_ID`, opsional).
+- **Status integrasi + jumlah API yang dipakai** (`getIntegrationsStatus()`, ditambahkan setelah permintaan lanjutan Yohan) — Resend/Vercel/R2/Google Contacts/Supabase/GitHub Actions, tiap satu live-check kalau memungkinkan (mis. Vercel), else cek presence env var. **Bug ditemukan & diperbaiki**: status Resend awalnya nempel ke hasil cek `RESEND_REPORTING_API_KEY` (fitur baca-riwayat), jadi salah tampil "Error" padahal kirim email jelas-jelas jalan (laporan itu sendiri terkirim lewat jalur itu) — dipisahkan, status kirim sekarang cek `RESEND_API_KEY` langsung.
+- **Referensi biaya** (tier gratis vs berbayar untuk Vercel/Supabase/R2/Resend/Kapso/domain/Mintlify/Cloudflare DNS, termasuk catatan ToS Vercel Hobby soal penggunaan non-komersial) — statis, bukan live billing API.
+- **Agregat KPI AI Agent (roadmap)** — sama seperti di Daily Report, ditandai jelas ilustratif.
+- **Bug kecil**: `usageBar()` selalu format angka pakai `fmtBytes()`, bikin volume email Resend tampil "0 KB" alih-alih "0 / 3.000" (satuan count, bukan bytes) — ditambahkan parameter `formatValue` opsional.
+
+**3. Cloudflare R2 — aktivasi penuh (dipandu step-by-step di dashboard Cloudflare).**
+- Yohan buat R2 API Token (Object Read & Write, scope ke bucket `yohanai-property-photos`) dan sambungkan custom domain `img.yohanai.id` ke bucket.
+- Env var R2 diisi di Vercel (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`).
+- Skrip migrasi 1x (`migrate-photos-to-r2.mjs`, tidak disimpan di repo, pola sama seperti skrip migrasi spreadsheet Task 016) dijalankan dari root project (sempat gagal `ERR_MODULE_NOT_FOUND` saat dicoba dari scratchpad karena tidak ada akses `node_modules` project — diperbaiki dengan copy sementara ke root, dihapus lagi setelah selesai) — **272/272 foto berhasil dimigrasi** dari Supabase Storage ke R2, dicek ulang bersih (`git status` clean, tidak ada file skrip tersisa di repo).
+- File lama di Supabase Storage **belum dihapus** — ditanya ke Yohan apakah mau dihapus sekarang atau simpan sebagai backup dulu, **belum dijawab** (lihat Task 022).
+
+**4. Google Contacts — redesain total dari rencana Task 019 (1 akun terpusat) jadi per-user OAuth**, permintaan eksplisit Yohan: *"saya mau google contact ini nanti bisa berfungsi untuk setiap user baru, jadi saat mereka upload new lead ke aplikasi, mereka juga langsung bisa tersambung ke google contact nya dan masuk ke HP nya"*.
+- **Migration `047`**: tabel baru `auth_ext.google_contacts_connections` (`user_id` PK, `refresh_token`, `google_email`), RLS own-row-only, GRANT ke `authenticated`.
+- Tiap user sambungkan akun Google pribadinya sendiri lewat tombol "Sambungkan Google Contacts" di halaman **Settings** (halaman baru, sebelumnya cuma stub `EmptyState`) — refresh token disimpan otomatis per `user_id`, tidak lagi lewat env var manual copy-paste seperti desain lama.
+- `POST /api/leads/[id]/sync-contact` sekarang lookup koneksi milik user yang login sendiri (bukan 1 token global), no-op diam-diam kalau user belum connect.
+- `POST /api/leads/intake` (jalur Google Form, tanpa user login) **tidak lagi** sync ke Google Contacts — tidak ada pemilik user untuk lead dari jalur itu, konsisten dengan desain baru yang 100% personal.
+- **Riset OAuth verification**: cek apakah bisa skip proses "test user" manual kalau user > 100 — jawabannya **tidak bisa** tanpa verifikasi Google (proses gratis tapi makan waktu, untuk scope sensitif seperti `contacts`); untuk kebutuhan sekarang (2 user internal), direkomendasikan **tetap di mode "Testing"** (maks 100 test user manual, tanpa verifikasi) — Google One/langganan berbayar **tidak relevan** di sini (itu storage Drive/Photos, beda sama sekali dari kuota OAuth verification).
+- **Sempat terhambat 2 error berurutan** saat tes end-to-end dari akun `admin@yohanai.id`: (1) app butuh verifikasi branding Google (ditangani dengan tetap di mode Testing, bukan lanjut proses verifikasi — proses verifikasi publik sengaja **ditunda**, tidak dikejar sekarang karena cuma 2 user internal, overkill), (2) `Error 400: redirect_uri_mismatch` — `GOOGLE_CONTACTS_REDIRECT_URI` (`https://yohanai.id/api/google-contacts/callback`) yang di-set di Vercel tidak cocok persis dengan "Authorized redirect URIs" yang terdaftar di Google Cloud Console OAuth Client. **Diperbaiki**: Yohan tambahkan URI itu persis di Console, tes ulang, **berhasil tersambung** (dikonfirmasi lewat screenshot Settings: "Terhubung sebagai yohan.ai.platform@gmail.com").
+
+Verifikasi sesi ini: TypeScript PASS, ESLint 8 error pre-existing saja (sempat sempat nambah 1 baru di `GoogleContactsConnection.tsx` — `react-hooks/set-state-in-effect` — diperbaiki sebelum commit, kembali ke baseline 8), build PASS, deployment Production Ready, Google Contacts terverifikasi jalan end-to-end di `yohanai.id/settings`.
+
+### Next Task
+
+Task 022
+
+**Belum ada kode ditulis untuk ini — murni checklist keputusan & langkah lanjutan buat sesi berikutnya:**
+
+1. **Supabase Storage lama (foto listing)** — ✅ file R2 sudah lengkap (272/272), tapi file lama di Supabase Storage bucket `properties` **belum dihapus**. Tanyakan ke Yohan: hapus sekarang untuk bebaskan kuota Free tier, atau simpan lebih lama sebagai backup? (Pertanyaan ini sudah diajukan sesi sebelumnya, belum dijawab — Yohan sempat pivot ke Google Contacts duluan.)
+2. **Google Contacts — verifikasi test user Ramlan.** Pastikan `ramlan.hadiansyah@gmail.com` (kalau dia mau pakai fitur ini juga) sudah ditambahkan sebagai test user di Google Cloud Console OAuth consent screen (mode "Testing", maks 100 test user manual) — dia perlu email-nya didaftarkan dulu sebelum bisa connect, beda dari `admin@yohanai.id` yang sudah lebih dulu jadi bagian project (developer).
+3. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda dari 27-28 Sep, prioritas #1 begitu sesi ini dilanjutkan) — auto-reply nomor itu dikonfirmasi cuma fitur bawaan WhatsApp Business App, risiko migrasi relatif rendah.
+4. **AI Agent / Intelligent Dashboard otomatis** (Task 015 lanjutan) — desain webhook → interpretasi → update status funnel → balas otomatis, dibangun **tanpa n8n** (webhook yang sudah ada + GitHub Actions cron, pola sama seperti `supabase-keepalive.yml`/`daily-report.yml`), baru menyentuh Workflow/Agent bawaan Kapso kalau nanti benar-benar butuh visual builder.
+5. **Alur dokumen tanda tangan lead closing** — pakai spreadsheet + Apps Script yang disiapkan Yohan di sesi **terpisah** (bukan sesi manapun yang tercatat di sini) — kalau belum ada konteksnya saat sesi berikutnya mulai, minta Yohan share ulang link spreadsheet + lokasi Apps Script-nya, jangan asumsikan atau menebak strukturnya.
+6. **Multi-tenant SaaS** (Model A vs Model B, dibahas 27-28 Sep) — masih belum dipilih, jangan mulai coding arah manapun tanpa dikonfirmasi ulang lebih dulu; kemungkinan besar belum jadi prioritas sampai AI Agent (poin 4) beres.
+7. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai, jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang, didesain terpisah nanti kalau relevan (kemungkinan sejalan dengan Task 4/AI Agent).
+8. **`DAILY_REPORT_RECIPIENT`** (env var lama, sudah tidak dipakai kode manapun sejak redesain per-user) — boleh dihapus dari Vercel kapan saja, cuma clutter, tidak urgent.
 
 ---
 
 # Last Updated
 
-29 September 2026 (dini hari)
+29 September 2026
 
 ---
 

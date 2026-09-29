@@ -165,15 +165,17 @@ Ditanya Yohan setelah sadar tombol "Add Lead" di dashboard ternyata cuma link ke
 
 **Agent AI dari WhatsApp yang bisa input lead otomatis (permintaan Yohan yang sama) belum dibangun** — itu bergantung keputusan WAHA vs Fonnte yang belum diambil. Struktur `createLead.ts` dibuat generik supaya nanti bisa dipakai ulang oleh jalur itu juga, bukan eksklusif untuk form manual.
 
-## Auto-create Google Contact (28 September 2026)
+## Sync Google Contacts — personal per user (✅ Selesai, 29 September 2026)
 
-Diminta Yohan: begitu lead baru masuk (dari jalur mana pun), otomatis dibuatkan kontak di Google Contacts akun `yohan.ai.platform@gmail.com`. 🟡 **Kode selesai, aktivasi butuh setup manual Yohan** — lihat `docs/status.mdx` Task 019 poin 6 untuk status & langkah setup lengkap.
+**Desain awal (28 September 2026, 1 akun terpusat `yohan.ai.platform@gmail.com` connect sekali untuk semua lead) DIGANTI TOTAL** atas permintaan eksplisit Yohan: *"saya mau google contact ini nanti bisa berfungsi untuk setiap user baru, jadi saat mereka upload new lead ke aplikasi, mereka juga langsung bisa tersambung ke google contact nya dan masuk ke HP nya"*. Sekarang tiap user sambungkan akun Google pribadinya sendiri, dan lead yang mereka input manual otomatis jadi kontak di Google Contacts & HP mereka sendiri — bukan cuma HP Yohan.
 
-- `src/lib/google/contacts.ts` — Google People API, OAuth2 refresh-token flow (bukan service account — `yohan.ai.platform@gmail.com` akun Gmail biasa, bukan Google Workspace, jadi tidak bisa domain-wide delegation).
-- `src/lib/google/syncLeadContact.ts` — helper bersama, dipanggil dari **kedua** jalur insert lead: `POST /api/leads/intake` (lewat `after()` dari `next/server`, jalan setelah respons dikirim tapi dijamin selesai) dan lead manual `/crm/new` lewat route baru `POST /api/leads/[id]/sync-contact` (karena `createLead.ts` jalan di browser, secret OAuth tidak boleh sampai ke sana).
-- Sengaja **fire-and-forget** di kedua jalur — gagal sync kontak tidak boleh menggagalkan simpan lead, yang tetap data utama.
-- No-op diam-diam kalau `GOOGLE_CONTACTS_REFRESH_TOKEN` belum diisi env var (dianggap fitur belum diaktifkan, bukan error).
-- Setup 1x: `/api/google-contacts/authorize` (admin-only, redirect ke consent screen Google) → `/api/google-contacts/callback` (tukar `code` jadi refresh token, ditampilkan sekali untuk di-copy manual ke env var — tidak disimpan otomatis di mana pun).
+- **Migration `047`** — tabel baru `auth_ext.google_contacts_connections` (`user_id` PK, `refresh_token`, `google_email`), RLS own-row-only, GRANT ke `authenticated`. Refresh token disimpan **otomatis per user**, tidak lagi lewat env var manual copy-paste.
+- `src/lib/google/contacts.ts` — Google People API, OAuth2 refresh-token flow (bukan service account — akun Gmail personal, bukan Google Workspace, jadi tidak bisa domain-wide delegation).
+- Alur connect: tombol "Sambungkan Google Contacts" di halaman **Settings** (`/settings`, `GoogleContactsConnection.tsx`) → `/api/google-contacts/authorize` (sekarang untuk **semua user login**, bukan admin-only lagi) → consent screen Google → `/api/google-contacts/callback` menukar `code` jadi refresh token dan **langsung upsert** ke `auth_ext.google_contacts_connections` milik user yang login (bukan lagi ditampilkan untuk di-copy manual).
+- `POST /api/leads/[id]/sync-contact` sekarang lookup koneksi milik **user yang login sendiri**, no-op diam-diam kalau belum connect.
+- **`POST /api/leads/intake` (jalur Google Form legacy) TIDAK LAGI sync ke Google Contacts** — tidak ada user pemilik untuk lead dari jalur itu, konsisten dengan desain baru yang 100% personal.
+- Sengaja **fire-and-forget** — gagal sync kontak tidak boleh menggagalkan simpan lead, yang tetap data utama.
+- **OAuth consent screen masih mode "Testing"** (maks 100 test user manual, tanpa proses verifikasi Google) — cukup untuk kebutuhan sekarang (2 user internal: Yohan + Ramlan), verifikasi publik sengaja **tidak dikejar** (overkill untuk skala ini). User baru yang mau pakai fitur ini harus didaftarkan dulu sebagai test user di Google Cloud Console sebelum bisa connect.
 
 ## Edit Lead & Catatan Berwaktu (26 September 2026)
 
@@ -491,6 +493,6 @@ Automation
 
 # Last Updated
 
-28 September 2026
+29 September 2026
 
 Sprint 011 — Platform Hold
