@@ -25,6 +25,7 @@ export interface PlatformReport {
     lastDeploymentState: string | null;
     lastDeploymentAt: string | null;
     lastDeploymentRegion: string | null;
+    lastDeploymentInspectorUrl: string | null;
     error: string | null;
   };
 }
@@ -66,7 +67,14 @@ async function getVercelStatus(): Promise<PlatformReport["vercel"]> {
   const teamId = process.env.VERCEL_TEAM_ID;
 
   if (!token || !projectId) {
-    return { configured: false, lastDeploymentState: null, lastDeploymentAt: null, lastDeploymentRegion: null, error: null };
+    return {
+      configured: false,
+      lastDeploymentState: null,
+      lastDeploymentAt: null,
+      lastDeploymentRegion: null,
+      lastDeploymentInspectorUrl: null,
+      error: null,
+    };
   }
 
   const url = new URL("https://api.vercel.com/v6/deployments");
@@ -83,6 +91,7 @@ async function getVercelStatus(): Promise<PlatformReport["vercel"]> {
       lastDeploymentState: null,
       lastDeploymentAt: null,
       lastDeploymentRegion: null,
+      lastDeploymentInspectorUrl: null,
       error: `Vercel API error (${res.status})`,
     };
   }
@@ -91,14 +100,22 @@ async function getVercelStatus(): Promise<PlatformReport["vercel"]> {
   const deployment = body.deployments?.[0];
 
   if (!deployment) {
-    return { configured: true, lastDeploymentState: null, lastDeploymentAt: null, lastDeploymentRegion: null, error: null };
+    return {
+      configured: true,
+      lastDeploymentState: null,
+      lastDeploymentAt: null,
+      lastDeploymentRegion: null,
+      lastDeploymentInspectorUrl: null,
+      error: null,
+    };
   }
 
   return {
     configured: true,
     lastDeploymentState: deployment.state ?? deployment.readyState ?? null,
     lastDeploymentAt: deployment.created ? new Date(deployment.created).toISOString() : null,
-    lastDeploymentRegion: deployment.regions?.[0] ?? null,
+    lastDeploymentRegion: deployment.regions?.[0] ?? deployment.target ?? null,
+    lastDeploymentInspectorUrl: deployment.inspectorUrl ?? null,
     error: null,
   };
 }
