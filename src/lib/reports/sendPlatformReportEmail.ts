@@ -233,6 +233,27 @@ function renderHtml(report: PlatformReport): string {
               ${sectionCard("Status Integrasi API", null, renderIntegrationsListHtml(report.integrations))}
             </td></tr>
 
+            ${
+              report.googleContactsAccessRequests.count > 0
+                ? `<tr><td>
+                    ${sectionCard(
+                      "Permintaan Akses Google Contacts Tertunda",
+                      `${APP_URL}/settings`,
+                      `<p style="font-size:12px;color:#991B1B;margin:0 0 8px;"><strong>${report.googleContactsAccessRequests.count} user</strong> menunggu ditambahkan sebagai test user di Google Cloud Console (OAuth consent screen masih mode Testing).</p>
+                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                         ${report.googleContactsAccessRequests.emails
+                           .map(
+                             (email) =>
+                               `<tr><td style="padding:4px 0;font-size:12px;color:#111827;border-bottom:1px solid #F3F4F6;">${email}</td></tr>`
+                           )
+                           .join("")}
+                       </table>
+                       <p style="font-size:11px;color:#9CA3AF;margin-top:8px;">Tambahkan email di atas ke OAuth consent screen &rarr; Audience &rarr; Test users di Google Cloud Console, lalu klik "Setujui" di notifikasi in-app (bell icon) supaya user tahu bisa coba connect lagi.</p>`
+                    )}
+                  </td></tr>`
+                : ""
+            }
+
             <tr><td>
               ${sectionCard("KPI AI Agent (Rencana)", AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml())}
             </td></tr>

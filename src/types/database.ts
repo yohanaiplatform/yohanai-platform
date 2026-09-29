@@ -12,8 +12,102 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.17"
   }
+  ai: {
+    Tables: {
+      agent_runs: {
+        Row: {
+          confidence: string | null
+          conversation_id: string | null
+          created_at: string
+          decided_temperature: string | null
+          error_message: string | null
+          id: string
+          input_snapshot: Json
+          lead_id: string | null
+          llm_raw_response: Json | null
+          previous_temperature: string | null
+          reply_message_id: string | null
+          reply_sent: boolean
+          reply_text: string | null
+          status: string
+          trigger_message_id: string | null
+        }
+        Insert: {
+          confidence?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          decided_temperature?: string | null
+          error_message?: string | null
+          id?: string
+          input_snapshot?: Json
+          lead_id?: string | null
+          llm_raw_response?: Json | null
+          previous_temperature?: string | null
+          reply_message_id?: string | null
+          reply_sent?: boolean
+          reply_text?: string | null
+          status?: string
+          trigger_message_id?: string | null
+        }
+        Update: {
+          confidence?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          decided_temperature?: string | null
+          error_message?: string | null
+          id?: string
+          input_snapshot?: Json
+          lead_id?: string | null
+          llm_raw_response?: Json | null
+          previous_temperature?: string | null
+          reply_message_id?: string | null
+          reply_sent?: boolean
+          reply_text?: string | null
+          status?: string
+          trigger_message_id?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   auth_ext: {
     Tables: {
+      google_contacts_access_requests: {
+        Row: {
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       google_contacts_connections: {
         Row: {
           connected_at: string
@@ -312,6 +406,42 @@ export type Database = {
           table_name?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          metadata: Json
+          read_at: string | null
+          recipient_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          read_at?: string | null
+          recipient_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          metadata?: Json
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+          type?: string
         }
         Relationships: []
       }
@@ -1110,6 +1240,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  ai: {
+    Enums: {},
+  },
   auth_ext: {
     Enums: {},
   },

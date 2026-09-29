@@ -29,6 +29,7 @@ export interface PlatformReport {
     error: string | null;
   };
   integrations: IntegrationStatus[];
+  googleContactsAccessRequests: { count: number; emails: string[] };
 }
 
 export type IntegrationStatusValue = "aktif" | "error" | "belum_dikonfigurasi";
@@ -173,8 +174,8 @@ function getIntegrationsStatus(vercel: PlatformReport["vercel"]): IntegrationSta
     },
     {
       name: "Google Contacts",
-      detail: "Auto-create kontak saat lead baru masuk",
-      status: process.env.GOOGLE_CONTACTS_REFRESH_TOKEN ? "aktif" : "belum_dikonfigurasi",
+      detail: "Sync kontak personal per user (OAuth, mode Testing)",
+      status: process.env.GOOGLE_CONTACTS_CLIENT_ID ? "aktif" : "belum_dikonfigurasi",
     },
     { name: "GitHub Actions (cron)", detail: "Pemicu Daily Report & Supabase keep-alive", status: "aktif" },
   ];
@@ -190,29 +191,42 @@ function getIntegrationsStatus(vercel: PlatformReport["vercel"]): IntegrationSta
 export async function getPlatformReport(supabase: SupabaseClient<Database>): Promise<PlatformReport> {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [usersResult, leadsTotal, leadsWeek, listingsTotal, listingsWeek, platformStats, resendUsage, vercelStatus] =
-    await Promise.all([
-      supabase.auth.admin.listUsers(),
-      supabase.schema("customer").from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null),
-      supabase
-        .schema("customer")
-        .from("leads")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", oneWeekAgo)
-        .is("deleted_at", null),
-      supabase.schema("property").from("listings").select("id", { count: "exact", head: true }).is("deleted_at", null),
-      supabase
-        .schema("property")
-        .from("listings")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", oneWeekAgo)
-        .is("deleted_at", null),
-      supabase.schema("core").rpc("get_platform_stats"),
-      getResendUsage(),
-      getVercelStatus(),
-    ]);
+  const [
+    usersResult,
+    leadsTotal,
+    leadsWeek,
+    listingsTotal,
+    listingsWeek,
+    platformStats,
+    resendUsage,
+    vercelStatus,
+    pendingAccessRequests,
+  ] = await Promise.all([
+    supabase.auth.admin.listUsers(),
+    supabase.schema("customer").from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase
+      .schema("customer")
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", oneWeekAgo)
+      .is("deleted_at", null),
+    supabase.schema("property").from("listings").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase
+      .schema("property")
+      .from("listings")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", oneWeekAgo)
+      .is("deleted_at", null),
+    supabase.schema("core").rpc("get_platform_stats"),
+    getResendUsage(),
+    getVercelStatus(),
+    supabase.schema("auth_ext").from("google_contacts_access_requests").select("user_id").eq("status", "pending"),
+  ]);
 
   const stats = platformStats.data?.[0];
+
+  const userEmailById = new Map((usersResult.data?.users ?? []).map((u) => [u.id, u.email ?? u.id]));
+  const pendingEmails = (pendingAccessRequests.data ?? []).map((r) => userEmailById.get(r.user_id) ?? r.user_id);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -227,5 +241,6 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     resend: resendUsage,
     vercel: vercelStatus,
     integrations: getIntegrationsStatus(vercelStatus),
+    googleContactsAccessRequests: { count: pendingEmails.length, emails: pendingEmails },
   };
 }
