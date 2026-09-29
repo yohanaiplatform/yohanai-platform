@@ -209,6 +209,31 @@ Diminta Yohan: download data CRM ke Excel/spreadsheet. Diputuskan CSV dulu (buka
 - Route `/api/leads/export` session-based (bukan service-role) — RLS `leads_owner_or_admin` otomatis berlaku, non-admin cuma export lead miliknya sendiri.
 - **Belum otomatis sinkron ke Google Sheet "Input Data"** — itu permintaan terpisah yang butuh integrasi Google Sheets API (service account, dsb), belum dibangun. Lihat juga bagian "Jalur masuk lead" di atas: aliran data masih satu arah (Form → Database), belum ada arah balik (Database → Sheet).
 
+## Alur Dokumen Tanda Tangan (Lead Closing) — 🔵 Diriset, BELUM diintegrasikan (29 September 2026)
+
+Yohan minta ditelusuri spreadsheet + Apps Script legacy yang sudah dipakai buat generate dokumen closing — **read-only, tidak ada kode ditulis**, sengaja disimpan dulu sebagai referensi (dikonfirmasi eksplisit: belum waktunya diintegrasikan ke platform).
+
+**Spreadsheet "List Penjualan"** (`1JRB5X3ZKIWKW6cigPJKdX80LukjCfhoULceG74pZfr0`) — sistem terpisah total dari Yohan.AI Platform, tidak tersambung ke `customer.leads` sama sekali:
+
+| Sheet | Isi |
+|-------|-----|
+| Penjualan | Tracker utama: No/Nomor Unit/Nama Konsumen/Nomor HP/Marketing/**Status** (On Proses/SP3K/Akad)/Tanggal Booking/Pembayaran/Tanggal Akad |
+| Data | Sumber data master (dirujuk fungsi `getData()` di script) |
+| PPJB | Sheet per-proyek (mis. "List Penjualan Kapur Mas") — kolom tambahan No. KTP, Alamat KTP, Type Rumah, Luas Tanah/Bangunan, Nama+NIK Pasangan, **LINK PPJB**, **Status Dokumen** |
+| Link Dokumen | Folder Google Drive per konsumen (Nomor Unit + Nama + Link) |
+| Config | `LastBASTNumber`/`LastPPJBNumber` (nomor urut berjalan), `COMPANY_NAME`/`PROJECT_NAME` |
+| DOCUMENT_LOG | Audit log generate dokumen (belum sempat dibuka isinya) |
+| Developer | Data multi-developer/proyek — **platform ini sudah punya konsep multi-tenant di level data**, relevan untuk diskusi Multi-Tenant SaaS di bawah |
+
+**Apps Script "Form Otomatis"** (`1iuP0upJtT5-DEgDYXcpGEpjNAFP_hNMTa2ChqB6omeNIlbmNUQEbul6q`, 3 file — `code.gs` ~800 baris, `Debug Header.gs`, `Terbilang.gs`, v2.2 tertanggal 21 September 2026, **masih aktif dirawat** terpisah dari migrasi ke Claude Code):
+
+- Generate **3 jenis dokumen**: **BAST** (Berita Acara Serah Terima), **Form KPR BSN**, **PPJB** (Perjanjian Pengikatan Jual Beli).
+- **Trigger manual** — user masukkan Nomor Unit lewat prompt dialog di UI Sheets (bukan otomatis, bukan webhook).
+- Alur: cari baris data by Nomor Unit → validasi field wajib ada → resolve profil developer/proyek lewat lookup "ID Developer" ke sheet `Developer` (**sudah mendukung multi-developer**) → copy template Google Docs (ID template & folder Drive **hardcode sebagai konstanta di kode**, bukan dibaca dari sheet `Config` — beda dari asumsi awal, `Config` cuma menyimpan nomor urut + nama company/project) → isi token `{{...}}` (tanggal format Indonesia otomatis, nominal Rupiah dikonversi ke terbilang lewat `Terbilang.gs`).
+- **Output tetap Google Doc biasa** — sesuai konfirmasi Yohan, dari situ didownload/print manual untuk tanda tangan fisik. **Tidak ada integrasi e-signature digital.**
+
+**Kenapa belum diintegrasikan**: perlu keputusan desain dulu (generate dari `customer.leads` platform vs tetap dari spreadsheet terpisah, kapan trigger-nya — otomatis saat Temperature jadi Closing, atau tetap manual, dll) yang belum diambil. Opsi yang dipertimbangkan saat diskusi: integrasi penuh (tombol generate di Lead Detail, effort besar) vs sekadar link cepat ke spreadsheet dari Lead Detail (ringan) vs dibiarkan terpisah dulu. **Dipilih: simpan sebagai referensi dulu**, belum diprioritaskan.
+
 ## Multi-Tenant untuk SaaS — sengaja ditunda
 
 Yohan tanya soal per-user/per-bisnis punya data terpisah (untuk SaaS nanti), dengan admin platform tetap bisa akses semua untuk keperluan support. **Diputuskan ditunda**, bukan lupa — platform masih ON HOLD, baru 2 user di 1 bisnis yang sama. Ini perubahan arsitektur besar (nyentuh RLS di semua tabel domain, bukan cuma `customer.leads`), dikerjakan pas sudah dekat mau onboarding pelanggan pertama. Dicek ke `project-docs/`: multi-tenant memang bagian dari visi awal (`v1.8`: *"single multi-tenant platform capable of serving multiple property agents under one centralized administration"*), tapi **tidak pernah didesain ke skema database** — jadi ini keputusan arsitektur dari nol, bukan tinggal mengaktifkan sesuatu yang sudah direncanakan.
