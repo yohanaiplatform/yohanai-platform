@@ -51,6 +51,32 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 29 September 2026 (malam) — AI Agent Otomatis, Notifikasi In-App, Cleanup Storage
+
+Urutan prioritas diubah Yohan malam ini: bukan sambungkan nomor WA produksi duluan, tapi AI Agent dimajukan; storage lama dibersihkan; alur dokumen tanda tangan diriset (belum diintegrasikan).
+
+### Added
+
+- **AI Agent otomatis (Task 015)** — `POST /api/whatsapp/webhook` panggil Claude API (`fetch()` langsung, tanpa SDK baru) begitu ada pesan teks masuk yang cocok ke lead: interpretasi konteks lead + riwayat chat, putuskan ubah Temperature funnel dan/atau balas otomatis lewat Kapso. Prompt eksplisit menegaskan arti "Closing" yang benar (sudah closing, bukan menuju closing) dan melarang mengarang detail properti spesifik. Audit trail lengkap di `ai.agent_runs` (migration `049`, schema `ai` dipakai pertama kali). Aktivasi tertunda — outage Claude Console (`platform.claude.com`) memblokir pembuatan `ANTHROPIC_API_KEY`
+- **Notifikasi in-app** (`core.notifications`, migration `048`) — `NotificationMenu.tsx` (bell icon) sebelumnya cuma dummy, sekarang nyambung data asli
+- **Fitur "Ajukan Akses" Google Contacts** — user yang gagal connect (Google consent screen masih mode Testing) bisa ajukan akses ke admin lewat Settings, admin dapat notifikasi + tombol "Setujui" inline (`auth_ext.google_contacts_access_requests`, migration `048`). Platform Report dapat bagian baru: daftar permintaan tertunda
+- **Backlog "10 AI Agent"** dari arsip pra-Claude (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) didokumentasikan penuh di `docs/modules/ai.mdx` sebagai referensi non-mengikat, atas permintaan Yohan
+
+### Fixed
+
+- Status integrasi Google Contacts di Platform Report masih cek env var lama (`GOOGLE_CONTACTS_REFRESH_TOKEN`) dari desain 1-akun-terpusat yang sudah diganti per-user — diperbaiki ke `GOOGLE_CONTACTS_CLIENT_ID`
+- Skrip satu-kali hapus foto lama Supabase Storage sempat salah lapor "0 file ditemukan" — struktur bucket ternyata 2 level (`listings/<uuid>/<file>`), listing-nya cuma 1 level. Diperbaiki jadi rekursif
+
+### Removed
+
+- **298 foto lama di Supabase Storage bucket `properties` dihapus permanen** (dijalankan Yohan sendiri lewat skrip sementara, tidak di-commit) — sudah tergantikan penuh oleh Cloudflare R2 (272/272 foto). Bucket `properties` sekarang kosong
+
+### Docs
+
+- **Alur dokumen tanda tangan lead closing diriset penuh** (read-only, tidak ada kode ditulis) — spreadsheet "List Penjualan" (7 sheet: Penjualan/Data/PPJB per-proyek/Link Dokumen/Config/DOCUMENT_LOG/Developer) + Apps Script "Form Otomatis" (generate BAST/Form KPR BSN/PPJB, trigger manual, output Google Doc untuk print+tanda tangan fisik, sudah dukung multi-developer). Dikonfirmasi Yohan: simpan dulu sebagai referensi, belum diintegrasikan ke platform. Detail: `docs/modules/crm.mdx`
+
+---
+
 ## 29 September 2026 — Daily/Platform Report, Cloudflare R2 Aktif, Google Contacts Per-User
 
 Sesi lanjutan dari 6-item request 28 Sep (Task 019/020) — 3 item aktivasi manual (R2, Daily Report, Google Contacts) berkembang jadi redesain penuh setelah feedback Yohan pakai fitur-fitur itu langsung.

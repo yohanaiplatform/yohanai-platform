@@ -26,7 +26,7 @@ Yohan.AI memakai PostgreSQL 17 di Supabase dengan **schema terpisah per domain**
 
 ## Exposed Schemas
 
-Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara default. Schema `auth_ext`, `core`, `customer`, `chat`, dan `property` sudah ditambahkan manual di **Settings → Data API**. Schema yang belum ter-expose tidak akan bisa diakses dari aplikasi sama sekali, sekalipun RLS dan GRANT-nya sudah benar.
+Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara default. Schema `auth_ext`, `core`, `customer`, `chat`, dan `property` sudah ditambahkan manual di **Settings → Data API**. Schema yang belum ter-expose tidak akan bisa diakses dari aplikasi sama sekali, sekalipun RLS dan GRANT-nya sudah benar. **Schema `ai` BELUM di-expose** per 29 September 2026 malam (baru mulai dipakai lewat migration `049`) — perlu ditambahkan sebelum AI Agent bisa simpan audit log ke `ai.agent_runs`.
 
 ---
 
@@ -46,6 +46,10 @@ Preferensi notifikasi per user, satu baris per user. Empat kategori toggle; kate
 
 Koneksi OAuth Google Contacts **per user** (migration `047`, 29 September 2026). `user_id` (PK, `REFERENCES auth.users`), `refresh_token`, `google_email`. RLS own-row-only — tiap user cuma bisa lihat/hapus koneksinya sendiri. Diisi lewat `/api/google-contacts/callback` setelah user sambungkan akun Google pribadinya di halaman Settings; dipakai `POST /api/leads/[id]/sync-contact` untuk auto-create kontak saat lead manual (`/crm/new`) dibuat.
 
+### google_contacts_access_requests
+
+Permintaan akses jadi test user Google OAuth (migration `048`, 29 September 2026 malam) — Google mewajibkan penambahan manual per email selama consent screen mode "Testing", tidak bisa diotomasi dari sisi app. `user_id` (PK), `status` (`pending`/`approved`), `resolved_at`, `resolved_by`. User insert baris `pending` sendiri (RLS own-row), admin update jadi `approved` lewat RLS `core.is_admin_or_above()` (bukan service_role) setelah menambahkan manual di Google Cloud Console. Dipakai alur "Ajukan Akses" di Settings + notifikasi in-app ke admin (lihat `core.notifications`) + bagian "Permintaan Akses Tertunda" di Platform Report.
+
 ## core
 
 ### roles, permissions, role_permissions
@@ -58,6 +62,10 @@ Role-based access control. `role_permissions` masih 0 baris — keputusan admin/
 - `is_admin_or_above()` (`035`) — true kalau pemanggil (`auth.uid()`) admin/super_admin. Dipakai policy `leads_owner_or_admin`.
 - `list_assignable_users()` (`036`) — daftar user (id, nama, email, role) untuk dropdown assign lead. Return **kosong** (bukan raise exception) kalau pemanggil bukan admin/super_admin — UI CRM pakai ini buat auto-hide dropdown assign untuk non-admin.
 - `get_platform_stats()` (`046`) — ukuran database & storage Supabase (bytes, jumlah objek storage), dipakai Platform Report. EXECUTE cuma untuk `service_role` (dipanggil dari cron `GET /api/reports/daily`, bukan dari browser).
+
+### notifications
+
+Notifikasi in-app generik (migration `048`, 29 September 2026 malam) — pertama kali dipakai project ini, sebelumnya `NotificationMenu.tsx` (bell icon) cuma dummy 2 item hardcode. `recipient_id`, `type`, `title`, `body`, `link`, `metadata` JSONB, `read_at`. **INSERT sengaja TIDAK di-grant ke `authenticated`** — menulis notifikasi untuk user lain (mis. broadcast ke semua admin) harus lewat `createAdminClient()` di route handler (`src/lib/notifications/createNotification.ts`), bukan langsung dari sesi user biasa. `authenticated` cuma boleh SELECT/UPDATE baris miliknya sendiri (tandai `read_at`). Dipakai pertama kali untuk notifikasi permintaan akses Google Contacts (`type: 'google_contacts_access_request'`/`'google_contacts_access_approved'`).
 
 ### business_roles
 
@@ -111,9 +119,13 @@ Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kaps
 
 ## ai
 
+### agent_runs
+
+**Nyata, dipakai** — satu-satunya tabel `ai` yang sudah ada isinya (migration `049`, 29 September 2026 malam). Audit trail AI Agent otomatis (`POST /api/whatsapp/webhook` → `interpretLeadReply()` → `applyAgentDecision()`): snapshot konteks yang dikirim ke LLM (`input_snapshot` JSONB), respons mentah (`llm_raw_response` JSONB), `previous_temperature`/`decided_temperature`, `reply_text`/`reply_sent`/`reply_message_id`, `confidence`, `status` (`success`/`skipped`/`error`). Cuma diakses `service_role` (dipanggil dari webhook, bukan sesi login) — belum ada RLS policy karena belum ada UI baca langsung. **Schema `ai` sendiri belum di-expose di Supabase Settings → Data API** per 29 September 2026 malam — tanpa itu, tabel ini tidak bisa diakses PostgREST walau GRANT-nya benar, lihat jebakan di `AGENTS.md`.
+
 ### models, prompts, interactions
 
-Konfigurasi model AI, prompt, dan riwayat interaksi.
+Aspirasional, belum dibangun — konfigurasi model AI, prompt, dan riwayat interaksi generik (beda dari `agent_runs` yang spesifik untuk AI Agent WhatsApp).
 
 ## workflow
 
@@ -187,7 +199,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`047` secara berurutan (per 29 September 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`049` secara berurutan (per 29 September 2026 malam). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -212,6 +224,8 @@ Folder `supabase/migrations/` berisi `001`–`047` secara berurutan (per 29 Sept
 | `045` | Kolom `daily_report_email` di `auth_ext.notification_preferences`; `GRANT USAGE` schema `auth_ext`/`core` + `GRANT SELECT` `profiles`/`notification_preferences`/`core.roles` ke `service_role` — dibutuhkan cron Daily Report |
 | `046` | Fungsi `core.get_platform_stats()` (SECURITY DEFINER, EXECUTE cuma `service_role`) — ukuran DB & storage Supabase untuk Platform Report |
 | `047` | Tabel `auth_ext.google_contacts_connections` (refresh token per user), RLS own-row-only, GRANT ke `authenticated` — dasar Google Contacts sync personal per user |
+| `048` | Tabel `core.notifications` (notifikasi in-app, INSERT cuma `service_role`) dan `auth_ext.google_contacts_access_requests` (alur "Ajukan Akses" test user Google OAuth) |
+| `049` | Tabel `ai.agent_runs` (audit trail AI Agent otomatis) — schema `ai` dipakai pertama kali, `GRANT USAGE`+hak tabel ke `service_role` saja |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 

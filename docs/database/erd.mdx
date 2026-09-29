@@ -44,7 +44,11 @@ auth.users
     │
     ├──────────────► auth_ext.notification_preferences
     │
-    └──────────────► auth_ext.google_contacts_connections (sejak 047, 1 baris per user)
+    ├──────────────► auth_ext.google_contacts_connections (sejak 047, 1 baris per user)
+    │
+    ├──────────────► auth_ext.google_contacts_access_requests (sejak 048, 1 baris per user)
+    │
+    └──────────────► core.notifications (sejak 048, recipient_id -- banyak baris per user)
 
 profile_completeness_rules
         │
@@ -62,9 +66,12 @@ customer.lead_sources
                           │
                           ├────────► customer.notes (append-only, sejak 038)
                           │
-                          └────────► chat.conversations
-                                          │
-                                          └────────► chat.messages
+                          ├────────► chat.conversations
+                          │                 │
+                          │                 └────────► chat.messages
+                          │
+                          └────────► ai.agent_runs (lead_id, sejak 049) ◄──── chat.conversations (conversation_id)
+                                                                        ◄──── chat.messages (trigger_message_id, reply_message_id)
 
 workflow.definitions
         │
@@ -74,13 +81,15 @@ workflow.definitions
 marketing.campaigns
 marketing.templates
 
-ai.models
-        │
-        └────────► ai.interactions
+ai.agent_runs (NYATA, sejak 049 -- lihat relasi di atas via customer.leads/chat.*)
 
-ai.prompts
+ai.models (aspirasional, belum dibangun)
         │
-        └────────► ai.interactions
+        └────────► ai.interactions (aspirasional, belum dibangun)
+
+ai.prompts (aspirasional, belum dibangun)
+        │
+        └────────► ai.interactions (aspirasional, belum dibangun)
 
 knowledge.categories
         │
