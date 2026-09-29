@@ -478,6 +478,14 @@ export type Database = {
     Functions: {
       is_authenticated: { Args: never; Returns: boolean }
       is_admin_or_above: { Args: never; Returns: boolean }
+      get_platform_stats: {
+        Args: never
+        Returns: {
+          db_size_bytes: number
+          storage_size_bytes: number
+          storage_object_count: number
+        }[]
+      }
       list_assignable_users: {
         Args: never
         Returns: {

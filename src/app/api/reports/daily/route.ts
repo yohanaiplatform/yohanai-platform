@@ -5,6 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getDailyReport } from "@/lib/reports/getDailyReport";
 import { sendDailyReportEmail } from "@/lib/reports/sendDailyReportEmail";
 import { getDailyReportRecipients } from "@/lib/reports/getDailyReportRecipients";
+import { getPlatformReport } from "@/lib/reports/getPlatformReport";
+import { sendPlatformReportEmail } from "@/lib/reports/sendPlatformReportEmail";
 
 /**
  * Dipanggil GitHub Actions cron (.github/workflows/daily-report.yml), bukan
@@ -40,9 +42,16 @@ export async function GET(request: Request) {
 
   const failed = results.filter((r) => !r.success);
 
+  // Laporan developer terpisah -- selalu ke admin@yohanai.id (atau
+  // PLATFORM_REPORT_RECIPIENT kalau di-override), tidak lewat preferensi
+  // notifikasi user manapun karena ini bukan laporan bisnis.
+  const platformReport = await getPlatformReport(supabase);
+  const { error: platformError } = await sendPlatformReportEmail(platformReport);
+
   return NextResponse.json({
-    success: failed.length === 0,
+    success: failed.length === 0 && !platformError,
     sent: results.length - failed.length,
     failed,
+    platformReport: platformError ? { success: false, error: platformError } : { success: true },
   });
 }
