@@ -61,8 +61,14 @@ function kpiTile(label: string, value: string, href: string): string {
     </td>`;
 }
 
-/** Progress bar pemakaian vs limit Free Tier -- warna berubah kalau sudah mendekati limit. Seluruh baris jadi link ke dashboard servis. */
-function usageBar(label: string, used: number, limit: number, href: string): string {
+/** Progress bar pemakaian vs limit Free Tier -- warna berubah kalau sudah mendekati limit. Seluruh baris jadi link ke dashboard servis. formatValue default ke fmtBytes (Supabase DB/Storage); dioverride ke fmt (angka biasa) buat kasus non-byte seperti jumlah email. */
+function usageBar(
+  label: string,
+  used: number,
+  limit: number,
+  href: string,
+  formatValue: (n: number) => string = fmtBytes
+): string {
   const pct = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
   const color = pct >= 90 ? "#EF4444" : pct >= 70 ? "#F59E0B" : "#10B981";
   return `
@@ -70,7 +76,7 @@ function usageBar(label: string, used: number, limit: number, href: string): str
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="font-size:12px;color:#374151;">${label}</td>
-          <td align="right" style="font-size:12px;color:#6B7280;">${fmtBytes(used)} / ${fmtBytes(limit)} (${pct.toFixed(1)}%)</td>
+          <td align="right" style="font-size:12px;color:#6B7280;">${formatValue(used)} / ${formatValue(limit)} (${pct.toFixed(1)}%)</td>
         </tr>
       </table>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;border-radius:5px;margin-top:4px;">
@@ -214,7 +220,7 @@ function renderHtml(report: PlatformReport): string {
                 LINKS.resend,
                 resend.error
                   ? `<p style="font-size:12px;color:#991B1B;">${resend.error} -- <a href="${LINKS.resendBilling}" style="color:#991B1B;">cek billing Resend</a></p>`
-                  : `${usageBar("Email terkirim bulan ini (perkiraan)", resend.sentRecentApprox, RESEND_FREE_MONTHLY_LIMIT, LINKS.resend)}
+                  : `${usageBar("Email terkirim bulan ini (perkiraan)", resend.sentRecentApprox, RESEND_FREE_MONTHLY_LIMIT, LINKS.resend, fmt)}
                      ${resend.approxCapped ? `<p style="font-size:11px;color:#9CA3AF;">Perkiraan dari 100 email terakhir -- Resend tidak punya endpoint total kirim, angka sebenarnya bisa lebih tinggi.</p>` : ""}`
               )}
             </td></tr>
