@@ -17,6 +17,7 @@ export type Database = {
       notification_preferences: {
         Row: {
           created_at: string
+          daily_report_email: boolean
           marketing_email: boolean
           message_email: boolean
           message_inapp: boolean
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_report_email?: boolean
           marketing_email?: boolean
           message_email?: boolean
           message_inapp?: boolean
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_report_email?: boolean
           marketing_email?: boolean
           message_email?: boolean
           message_inapp?: boolean

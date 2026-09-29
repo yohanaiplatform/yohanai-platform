@@ -16,6 +16,7 @@ const DEFAULT_PREFS = {
   property_update_email: true,
   property_update_inapp: true,
   marketing_email: true,
+  daily_report_email: true,
 };
 
 type Prefs = typeof DEFAULT_PREFS;
@@ -38,7 +39,7 @@ export function NotificationPreferencesForm({ userId }: { userId: string }) {
         .schema("auth_ext")
         .from("notification_preferences")
         .select(
-          "new_lead_email, new_lead_inapp, message_email, message_inapp, property_update_email, property_update_inapp, marketing_email"
+          "new_lead_email, new_lead_inapp, message_email, message_inapp, property_update_email, property_update_inapp, marketing_email, daily_report_email"
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -197,6 +198,24 @@ export function NotificationPreferencesForm({ userId }: { userId: string }) {
             onCheckedChange={() => toggle("marketing_email")}
           />
           <Label htmlFor="marketing_email" className="cursor-pointer font-normal">
+            Email
+          </Label>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="font-medium text-sm">Daily Report</h3>
+        <p className="text-xs text-muted-foreground">
+          Ringkasan lead, listing, dan percakapan WhatsApp, dikirim tiap pagi jam 07:00 WIB. Admin/super_admin
+          menerima ringkasan semua data, role lain hanya melihat lead & listing miliknya sendiri.
+        </p>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="daily_report_email"
+            checked={prefs.daily_report_email}
+            onCheckedChange={() => toggle("daily_report_email")}
+          />
+          <Label htmlFor="daily_report_email" className="cursor-pointer font-normal">
             Email
           </Label>
         </div>

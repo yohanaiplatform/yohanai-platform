@@ -92,8 +92,8 @@ function sectionCard(title: string, innerHtml: string): string {
   </table>`;
 }
 
-function renderHtml(report: DailyReport): string {
-  const { leads, listings, chat, reportDateWIB } = report;
+function renderHtml(report: DailyReport, recipientName: string | null): string {
+  const { leads, listings, chat, reportDateWIB, isAggregate } = report;
 
   const maxTemp = Math.max(leads.hot, leads.warm, leads.cold, leads.closing, leads.batal, 1);
   const listingTotal = listings.available + listings.booked + listings.sold + listings.hold || 1;
@@ -174,6 +174,11 @@ function renderHtml(report: DailyReport): string {
                   <td align="right" style="font-size:12px;color:#6B7280;white-space:nowrap;">${formatDateID(reportDateWIB)}</td>
                 </tr>
               </table>
+              ${
+                isAggregate
+                  ? ""
+                  : `<div style="font-size:11px;color:#9CA3AF;margin-top:4px;">Laporan personal${recipientName ? ` untuk ${recipientName}` : ""} -- dibatasi ke lead &amp; listing yang ditugaskan ke Anda.</div>`
+              }
             </td></tr>
 
             <tr><td style="padding-bottom:14px;">
@@ -244,13 +249,26 @@ function renderHtml(report: DailyReport): string {
 </html>`;
 }
 
-export async function sendDailyReportEmail(report: DailyReport): Promise<{ error: string | null }> {
+export interface DailyReportRecipientInput {
+  email: string;
+  displayName: string | null;
+}
+
+/**
+ * Dipanggil sekali per penerima (lihat getDailyReportRecipients.ts) --
+ * `to` sekarang parameter, bukan dibaca dari env var DAILY_REPORT_RECIPIENT
+ * (env var itu sudah tidak dipakai lagi sejak Daily Report jadi personal
+ * per user, 29 September 2026).
+ */
+export async function sendDailyReportEmail(
+  report: DailyReport,
+  recipient: DailyReportRecipientInput
+): Promise<{ error: string | null }> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  const to = process.env.DAILY_REPORT_RECIPIENT;
 
-  if (!apiKey || !from || !to) {
-    return { error: "RESEND_API_KEY/RESEND_FROM_EMAIL/DAILY_REPORT_RECIPIENT belum dikonfigurasi." };
+  if (!apiKey || !from) {
+    return { error: "RESEND_API_KEY/RESEND_FROM_EMAIL belum dikonfigurasi." };
   }
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -261,9 +279,9 @@ export async function sendDailyReportEmail(report: DailyReport): Promise<{ error
     },
     body: JSON.stringify({
       from,
-      to: to.split(",").map((email) => email.trim()),
+      to: [recipient.email],
       subject: `Yohan.AI Daily Report -- ${formatDateID(report.reportDateWIB)}`,
-      html: renderHtml(report),
+      html: renderHtml(report, recipient.displayName),
     }),
   });
 

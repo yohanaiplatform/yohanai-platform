@@ -4,14 +4,19 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getDailyReport } from "@/lib/reports/getDailyReport";
 import { sendDailyReportEmail } from "@/lib/reports/sendDailyReportEmail";
+import { getDailyReportRecipients } from "@/lib/reports/getDailyReportRecipients";
 
 /**
  * Dipanggil GitHub Actions cron (.github/workflows/daily-report.yml), bukan
  * browser -- diamankan lewat secret header, pola sama persis seperti
- * POST /api/leads/intake. Pakai service-role client karena report ini
- * butuh angka lintas SEMUA agent (RLS leads_owner_or_admin/
- * listings_owner_or_admin akan mempersempit ke satu user kalau pakai
- * session client biasa).
+ * POST /api/leads/intake.
+ *
+ * Personal per user (29 September 2026) -- setiap user terdaftar yang
+ * belum matikan preferensi (auth_ext.notification_preferences.
+ * daily_report_email) terima laporan sendiri: admin/super_admin dapat
+ * agregat semua data, role lain di-scope ke assigned_to = dirinya sendiri
+ * (pola sama seperti leads_owner_or_admin/listings_owner_or_admin).
+ * Sebelumnya satu email statis (DAILY_REPORT_RECIPIENT) untuk semua orang.
  */
 export async function GET(request: Request) {
   const secret = request.headers.get("x-report-secret");
@@ -20,12 +25,24 @@ export async function GET(request: Request) {
   }
 
   const supabase = createAdminClient();
-  const report = await getDailyReport(supabase);
-  const { error } = await sendDailyReportEmail(report);
+  const recipients = await getDailyReportRecipients(supabase);
 
-  if (error) {
-    return NextResponse.json({ success: false, report, error }, { status: 500 });
-  }
+  const results = await Promise.all(
+    recipients.map(async (recipient) => {
+      const report = await getDailyReport(supabase, { assignedTo: recipient.isAdmin ? null : recipient.userId });
+      const { error } = await sendDailyReportEmail(report, {
+        email: recipient.email,
+        displayName: recipient.displayName,
+      });
+      return { email: recipient.email, success: !error, error };
+    })
+  );
 
-  return NextResponse.json({ success: true, report });
+  const failed = results.filter((r) => !r.success);
+
+  return NextResponse.json({
+    success: failed.length === 0,
+    sent: results.length - failed.length,
+    failed,
+  });
 }
