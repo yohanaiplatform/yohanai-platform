@@ -5,6 +5,8 @@ import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
 import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
+import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
+import { applyAgentDecision, logAgentRunFailure } from '@/lib/ai/applyAgentDecision'
 
 /**
  * Terima event webhook dari Kapso (WhatsApp Business Cloud API resmi Meta).
@@ -153,7 +155,7 @@ async function handleMessageReceived(
     conversationId = created.id
   }
 
-  const { error: insertError } = await supabase
+  const { data: insertedMessage, error: insertError } = await supabase
     .schema('chat')
     .from('messages')
     .insert({
@@ -166,6 +168,8 @@ async function handleMessageReceived(
         has_media: MEDIA_MESSAGE_TYPES.has(payload.message.type) || (payload.message.kapso?.has_media ?? false),
       },
     })
+    .select('id')
+    .single()
 
   if (insertError) return
 
@@ -176,6 +180,83 @@ async function handleMessageReceived(
     .from('conversations')
     .update({ status: 'active' })
     .eq('id', conversationId)
+
+  // Pesan media/non-teks tidak dikirim ke AI Agent -- content-nya cuma
+  // placeholder ("[image]" dst), bukan sesuatu yang bisa diinterpretasi.
+  const isTextMessage = payload.message.type === 'text' && Boolean(payload.message.text?.body ?? payload.message.kapso?.content)
+
+  if (leadId && isTextMessage && process.env.ANTHROPIC_API_KEY) {
+    await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, content)
+  }
+}
+
+async function runAiAgent(
+  supabase: ReturnType<typeof createAdminClient>,
+  leadId: string,
+  conversationId: string,
+  triggerMessageId: string,
+  newMessage: string
+) {
+  const { data: lead } = await supabase
+    .schema('customer')
+    .from('leads')
+    .select('first_name, last_name, phone, metadata')
+    .eq('id', leadId)
+    .maybeSingle()
+
+  if (!lead || !lead.phone) return
+
+  const metadata = (lead.metadata ?? {}) as Record<string, unknown>
+  const currentTemperature = (metadata.status_funnel_awal as string | undefined) ?? null
+
+  const { data: recentMessages } = await supabase
+    .schema('chat')
+    .from('messages')
+    .select('sender_type, content')
+    .eq('conversation_id', conversationId)
+    .neq('id', triggerMessageId)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  const history = (recentMessages ?? []).reverse().map((m) => ({ senderType: m.sender_type, content: m.content }))
+
+  const leadContext = {
+    firstName: lead.first_name,
+    lastName: lead.last_name,
+    currentTemperature,
+    sudahSurvey: (metadata.sudah_survey as string | undefined) ?? null,
+    minatUnitLokasi: (metadata.minat_unit_lokasi as string | undefined) ?? null,
+    permintaan: (metadata.permintaan as string | undefined) ?? null,
+    komentar: (metadata.komentar as string | undefined) ?? null,
+  }
+
+  const inputSnapshot = { leadContext, history, newMessage }
+
+  const { decision, rawResponse, error } = await interpretLeadReply(leadContext, history, newMessage)
+
+  if (error || !decision) {
+    await logAgentRunFailure(supabase, {
+      leadId,
+      conversationId,
+      triggerMessageId,
+      inputSnapshot,
+      rawResponse: rawResponse ?? null,
+      errorMessage: error ?? 'Keputusan AI Agent kosong',
+    })
+    return
+  }
+
+  await applyAgentDecision(supabase, {
+    leadId,
+    leadPhone: lead.phone,
+    conversationId,
+    triggerMessageId,
+    currentMetadata: lead.metadata,
+    currentTemperature,
+    decision,
+    inputSnapshot,
+    rawResponse,
+  })
 }
 
 export async function POST(request: Request) {
