@@ -2,13 +2,15 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { exchangeCodeForTokens, getGoogleUserEmail } from "@/lib/google/contacts";
 
 /**
- * Langkah 2 (terakhir) setup Google Contacts. Google redirect ke sini
- * bawa `code`, ditukar ke refresh_token, ditampilkan sekali di halaman ini
- * untuk di-copy manual ke env var GOOGLE_CONTACTS_REFRESH_TOKEN (di Vercel
- * & .env.local) -- TIDAK disimpan otomatis di mana pun oleh aplikasi ini,
- * karena tidak ada tempat penyimpanan config selain env var di project ini.
+ * Langkah 2 (terakhir) alur "Sambungkan Google Contacts". Google redirect
+ * ke sini bawa `code`, ditukar ke refresh_token, DISIMPAN LANGSUNG ke
+ * auth_ext.google_contacts_connections milik user yang sedang login --
+ * beda dari desain awal (semalam) yang cuma menampilkan token di halaman
+ * untuk di-copy manual. Personal per user, jadi tidak ada lagi langkah
+ * copy-paste manual ke env var.
  */
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -20,66 +22,59 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: assignable } = await supabase.schema("core").rpc("list_assignable_users");
-  if (!assignable || assignable.length === 0) {
-    return NextResponse.json({ error: "Khusus admin/super_admin." }, { status: 403 });
-  }
-
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const oauthError = url.searchParams.get("error");
+  const settingsUrl = new URL("/settings", url.origin);
 
   if (oauthError) {
-    return NextResponse.json({ error: `Google menolak otorisasi: ${oauthError}` }, { status: 400 });
+    settingsUrl.searchParams.set("google_contacts", "error");
+    settingsUrl.searchParams.set("google_contacts_message", `Google menolak otorisasi: ${oauthError}`);
+    return NextResponse.redirect(settingsUrl);
   }
   if (!code) {
-    return NextResponse.json({ error: "Parameter code kosong." }, { status: 400 });
+    settingsUrl.searchParams.set("google_contacts", "error");
+    settingsUrl.searchParams.set("google_contacts_message", "Parameter code kosong.");
+    return NextResponse.redirect(settingsUrl);
   }
 
-  const clientId = process.env.GOOGLE_CONTACTS_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CONTACTS_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_CONTACTS_REDIRECT_URI;
+  const { accessToken, refreshToken, error: exchangeError } = await exchangeCodeForTokens(code);
 
-  if (!clientId || !clientSecret || !redirectUri) {
-    return NextResponse.json(
-      { error: "GOOGLE_CONTACTS_CLIENT_ID/SECRET/REDIRECT_URI belum diisi di env var." },
-      { status: 500 }
+  if (exchangeError) {
+    settingsUrl.searchParams.set("google_contacts", "error");
+    settingsUrl.searchParams.set("google_contacts_message", exchangeError);
+    return NextResponse.redirect(settingsUrl);
+  }
+
+  if (!refreshToken) {
+    // Google cuma kirim refresh_token di otorisasi pertama untuk kombinasi
+    // client_id+akun Google ini. prompt=consent di /authorize seharusnya
+    // selalu memaksa ini muncul -- kalau tetap kosong, minta user cabut
+    // akses lama dulu di myaccount.google.com/permissions.
+    settingsUrl.searchParams.set("google_contacts", "error");
+    settingsUrl.searchParams.set(
+      "google_contacts_message",
+      "Google tidak mengirim refresh token. Cabut akses lama di myaccount.google.com/permissions (cari nama OAuth client-nya), lalu ulangi Sambungkan Google Contacts."
     );
+    return NextResponse.redirect(settingsUrl);
   }
 
-  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
-      code,
-      grant_type: "authorization_code",
-    }),
-  });
+  const googleEmail = await getGoogleUserEmail(accessToken);
 
-  const tokenData = await tokenRes.json();
-
-  if (!tokenRes.ok) {
-    return NextResponse.json({ error: `Tukar token gagal: ${JSON.stringify(tokenData)}` }, { status: 500 });
-  }
-
-  if (!tokenData.refresh_token) {
-    return new NextResponse(
-      `<p>Google tidak mengirim refresh_token kali ini -- biasanya karena akun ini sudah pernah otorisasi client_id yang sama sebelumnya.</p>
-       <p>Cabut akses lama dulu di <a href="https://myaccount.google.com/permissions" target="_blank">myaccount.google.com/permissions</a> (cari nama OAuth client-nya), lalu ulangi dari /api/google-contacts/authorize.</p>`,
-      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  const { error: dbError } = await supabase
+    .schema("auth_ext")
+    .from("google_contacts_connections")
+    .upsert(
+      { user_id: user.id, refresh_token: refreshToken, google_email: googleEmail },
+      { onConflict: "user_id" }
     );
+
+  if (dbError) {
+    settingsUrl.searchParams.set("google_contacts", "error");
+    settingsUrl.searchParams.set("google_contacts_message", `Gagal simpan koneksi: ${dbError.message}`);
+    return NextResponse.redirect(settingsUrl);
   }
 
-  return new NextResponse(
-    `<!doctype html><html><body style="font-family:system-ui;max-width:640px;margin:40px auto;line-height:1.6">
-      <h2>Refresh token berhasil didapat</h2>
-      <p>Copy nilai di bawah ini ke env var <code>GOOGLE_CONTACTS_REFRESH_TOKEN</code> di Vercel (Project Settings -> Environment Variables) dan di <code>.env.local</code>. Halaman ini tidak menyimpannya di mana pun -- kalau ditutup tanpa di-copy, ulangi dari /api/google-contacts/authorize.</p>
-      <textarea readonly style="width:100%;height:80px;font-family:monospace;padding:8px">${tokenData.refresh_token}</textarea>
-      <p>Setelah disimpan di Vercel, redeploy (atau tunggu deploy berikutnya) supaya env var-nya aktif.</p>
-    </body></html>`,
-    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
-  );
+  settingsUrl.searchParams.set("google_contacts", "connected");
+  return NextResponse.redirect(settingsUrl);
 }

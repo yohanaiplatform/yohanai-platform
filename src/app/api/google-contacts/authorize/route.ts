@@ -2,17 +2,17 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { CONTACTS_SCOPES } from "@/lib/google/contacts";
 
 /**
- * Langkah 1 dari setup Google Contacts (sekali jalan, bukan dipanggil
- * aplikasi terus-menerus). Admin buka URL ini di browser -> dilempar ke
- * consent screen Google -> setuju -> mendarat di /callback yang menampilkan
- * refresh token buat di-copy ke env var. Lihat docs/modules/crm.mdx bagian
- * "Google Contacts" untuk panduan lengkap.
+ * Langkah 1 alur "Sambungkan Google Contacts" (tombol di halaman
+ * Settings). Personal per user (29 September 2026) -- SIAPA PUN yang
+ * login boleh sambungkan akun Google pribadinya sendiri, bukan admin-only
+ * seperti desain awal (semalam, waktu masih 1 akun terpusat).
  *
- * Admin-only -- deteksi lewat core.list_assignable_users() (pola sama
- * seperti PropertyAssignSelect.tsx/AddListingForm.tsx: array kosong = bukan
- * admin/super_admin).
+ * User dilempar ke consent screen Google -> setuju -> mendarat di
+ * /callback yang menyimpan refresh token ke baris miliknya sendiri di
+ * auth_ext.google_contacts_connections.
  */
 export async function GET() {
   const supabase = await createClient();
@@ -22,11 +22,6 @@ export async function GET() {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: assignable } = await supabase.schema("core").rpc("list_assignable_users");
-  if (!assignable || assignable.length === 0) {
-    return NextResponse.json({ error: "Khusus admin/super_admin." }, { status: 403 });
   }
 
   const clientId = process.env.GOOGLE_CONTACTS_CLIENT_ID;
@@ -43,11 +38,12 @@ export async function GET() {
   authUrl.searchParams.set("client_id", clientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("response_type", "code");
-  authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/contacts");
+  authUrl.searchParams.set("scope", CONTACTS_SCOPES);
   authUrl.searchParams.set("access_type", "offline");
   // prompt=consent WAJIB -- tanpa ini Google cuma balas refresh_token di
-  // otorisasi PERTAMA kali seumur hidup client_id ini. Kalau nanti perlu
-  // generate ulang (mis. token dicabut), prompt=consent memaksa muncul lagi.
+  // otorisasi PERTAMA kali seumur hidup client_id ini per akun Google.
+  // Kalau user reconnect (mis. token dicabut manual), prompt=consent
+  // memaksa muncul lagi supaya kita dapat refresh_token baru.
   authUrl.searchParams.set("prompt", "consent");
 
   return NextResponse.redirect(authUrl.toString());

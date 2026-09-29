@@ -1,7 +1,6 @@
-import { NextResponse, after } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
-import { syncLeadToGoogleContacts } from '@/lib/google/syncLeadContact'
 
 /**
  * Pintu masuk lead dari Google Form legacy (Apps Script -> UrlFetchApp.fetch).
@@ -131,16 +130,10 @@ export async function POST(request: Request) {
     )
   }
 
-  // after() -- jalan setelah respons dikirim, tapi tetap dijamin selesai
-  // dieksekusi runtime (beda dari void-tanpa-await yang berisiko dipotong
-  // serverless function sebelum promise-nya settle). Gagal sync kontak
-  // tidak boleh menggagalkan respons intake.
-  after(() =>
-    syncLeadToGoogleContacts({
-      first_name: (body.nama as string).trim(),
-      phone: normalizePhone(body.phone as string),
-    })
-  )
-
+  // Sync Google Contacts sengaja TIDAK dipanggil di sini -- lead dari
+  // Google Form tidak punya "user pembuat" (masuk lewat service-role,
+  // assigned_to kosong), jadi tidak ada akun Google siapa pun untuk
+  // dituju. Sync per-user cuma jalan dari createLead.ts (Tambah Lead
+  // Manual) lewat POST /api/leads/[id]/sync-contact, lihat file itu.
   return NextResponse.json({ success: true, leadId: inserted.id })
 }

@@ -14,6 +14,30 @@ export type Database = {
   }
   auth_ext: {
     Tables: {
+      google_contacts_connections: {
+        Row: {
+          connected_at: string
+          google_email: string | null
+          refresh_token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          google_email?: string | null
+          refresh_token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          google_email?: string | null
+          refresh_token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string

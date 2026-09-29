@@ -10,23 +10,24 @@ export interface LeadForContactSync {
 }
 
 /**
- * Sync satu lead baru ke Google Contacts (akun yohan.ai.platform@gmail.com).
- * Dipanggil dari kedua jalur insert lead -- POST /api/leads/intake (Google
- * Form) dan createLead.ts (Tambah Lead Manual, lewat route terpisah karena
- * createLead.ts jalan di browser -- lihat /api/leads/[id]/sync-contact).
+ * Sync satu lead ke Google Contacts MILIK USER YANG BIKIN LEAD ITU --
+ * dipanggil dari POST /api/leads/[id]/sync-contact setelah createLead.ts
+ * (Tambah Lead Manual) sukses, pakai refresh_token milik user tersebut
+ * dari auth_ext.google_contacts_connections.
  *
- * Sengaja fire-and-forget di kedua pemanggil: gagal sync kontak TIDAK BOLEH
- * menggagalkan penyimpanan lead itu sendiri (lead adalah data utama, Google
- * Contacts cuma turunan). Kalau GOOGLE_CONTACTS_REFRESH_TOKEN belum
- * dikonfigurasi, fungsi ini diam-diam no-op (dianggap fitur belum diaktifkan,
- * bukan error).
+ * Personal per user (29 September 2026) -- desain awal (semalam) pakai
+ * satu akun Google terpusat, diubah karena Yohan mau tiap user (termasuk
+ * agent lain nanti) lihat kontak lead-nya di Google Contacts & HP mereka
+ * SENDIRI, bukan satu akun bersama.
+ *
+ * Sengaja fire-and-forget di pemanggil: gagal sync kontak TIDAK BOLEH
+ * menggagalkan penyimpanan lead itu sendiri (lead adalah data utama,
+ * Google Contacts cuma turunan).
  */
-export async function syncLeadToGoogleContacts(lead: LeadForContactSync): Promise<void> {
-  if (!process.env.GOOGLE_CONTACTS_REFRESH_TOKEN) return;
-
+export async function syncLeadToGoogleContacts(refreshToken: string, lead: LeadForContactSync): Promise<void> {
   const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ").trim() || lead.first_name;
 
-  const { error } = await createGoogleContact({
+  const { error } = await createGoogleContact(refreshToken, {
     name,
     phone: lead.phone,
     email: lead.email,
