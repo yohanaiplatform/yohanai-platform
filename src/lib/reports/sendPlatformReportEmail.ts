@@ -1,11 +1,12 @@
 // src/lib/reports/sendPlatformReportEmail.ts
 
-import type { PlatformReport } from "@/lib/reports/getPlatformReport";
+import type { PlatformReport, IntegrationStatus } from "@/lib/reports/getPlatformReport";
 import {
   SUPABASE_FREE_DB_LIMIT_BYTES,
   SUPABASE_FREE_STORAGE_LIMIT_BYTES,
   RESEND_FREE_MONTHLY_LIMIT,
 } from "@/lib/reports/getPlatformReport";
+import { AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml } from "@/lib/reports/aiAgentRoadmap";
 
 const APP_URL = "https://yohanai.id";
 const SUPABASE_PROJECT_URL = "https://supabase.com/dashboard/project/yxroxrxzyzewydefnmlv";
@@ -98,6 +99,30 @@ function statusBadge(ok: boolean, label: string): string {
   const bg = ok ? "#D1FAE5" : "#FEE2E2";
   const ink = ok ? "#065F46" : "#991B1B";
   return `<span style="display:inline-block;background:${bg};color:${ink};font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;">${label}</span>`;
+}
+
+const INTEGRATION_STATUS_LABEL: Record<IntegrationStatus["status"], { label: string; ok: boolean }> = {
+  aktif: { label: "Aktif", ok: true },
+  error: { label: "Error", ok: false },
+  belum_dikonfigurasi: { label: "Belum Dikonfigurasi", ok: false },
+};
+
+function renderIntegrationsListHtml(integrations: IntegrationStatus[]): string {
+  const aktifCount = integrations.filter((i) => i.status === "aktif").length;
+  const rows = integrations
+    .map((i) => {
+      const { label, ok } = INTEGRATION_STATUS_LABEL[i.status];
+      return `<tr>
+        <td style="padding:6px 0;font-size:12px;color:#111827;font-weight:600;border-bottom:1px solid #F3F4F6;">${i.name}</td>
+        <td style="padding:6px 0;font-size:11px;color:#9CA3AF;border-bottom:1px solid #F3F4F6;">${i.detail}</td>
+        <td align="right" style="padding:6px 0;border-bottom:1px solid #F3F4F6;">${statusBadge(ok, label)}</td>
+      </tr>`;
+    })
+    .join("");
+
+  return `
+    <p style="font-size:12px;color:#374151;margin:0 0 10px;"><strong>${aktifCount} dari ${integrations.length}</strong> integrasi API aktif.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>`;
 }
 
 function costRow(service: string, href: string | null, tier: string, limit: string, upgrade: string): string {
@@ -196,6 +221,14 @@ function renderHtml(report: PlatformReport): string {
 
             <tr><td>
               ${sectionCard("Vercel", LINKS.vercelProject, vercelStatusHtml)}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard("Status Integrasi API", null, renderIntegrationsListHtml(report.integrations))}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard("KPI AI Agent (Rencana)", AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml())}
             </td></tr>
 
             <tr><td>

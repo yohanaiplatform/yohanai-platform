@@ -28,6 +28,15 @@ export interface PlatformReport {
     lastDeploymentInspectorUrl: string | null;
     error: string | null;
   };
+  integrations: IntegrationStatus[];
+}
+
+export type IntegrationStatusValue = "aktif" | "error" | "belum_dikonfigurasi";
+
+export interface IntegrationStatus {
+  name: string;
+  detail: string;
+  status: IntegrationStatusValue;
 }
 
 const SUPABASE_FREE_DB_LIMIT_BYTES = 500 * 1024 * 1024;
@@ -121,6 +130,47 @@ async function getVercelStatus(): Promise<PlatformReport["vercel"]> {
 }
 
 /**
+ * Status tiap integrasi API pihak ketiga yang dipakai platform ini --
+ * dicek dari keberadaan env var (belum tentu = koneksinya sehat, cuma
+ * "sudah diisi atau belum"), kecuali Resend & Vercel yang sudah dites live
+ * di atas jadi statusnya diambil dari hasil tes itu. R2 & Google Contacts
+ * belum ada env var-nya sama sekali (masih tahap setup manual Yohan),
+ * jadi otomatis tampil "Belum Dikonfigurasi" -- bukan bug, itu memang
+ * status sebenarnya per hari laporan ini dibuat.
+ */
+function getIntegrationsStatus(resend: PlatformReport["resend"], vercel: PlatformReport["vercel"]): IntegrationStatus[] {
+  return [
+    { name: "Supabase", detail: "Database, Auth, Storage", status: "aktif" },
+    {
+      name: "Resend",
+      detail: "Email transactional",
+      status: resend.error ? "error" : "aktif",
+    },
+    {
+      name: "Vercel API",
+      detail: "Status deployment untuk Platform Report",
+      status: !vercel.configured ? "belum_dikonfigurasi" : vercel.error ? "error" : "aktif",
+    },
+    {
+      name: "Kapso (WhatsApp)",
+      detail: "Kirim/terima pesan WA -- sandbox, nomor produksi belum tersambung",
+      status: process.env.KAPSO_API_KEY ? "aktif" : "belum_dikonfigurasi",
+    },
+    {
+      name: "Cloudflare R2",
+      detail: "Storage foto listing (pengganti Supabase Storage)",
+      status: process.env.R2_ACCESS_KEY_ID ? "aktif" : "belum_dikonfigurasi",
+    },
+    {
+      name: "Google Contacts",
+      detail: "Auto-create kontak saat lead baru masuk",
+      status: process.env.GOOGLE_CONTACTS_REFRESH_TOKEN ? "aktif" : "belum_dikonfigurasi",
+    },
+    { name: "GitHub Actions (cron)", detail: "Pemicu Daily Report & Supabase keep-alive", status: "aktif" },
+  ];
+}
+
+/**
  * Laporan untuk Yohan sebagai pengembang (bukan sebagai pemilik bisnis) --
  * agregat platform-wide (bukan per-agent seperti getDailyReport.ts), plus
  * kesehatan infrastruktur (Supabase, Resend, Vercel) dibanding limit Free
@@ -166,5 +216,6 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     },
     resend: resendUsage,
     vercel: vercelStatus,
+    integrations: getIntegrationsStatus(resendUsage, vercelStatus),
   };
 }

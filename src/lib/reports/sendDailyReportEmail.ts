@@ -1,6 +1,7 @@
 // src/lib/reports/sendDailyReportEmail.ts
 
 import type { DailyReport } from "@/lib/reports/getDailyReport";
+import { AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml } from "@/lib/reports/aiAgentRoadmap";
 
 const APP_URL = "https://yohanai.id";
 
@@ -227,6 +228,13 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
                   ${kpiTile("Pesan Keluar", chat.messagesOutToday, dashboard)}
                   ${kpiTile("Total Pesan Hari Ini", chat.messagesToday, dashboard)}
                 </tr></table>`
+              )}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard(
+                `<a href="${AI_AGENT_DOCS_URL}" style="color:#374151;text-decoration:none;">KPI AI Agent (Rencana) &rarr;</a>`,
+                renderAiAgentKpiListHtml()
               )}
             </td></tr>
 
