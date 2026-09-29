@@ -5,6 +5,8 @@ import type { Database } from "@/types/database";
 
 export interface DailyReport {
   generatedAt: string;
+  /** Tanggal kalender WIB laporan ini (YYYY-MM-DD) -- dipakai buat link "lead baru hari ini" di email. */
+  reportDateWIB: string;
   leads: {
     total: number;
     newToday: number;
@@ -37,8 +39,28 @@ export interface DailyReport {
 const FOLLOW_UP_OVERDUE_HOURS = 48;
 const FROZEN_LEAD_OVERDUE_DAYS = 30;
 
+const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/**
+ * Awal hari ini menurut kalender WIB (UTC+7, tidak kenal DST), bukan waktu
+ * lokal server. Vercel function jalan di UTC -- kalau dulu pakai
+ * `new Date().setHours(0,0,0,0)`, batas "hari ini" mengikuti tengah malam
+ * UTC (07:00 WIB), bukan tengah malam WIB, sehingga "lead baru hari ini"
+ * bisa salah hitung sampai 7 jam.
+ */
+function startOfTodayWIB(): Date {
+  const wibNow = new Date(Date.now() + WIB_OFFSET_MS);
+  const wibMidnightUTC = Date.UTC(wibNow.getUTCFullYear(), wibNow.getUTCMonth(), wibNow.getUTCDate());
+  return new Date(wibMidnightUTC - WIB_OFFSET_MS);
+}
+
 function startOfTodayISO(): string {
-  return new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  return startOfTodayWIB().toISOString();
+}
+
+function todayDateWIB(): string {
+  const wibNow = new Date(Date.now() + WIB_OFFSET_MS);
+  return wibNow.toISOString().slice(0, 10);
 }
 
 /**
@@ -178,6 +200,7 @@ export async function getDailyReport(supabase: SupabaseClient<Database>): Promis
 
   return {
     generatedAt: new Date().toISOString(),
+    reportDateWIB: todayDateWIB(),
     leads: {
       total: leadsTotal.count ?? 0,
       newToday: leadsToday.count ?? 0,
