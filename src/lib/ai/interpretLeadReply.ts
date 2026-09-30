@@ -23,6 +23,8 @@ export interface AgentDecision {
   replyText: string | null;
   reasoning: string;
   confidence: "high" | "medium" | "low";
+  needsFollowUp: boolean;
+  followUpNote: string | null;
 }
 
 export interface InterpretLeadReplyResult {
@@ -50,14 +52,19 @@ ATURAN UBAH TEMPERATURE:
 - Kalau tidak ada sinyal jelas untuk berubah, set newTemperature: null (JANGAN asal isi field ini).
 
 ATURAN BALAS OTOMATIS:
-- replyText singkat, natural, sopan, bahasa Indonesia, gaya agen properti manusia (bukan robot).
-- JANGAN mengarang detail properti spesifik (harga, unit, ketersediaan) yang tidak ada di konteks yang diberikan -- kalau lead tanya hal spesifik yang Anda tidak punya datanya, balas dengan mengakui akan dicek/diteruskan ke agen, JANGAN menebak angka.
+- SELALU balas (replyText TIDAK boleh null) -- diam total terkesan lead di-ignore. Satu-satunya alasan replyText: null adalah kalau pesan lead butuh keputusan manusia murni yang sensitif (komplain serius, ancaman hukum, negosiasi harga besar) -- itu jarang, bukan default.
+- replyText singkat (1-2 kalimat), natural, sopan, bahasa Indonesia, gaya agen properti manusia asli -- BUKAN kalimat template/robot. **Variasikan kata-katanya setiap kali** -- kalau dalam percakapan yang sama Anda sudah bilang "saya cek dulu ya" sebelumnya dan sekarang harus bilang hal serupa lagi (pertanyaan lain yang juga tidak ada datanya), JANGAN ulangi kalimat persis sama -- ganti susunan kata/gaya seolah orang berbeda yang sedang mengetik balasan wajar, bukan copy-paste.
+- JANGAN mengarang detail properti spesifik (harga, unit, ketersediaan, lokasi persis) yang tidak ada di konteks yang diberikan -- kalau lead tanya hal spesifik yang Anda tidak punya datanya, akui dengan wajar (bukan defensif) bahwa itu perlu dicek dulu, dan sebutkan akan diteruskan/dikabari -- JANGAN menebak angka atau detail apa pun.
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
-- Kalau pesan lead memerlukan respons manusia (komplain, negosiasi harga, pertanyaan sangat spesifik di luar konteks) -- set replyText: null, biar agen manusia yang balas manual.
-- confidence "low" kalau ragu -- replyText sebaiknya null kalau confidence low.
+- confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
+
+ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
+- Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
+- followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
+- needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
-{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low"}`;
+{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null}`;
 
 function buildUserPrompt(
   lead: AgentLeadContext,
@@ -93,7 +100,9 @@ function isValidDecision(value: unknown): value is AgentDecision {
   const validReply = v.replyText === null || typeof v.replyText === "string";
   const validReasoning = typeof v.reasoning === "string";
   const validConfidence = v.confidence === "high" || v.confidence === "medium" || v.confidence === "low";
-  return validTemp && validReply && validReasoning && validConfidence;
+  const validNeedsFollowUp = typeof v.needsFollowUp === "boolean";
+  const validFollowUpNote = v.followUpNote === null || v.followUpNote === undefined || typeof v.followUpNote === "string";
+  return validTemp && validReply && validReasoning && validConfidence && validNeedsFollowUp && validFollowUpNote;
 }
 
 /**
@@ -162,6 +171,9 @@ export async function interpretLeadReply(
   if (!isValidDecision(parsed)) {
     return { decision: null, rawResponse: json, error: "Respons LLM tidak sesuai format yang diharapkan" };
   }
+
+  // followUpNote boleh diomit oleh LLM saat needsFollowUp false -- normalisasi ke null.
+  if (parsed.followUpNote === undefined) parsed.followUpNote = null;
 
   return { decision: parsed, rawResponse: json, error: null };
 }

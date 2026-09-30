@@ -200,7 +200,7 @@ async function runAiAgent(
   const { data: lead } = await supabase
     .schema('customer')
     .from('leads')
-    .select('first_name, last_name, phone, metadata')
+    .select('first_name, last_name, phone, metadata, assigned_to')
     .eq('id', leadId)
     .maybeSingle()
 
@@ -248,7 +248,9 @@ async function runAiAgent(
 
   await applyAgentDecision(supabase, {
     leadId,
+    leadName: `${lead.first_name} ${lead.last_name}`.trim() || lead.phone,
     leadPhone: lead.phone,
+    assignedTo: lead.assigned_to,
     conversationId,
     triggerMessageId,
     currentMetadata: lead.metadata,

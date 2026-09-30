@@ -4,10 +4,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
 import type { AgentDecision } from "@/lib/ai/interpretLeadReply";
+import { createNotification } from "@/lib/notifications/createNotification";
+import { getAdminUserIds } from "@/lib/notifications/getAdminUserIds";
 
 export interface ApplyAgentDecisionInput {
   leadId: string;
+  leadName: string;
   leadPhone: string;
+  assignedTo: string | null;
   conversationId: string;
   triggerMessageId: string | null;
   currentMetadata: Json;
@@ -87,6 +91,29 @@ export async function applyAgentDecision(
       confidence: decision.confidence,
       status: "success",
     });
+
+  // Celah data (mis. AI tidak tahu stok/lokasi spesifik) -- catat sebagai
+  // notifikasi buat agen supaya ditindaklanjuti manual, bukan cuma dijawab
+  // "akan dicek" ke lead lalu hilang tanpa jejak. Notify agent yang
+  // di-assign; kalau lead belum di-assign siapa pun, notify semua admin.
+  if (decision.needsFollowUp) {
+    const recipientIds = input.assignedTo
+      ? [input.assignedTo]
+      : (await getAdminUserIds(supabaseAdmin)).map((a) => a.userId);
+
+    await Promise.all(
+      recipientIds.map((recipientId) =>
+        createNotification(supabaseAdmin, {
+          recipientId,
+          type: "ai_agent_needs_follow_up",
+          title: `AI Agent butuh follow-up: ${input.leadName}`,
+          body: decision.followUpNote ?? "Lead menanyakan hal yang tidak bisa dijawab AI Agent dari data yang ada.",
+          link: `/crm/${input.leadId}`,
+          metadata: { leadId: input.leadId, agentRunReasoning: decision.reasoning },
+        })
+      )
+    );
+  }
 }
 
 /** Dipanggil kalau interpretLeadReply() gagal (API error / format tidak valid) atau lead tidak ditemukan -- tetap dicatat, supaya kegagalan AI Agent juga bisa ditelusuri, bukan diam-diam hilang. */
