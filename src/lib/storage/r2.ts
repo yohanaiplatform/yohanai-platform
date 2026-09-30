@@ -21,6 +21,13 @@ function getR2Client(): S3Client {
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
+    // AWS SDK v3 versi baru defaultnya nambah checksum trailer otomatis ke
+    // request -- R2 belum kompatibel penuh dengan ini, ketemu nyata bikin
+    // ListObjectsV2 gagal 401 walau kredensial & permission token sudah
+    // benar (skrip cleanup foto orphan, 30 Sep 2026). Balikin ke perilaku
+    // lama supaya PutObject/DeleteObject/operasi lain tidak ikut kena.
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
 }
 
