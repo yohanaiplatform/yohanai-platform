@@ -7,6 +7,27 @@ import { normalizePhone } from '@/lib/crm/normalizePhone'
 import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure } from '@/lib/ai/applyAgentDecision'
+import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
+import { findRelevantListings } from '@/lib/ai/relevantListings'
+import type { Json } from '@/types/database'
+
+// Stopword pendek buat saring kata umum dari pesan lead sebelum dipakai
+// cari listing -- pencocokan sengaja sederhana (ILIKE), bukan NLP/semantic
+// search, jadi kata generik yang tidak disaring bisa bikin hasil ngawur.
+const STOPWORDS = new Set([
+  'yang', 'ada', 'di', 'ke', 'dari', 'ini', 'itu', 'saya', 'apa', 'gimana',
+  'dong', 'dulu', 'kalau', 'kah', 'nya', 'untuk', 'dengan', 'akan', 'masih',
+  'sudah', 'belum', 'bisa', 'tidak', 'juga', 'atau', 'dan', 'saja', 'lagi',
+  'kami', 'kita', 'anda', 'pak', 'bu', 'bang', 'min', 'kak', 'halo', 'hai',
+])
+
+function extractSearchTerms(message: string): string[] {
+  return message
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 4 && !STOPWORDS.has(w))
+}
 
 /**
  * Terima event webhook dari Kapso (WhatsApp Business Cloud API resmi Meta).
@@ -230,9 +251,16 @@ async function runAiAgent(
     komentar: (metadata.komentar as string | undefined) ?? null,
   }
 
-  const inputSnapshot = { leadContext, history, newMessage }
+  const knowledge = await findRelevantKnowledge(supabase, newMessage)
+  const listingSearchTerms = [
+    ...extractSearchTerms(newMessage),
+    ...knowledge.flatMap((k) => k.relatedListingTerms),
+  ]
+  const listings = await findRelevantListings(supabase, listingSearchTerms)
 
-  const { decision, rawResponse, error } = await interpretLeadReply(leadContext, history, newMessage)
+  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings } as unknown as Json
+
+  const { decision, rawResponse, error } = await interpretLeadReply(leadContext, history, newMessage, knowledge, listings)
 
   if (error || !decision) {
     await logAgentRunFailure(supabase, {

@@ -18,6 +18,18 @@ export interface AgentMessageHistoryItem {
   content: string;
 }
 
+export interface AgentKnowledgeContext {
+  title: string;
+  content: string;
+}
+
+export interface AgentListingContext {
+  title: string;
+  address: string | null;
+  price: number | null;
+  status: string | null;
+}
+
 export interface AgentDecision {
   newTemperature: (typeof LEAD_TEMPERATURE_OPTIONS)[number] | null;
   replyText: string | null;
@@ -54,7 +66,8 @@ ATURAN UBAH TEMPERATURE:
 ATURAN BALAS OTOMATIS:
 - SELALU balas (replyText TIDAK boleh null) -- diam total terkesan lead di-ignore. Satu-satunya alasan replyText: null adalah kalau pesan lead butuh keputusan manusia murni yang sensitif (komplain serius, ancaman hukum, negosiasi harga besar) -- itu jarang, bukan default.
 - replyText singkat (1-2 kalimat), natural, sopan, bahasa Indonesia, gaya agen properti manusia asli -- BUKAN kalimat template/robot. **Variasikan kata-katanya setiap kali** -- kalau dalam percakapan yang sama Anda sudah bilang "saya cek dulu ya" sebelumnya dan sekarang harus bilang hal serupa lagi (pertanyaan lain yang juga tidak ada datanya), JANGAN ulangi kalimat persis sama -- ganti susunan kata/gaya seolah orang berbeda yang sedang mengetik balasan wajar, bukan copy-paste.
-- JANGAN mengarang detail properti spesifik (harga, unit, ketersediaan, lokasi persis) yang tidak ada di konteks yang diberikan -- kalau lead tanya hal spesifik yang Anda tidak punya datanya, akui dengan wajar (bukan defensif) bahwa itu perlu dicek dulu, dan sebutkan akan diteruskan/dikabari -- JANGAN menebak angka atau detail apa pun.
+- JANGAN mengarang detail properti spesifik (harga, unit, ketersediaan, lokasi persis) yang TIDAK ADA di konteks yang diberikan -- kalau lead tanya hal spesifik yang Anda tidak punya datanya, akui dengan wajar (bukan defensif) bahwa itu perlu dicek dulu, dan sebutkan akan diteruskan/dikabari -- JANGAN menebak angka atau detail apa pun.
+- **TAPI kalau di bawah ada bagian "Info Area" dan/atau "Listing Tersedia" yang relevan dengan pertanyaan lead, itu DATA ASLI dari database -- gunakan dengan percaya diri.** Sebutkan nama listing/alamat/harga/status dari daftar itu secara natural. JANGAN bilang "akan dicek dulu" untuk sesuatu yang datanya SUDAH ada di daftar itu -- langsung informasikan. "Tidak ada data" cuma berlaku untuk hal yang benar-benar tidak muncul di kedua daftar itu.
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
 
@@ -66,14 +79,33 @@ ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
 {"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null}`;
 
+function formatRupiah(n: number): string {
+  return `Rp${n.toLocaleString("id-ID")}`;
+}
+
 function buildUserPrompt(
   lead: AgentLeadContext,
   history: AgentMessageHistoryItem[],
-  newMessage: string
+  newMessage: string,
+  knowledge: AgentKnowledgeContext[],
+  listings: AgentListingContext[]
 ): string {
   const historyText = history
     .map((m) => `${m.senderType === "customer" ? "Lead" : "Agen"}: ${m.content}`)
     .join("\n");
+
+  const knowledgeText = knowledge.length
+    ? knowledge.map((k) => `- ${k.title}: ${k.content}`).join("\n")
+    : "(tidak ada info area yang relevan ditemukan)";
+
+  const listingsText = listings.length
+    ? listings
+        .map(
+          (l) =>
+            `- ${l.title} -- ${l.address ?? "alamat tidak tercatat"} -- ${l.price ? formatRupiah(l.price) : "harga tidak tercatat"} -- status: ${l.status ?? "tidak diketahui"}`
+        )
+        .join("\n")
+    : "(tidak ada listing yang cocok ditemukan)";
 
   return `Data lead saat ini:
 - Nama: ${lead.firstName} ${lead.lastName}
@@ -85,6 +117,12 @@ function buildUserPrompt(
 
 Riwayat percakapan terakhir (paling lama ke paling baru):
 ${historyText || "(belum ada riwayat)"}
+
+Info Area/Knowledge relevan dengan pesan ini:
+${knowledgeText}
+
+Listing Tersedia yang relevan dengan pesan ini:
+${listingsText}
 
 Pesan BARU dari lead:
 "${newMessage}"
@@ -113,7 +151,9 @@ function isValidDecision(value: unknown): value is AgentDecision {
 export async function interpretLeadReply(
   lead: AgentLeadContext,
   history: AgentMessageHistoryItem[],
-  newMessage: string
+  newMessage: string,
+  knowledge: AgentKnowledgeContext[] = [],
+  listings: AgentListingContext[] = []
 ): Promise<InterpretLeadReplyResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -141,7 +181,7 @@ export async function interpretLeadReply(
         model,
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage) }],
+        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings) }],
         output_config: { effort },
       }),
     });
