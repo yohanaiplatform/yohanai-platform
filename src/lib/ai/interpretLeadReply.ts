@@ -74,11 +74,6 @@ ATURAN BALAS OTOMATIS:
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
 
-ATURAN KIRIM FOTO/VIDEO (sharePhotoUrls):
-- Kalau lead minta lihat foto/penampakan unit, dan salah satu listing di "Listing Tersedia" (di bawah) punya baris "Foto:" dengan URL -- isi sharePhotoUrls dengan URL-URL itu APA ADANYA (copy-paste persis, JANGAN diubah/dipersingkat/dikarang), maksimal dari SATU listing yang paling relevan dengan pertanyaan lead. Sistem akan mengirim tiap URL itu sebagai foto asli terpisah di WhatsApp, jadi replyText cukup bilang mis. "ini fotonya ya" tanpa perlu tempel URL foto di teks.
-- Kalau listing yang relevan punya baris "Video:", sebutkan link video itu (copy-paste persis) di dalam replyText sebagai teks biasa -- video TIDAK dikirim otomatis lewat sharePhotoUrls.
-- Kalau tidak ada foto/video yang cocok di daftar listing, sharePhotoUrls: [] dan jangan mengarang link apa pun -- akui saja fotonya belum ada/akan dikirim menyusul (dan set needsFollowUp true).
-
 ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
 - followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
@@ -90,6 +85,27 @@ Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesua
 function formatRupiah(n: number): string {
   return `Rp${n.toLocaleString("id-ID")}`;
 }
+
+// Kata kunci minta foto/video -- sengaja SEMPIT (bukan "lihat"/"liat" polos,
+// terlalu gampang salah pantul ke "boleh liat lokasinya" dst). Dipakai buat
+// gating: baris Foto:/Video: & instruksi kirimnya CUMA masuk ke prompt kalau
+// pesan BARU lead eksplisit menyinggung ini -- Yohan minta AI jangan
+// buru-buru kirim foto/video kalau tidak diminta (hemat token sekalian,
+// bukan cuma soal sopan-santun): kalau datanya tidak ada di prompt sama
+// sekali, AI secara struktural tidak bisa "buru-buru" menawarkannya.
+const PHOTO_VIDEO_INTENT_KEYWORDS = ["foto", "photo", "poto", "gambar", "pic", "video", "penampakan", "denah"];
+
+function hasPhotoOrVideoIntent(text: string): boolean {
+  const lower = text.toLowerCase();
+  return PHOTO_VIDEO_INTENT_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+const PHOTO_VIDEO_INSTRUCTIONS = `
+
+ATURAN KIRIM FOTO/VIDEO (sharePhotoUrls) -- lead baru saja minta foto/video, jadi ini relevan sekarang:
+- Kalau salah satu listing di "Listing Tersedia" di bawah punya baris "Foto:" dengan URL -- isi sharePhotoUrls dengan URL-URL itu APA ADANYA (copy-paste persis, JANGAN diubah/dipersingkat/dikarang), maksimal dari SATU listing yang paling relevan dengan pertanyaan lead. Sistem akan mengirim tiap URL itu sebagai foto asli terpisah di WhatsApp, jadi replyText cukup bilang mis. "ini fotonya ya" tanpa perlu tempel URL foto di teks.
+- Kalau listing yang relevan punya baris "Video:", sebutkan link video itu (copy-paste persis) di dalam replyText sebagai teks biasa -- video TIDAK dikirim otomatis lewat sharePhotoUrls.
+- Kalau tidak ada foto/video yang cocok di daftar listing, sharePhotoUrls: [] dan jangan mengarang link apa pun -- akui saja fotonya belum ada/akan dikirim menyusul (dan set needsFollowUp true).`;
 
 function buildUserPrompt(
   lead: AgentLeadContext,
@@ -106,14 +122,18 @@ function buildUserPrompt(
     ? knowledge.map((k) => `- ${k.title}: ${k.content}`).join("\n")
     : "(tidak ada info area yang relevan ditemukan)";
 
+  const photoVideoIntent = hasPhotoOrVideoIntent(newMessage);
+
   const listingsText = listings.length
     ? listings
         .map((l) => {
           const lines = [
             `- ${l.title} -- ${l.address ?? "alamat tidak tercatat"} -- ${l.price ? formatRupiah(l.price) : "harga tidak tercatat"} -- status: ${l.status ?? "tidak diketahui"}`,
           ];
-          if (l.photoUrls.length) lines.push(`  Foto: ${l.photoUrls.join(" | ")}`);
-          if (l.videoUrl) lines.push(`  Video: ${l.videoUrl}`);
+          if (photoVideoIntent) {
+            if (l.photoUrls.length) lines.push(`  Foto: ${l.photoUrls.join(" | ")}`);
+            if (l.videoUrl) lines.push(`  Video: ${l.videoUrl}`);
+          }
           return lines.join("\n");
         })
         .join("\n")
@@ -138,6 +158,7 @@ ${listingsText}
 
 Pesan BARU dari lead:
 "${newMessage}"
+${photoVideoIntent ? PHOTO_VIDEO_INSTRUCTIONS : ""}
 
 Balas HANYA dengan JSON sesuai skema yang diberikan.`;
 }
