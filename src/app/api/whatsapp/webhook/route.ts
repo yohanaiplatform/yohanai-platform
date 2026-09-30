@@ -9,6 +9,7 @@ import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
 import { findRelevantListings } from '@/lib/ai/relevantListings'
+import { sendTypingIndicator } from '@/lib/whatsapp/kapso'
 import type { Json } from '@/types/database'
 
 // Stopword pendek buat saring kata umum dari pesan lead sebelum dipakai
@@ -207,6 +208,9 @@ async function handleMessageReceived(
   const isTextMessage = payload.message.type === 'text' && Boolean(payload.message.text?.body ?? payload.message.kapso?.content)
 
   if (leadId && isTextMessage && process.env.ANTHROPIC_API_KEY) {
+    // Best-effort -- indikator "mengetik" cuma UX, jangan sampai gagal
+    // ngirim ini menggagalkan pemrosesan AI Agent yang sebenarnya.
+    await sendTypingIndicator(waMessageId).catch(() => {})
     await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, content)
   }
 }
@@ -252,8 +256,15 @@ async function runAiAgent(
   }
 
   const knowledge = await findRelevantKnowledge(supabase, newMessage)
+  // Pencarian listing juga baca beberapa pesan terakhir di percakapan, bukan
+  // cuma pesan BARU -- follow-up singkat ("sudah bisa kirim foto?", "oke
+  // makasih") sering tidak menyebut ulang nama/alamat listing yang sedang
+  // dibahas, padahal listing itu masih "di meja". Tanpa ini, listing yang
+  // sempat ke-detect di pesan pertama hilang lagi begitu lead balas singkat.
+  const recentHistoryText = history.slice(-4).map((m) => m.content).join(' ')
   const listingSearchTerms = [
     ...extractSearchTerms(newMessage),
+    ...extractSearchTerms(recentHistoryText),
     ...knowledge.flatMap((k) => k.relatedListingTerms),
   ]
   const listings = await findRelevantListings(supabase, listingSearchTerms)
