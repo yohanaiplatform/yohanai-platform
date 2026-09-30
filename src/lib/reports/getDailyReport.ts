@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
 
 export interface DailyReport {
   generatedAt: string;
@@ -36,6 +37,7 @@ export interface DailyReport {
     messagesOutToday: number;
     activeConversationsToday: number;
   };
+  aiAgent: AiAgentUsage;
 }
 
 export interface GetDailyReportOptions {
@@ -66,7 +68,8 @@ function startOfTodayWIB(): Date {
   return new Date(wibMidnightUTC - WIB_OFFSET_MS);
 }
 
-function startOfTodayISO(): string {
+/** Dipakai juga oleh getPlatformReport.ts supaya batas "hari ini" (AI Agent usage) konsisten antara Daily Report dan Platform Report. */
+export function startOfTodayISO(): string {
   return startOfTodayWIB().toISOString();
 }
 
@@ -92,11 +95,12 @@ function isOverdue(metadata: unknown, cutoffISO: string): boolean {
  * listings_owner_or_admin secara eksplisit dari kode, bukan otomatis dari
  * sesi login siapa pun.
  *
- * "Relevan" untuk sekarang: lead, listing, chat -- itu yang sudah ada
- * datanya. Token AI, AI crawler, visitor listing/foto, download foto/video
+ * "Relevan" untuk sekarang: lead, listing, chat, AI Agent (token/biaya
+ * estimasi dari ai.agent_runs, lihat getAiAgentUsage.ts) -- itu yang sudah
+ * ada datanya. AI crawler, visitor listing/foto, download foto/video
  * SENGAJA belum masuk sini -- belum ada instrumentasi tracking-nya sama
  * sekali di codebase, beda kelas pekerjaan dari agregasi angka yang sudah
- * ada. Lihat docs/status.mdx Task 019/020 untuk rencana lanjutannya.
+ * ada. Lihat docs/status.mdx Task 026/027 untuk rencana lanjutannya.
  */
 export async function getDailyReport(
   supabase: SupabaseClient<Database>,
@@ -211,6 +215,8 @@ export async function getDailyReport(
   const messagesInToday = messageRows.filter((m) => m.sender_type === "customer").length;
   const messagesOutToday = messageRows.length - messagesInToday;
 
+  const aiAgent = await getAiAgentUsage(supabase, todayStart, assignedTo);
+
   return {
     generatedAt: new Date().toISOString(),
     reportDateWIB: todayDateWIB(),
@@ -242,5 +248,6 @@ export async function getDailyReport(
       messagesOutToday,
       activeConversationsToday,
     },
+    aiAgent,
   };
 }

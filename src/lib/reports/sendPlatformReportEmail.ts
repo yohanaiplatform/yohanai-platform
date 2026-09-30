@@ -143,8 +143,12 @@ function costRow(service: string, href: string | null, tier: string, limit: stri
   </tr>`;
 }
 
+function formatUsd(n: number): string {
+  return `$${n.toFixed(n < 1 ? 4 : 2)}`;
+}
+
 function renderHtml(report: PlatformReport): string {
-  const { users, leads, listings, supabase, resend, vercel } = report;
+  const { users, leads, listings, supabase, resend, vercel, aiAgent } = report;
 
   const vercelStatusHtml = !vercel.configured
     ? `<p style="font-size:12px;color:#9CA3AF;">Belum dikonfigurasi -- isi VERCEL_API_TOKEN &amp; VERCEL_PROJECT_ID untuk lihat status deployment terakhir di sini.</p>`
@@ -255,7 +259,29 @@ function renderHtml(report: PlatformReport): string {
             }
 
             <tr><td>
-              ${sectionCard("KPI AI Agent (Rencana)", AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml())}
+              ${sectionCard(
+                "AI Agent Hari Ini (Agregat Semua User)",
+                null,
+                `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    ${kpiTile("Pesan Diproses", fmt(aiAgent.runsToday), `${APP_URL}/dashboard`)}
+                    ${kpiTile("Balasan Terkirim", fmt(aiAgent.repliesSentToday), `${APP_URL}/dashboard`)}
+                    ${kpiTile("Foto Dikirim", fmt(aiAgent.photosSentToday), `${APP_URL}/dashboard`)}
+                  </tr>
+                </table>
+                 <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6;font-size:12px;color:#374151;">
+                   Token: <strong>${fmt(aiAgent.inputTokensToday)}</strong> in / <strong>${fmt(aiAgent.outputTokensToday)}</strong> out
+                   &nbsp;&middot;&nbsp;
+                   Butuh follow-up: <strong>${fmt(aiAgent.needsFollowUpToday)}</strong>
+                   &nbsp;&middot;&nbsp;
+                   Estimasi biaya: <strong>${formatUsd(aiAgent.estimatedCostUsd)}</strong>
+                 </div>
+                 <p style="font-size:11px;color:#9CA3AF;margin:6px 0 0;">Estimasi berbasis harga Sonnet 5.5 ($2/$10 per 1M token) dari ai.agent_runs.llm_raw_response.usage -- bukan angka invoice asli, cek Anthropic Console untuk itu.</p>`
+              )}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard("Fitur Lanjutan AI Agent (Rencana)", AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml())}
             </td></tr>
 
             <tr><td>

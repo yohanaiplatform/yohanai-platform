@@ -1,15 +1,19 @@
 // src/lib/reports/aiAgentRoadmap.ts
 
 /**
- * AI Agent belum dibangun sama sekali (Task 015 di docs/status.mdx masih
- * di-hold, keputusan arsitektur LLM/provider belum diambil). Daftar ini
- * BUKAN data nyata -- diambil langsung dari "Planned AI Features" di
- * docs/modules/ai.mdx, ditampilkan di Daily Report & Platform Report
- * supaya Yohan (dan user lain) tetap lihat arah rencananya tiap hari,
- * jelas ditandai sebagai rencana/contoh, bukan angka yang benar-benar
- * dihitung sistem. Kalau AI Agent beneran dibangun nanti, bagian ini
- * diganti data live (pola sama seperti Follow-up Backlog/Lead Beku dulu
- * placeholder, sekarang nyata).
+ * AI Agent DASAR (interpretasi balasan WA -> update Temperature + auto-reply
+ * + kirim foto listing) sudah dibangun & live sejak 30 September 2026 --
+ * usage-nya yang NYATA sekarang tampil terpisah di bagian "AI Agent Hari
+ * Ini" (dari getAiAgentUsage.ts), BUKAN daftar di bawah ini.
+ *
+ * Daftar KPI di file ini masih rencana lanjutan yang BELUM dibangun (Lead
+ * Score, Buyer Persona, Conversion Prediction, dst -- fitur ML/analitik
+ * lebih dalam, beda kelas kerja dari klasifikasi+balasan yang sudah jalan).
+ * Diambil dari "Planned AI Features" di docs/modules/ai.mdx, ditampilkan
+ * di Daily Report & Platform Report supaya Yohan (dan user lain) tetap
+ * lihat arah rencananya tiap hari, jelas ditandai sebagai rencana/contoh.
+ * Kalau salah satu beneran dibangun nanti, pindahkan KPI itu keluar dari
+ * daftar ini ke data live (pola sama seperti AI Agent dasar sekarang).
  */
 export const AI_AGENT_DOCS_URL = "https://docs.yohanai.id/modules/ai";
 
@@ -40,6 +44,6 @@ export function renderAiAgentKpiListHtml(): string {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table>
     <p style="font-size:11px;color:#9CA3AF;margin:10px 0 0;font-style:italic;">${AI_AGENT_SAMPLE_INSIGHT}</p>
     <p style="font-size:11px;color:#9CA3AF;margin:6px 0 0;">
-      <strong>Belum aktif.</strong> Ini daftar rencana dari dokumentasi (docs/modules/ai.mdx), bukan angka yang dihitung sistem -- AI Agent belum dibangun (keputusan arsitektur LLM/provider masih terbuka).
+      <strong>Belum dibangun.</strong> Ini daftar rencana dari dokumentasi (docs/modules/ai.mdx), bukan angka yang dihitung sistem -- beda dari AI Agent dasar (interpretasi + auto-reply + kirim foto) yang sudah live, lihat "AI Agent Hari Ini" di atas.
     </p>`;
 }

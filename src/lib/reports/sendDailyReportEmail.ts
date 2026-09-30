@@ -93,8 +93,12 @@ function sectionCard(title: string, innerHtml: string): string {
   </table>`;
 }
 
+function formatUsd(n: number): string {
+  return `$${n.toFixed(n < 1 ? 4 : 2)}`;
+}
+
 function renderHtml(report: DailyReport, recipientName: string | null): string {
-  const { leads, listings, chat, reportDateWIB, isAggregate } = report;
+  const { leads, listings, chat, aiAgent, reportDateWIB, isAggregate } = report;
 
   const maxTemp = Math.max(leads.hot, leads.warm, leads.cold, leads.closing, leads.batal, 1);
   const listingTotal = listings.available + listings.booked + listings.sold + listings.hold || 1;
@@ -233,13 +237,33 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
 
             <tr><td>
               ${sectionCard(
-                `<a href="${AI_AGENT_DOCS_URL}" style="color:#374151;text-decoration:none;">KPI AI Agent (Rencana) &rarr;</a>`,
+                "AI Agent Hari Ini",
+                `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  ${kpiTile("Pesan Diproses", aiAgent.runsToday, dashboard)}
+                  ${kpiTile("Balasan Terkirim", aiAgent.repliesSentToday, dashboard)}
+                  ${kpiTile("Foto Dikirim", aiAgent.photosSentToday, dashboard)}
+                  ${kpiTile("Butuh Follow-up", aiAgent.needsFollowUpToday, dashboard, aiAgent.needsFollowUpToday > 0 ? "#92400E" : "#111827")}
+                </tr></table>
+                 <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6;font-size:12px;color:#374151;">
+                   Token: <strong>${fmt(aiAgent.inputTokensToday)}</strong> in / <strong>${fmt(aiAgent.outputTokensToday)}</strong> out
+                   &nbsp;&middot;&nbsp;
+                   Estimasi biaya: <strong>${formatUsd(aiAgent.estimatedCostUsd)}</strong>
+                 </div>
+                 <div style="margin-top:4px;font-size:11px;color:#9CA3AF;">
+                   Estimasi berbasis harga Sonnet 5.5 ($2/$10 per 1M token) -- angka biaya sebenarnya, cek Anthropic Console.
+                 </div>`
+              )}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard(
+                `<a href="${AI_AGENT_DOCS_URL}" style="color:#374151;text-decoration:none;">Fitur Lanjutan AI Agent (Rencana) &rarr;</a>`,
                 renderAiAgentKpiListHtml()
               )}
             </td></tr>
 
             <tr><td style="padding:4px 4px 14px;font-size:11px;color:#9CA3AF;line-height:1.5;">
-              Penggunaan token AI, AI crawler, visitor listing/foto, dan download foto/video belum masuk laporan ini &mdash; instrumentasinya belum dibangun.
+              AI crawler, visitor listing/foto, dan download foto/video belum masuk laporan ini &mdash; instrumentasinya belum dibangun.
             </td></tr>
 
             <tr><td style="border-top:1px solid #E5E7EB;padding-top:14px;text-align:center;">
