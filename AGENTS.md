@@ -32,11 +32,14 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Foto lama di Supabase Storage bucket `properties` sudah SELESAI dihapus** (29 September 2026 malam, 298/298 file, 0 gagal) — Yohan jalankan sendiri lewat skrip sementara (penghapusan permanen data tidak boleh dijalankan langsung oleh Claude). R2 satu-satunya storage foto listing sekarang.
 
-**Kerjaan sekarang (lihat Task 024 di `docs/status.mdx` untuk checklist lengkap):**
-1. Cek status.claude.com — Claude Console (`platform.claude.com`) sempat outage 29 Sep malam, memblokir Yohan bikin `ANTHROPIC_API_KEY`. Kalau sudah pulih, lanjut ke poin 2.
-2. Verifikasi AI Agent end-to-end setelah `ANTHROPIC_API_KEY` diisi & schema `ai` di-expose di Data API — tes beberapa skenario pesan di sandbox Kapso, cek `ai.agent_runs`.
-3. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — **ditunda 2x sekarang** (sengaja), baru relevan setelah AI Agent terverifikasi aman.
-4. Alur dokumen tanda tangan untuk lead closing — pakai spreadsheet + Apps Script yang disiapkan Yohan di **sesi terpisah** (bukan sesi ini) — kalau belum ada konteksnya, minta Yohan share ulang link spreadsheet dan lokasi Apps Script-nya, jangan asumsikan.
+**Claude Console outage sudah PULIH** (30 September 2026 pagi, cek status.claude.com) — dan **AI Agent effort sudah dioptimasi ke `"low"`** (`ANTHROPIC_EFFORT` env var, hemat estimasi 40-60% biaya per pesan dibanding default `high`, lihat Task 025 di `docs/status.mdx`) — jangan ubah balik ke default tanpa alasan.
+
+**Alur dokumen tanda tangan lead closing SUDAH DIRISET PENUH** (29 Sep 2026 malam, read-only, Task 023/024) — spreadsheet "List Penjualan" + Apps Script "Form Otomatis" (generate BAST/Form KPR BSN/PPJB, sudah dukung multi-developer). Detail lengkap: `docs/modules/crm.mdx` bagian "Alur Dokumen Tanda Tangan (Lead Closing)". **Belum diintegrasikan ke platform** — Yohan konfirmasi simpan dulu sebagai referensi, jangan mulai bangun tanpa arahan baru.
+
+**Kerjaan sekarang (lihat Task 026 di `docs/status.mdx` untuk checklist lengkap):**
+1. Verifikasi AI Agent end-to-end — isi `ANTHROPIC_API_KEY` di Vercel, expose schema `ai` di Data API, redeploy, tes beberapa skenario pesan di sandbox Kapso, cek `ai.agent_runs`. Sekalian bandingkan biaya asli (`response.usage`) vs estimasi simulasi di Task 025.
+2. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — **ditunda 2x sekarang** (sengaja), baru relevan setelah AI Agent terverifikasi aman.
+3. Multi-tenant SaaS, instrumentasi tracking, dan item lain — lihat Task 026 lengkap.
 
 **Multi-tenant SaaS masa depan** juga mulai dibahas (27-28 Sep) — dipetakan Model A (SaaS multi-tenant sungguhan, re-arsitektur besar) vs Model B (duplikasi instance per pelanggan, nol perubahan kode), belum dipilih. Detail: `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". **Mulai 29 Sep 2026, Yohan menegaskan: semua fitur baru (bukan cuma nanti) harus dibangun dengan KESADARAN ini** — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari. Lihat memory `multi-tenant-forward-compat`.
 

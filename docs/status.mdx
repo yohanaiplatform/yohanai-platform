@@ -514,28 +514,36 @@ Verifikasi sesi ini: TypeScript PASS, ESLint sempat nambah 3 error baru (`react-
 - **Expose schema `ai` di Supabase Settings → Data API** (pola sama seperti `auth_ext`/`core`/`customer`/`chat`/`property` sebelumnya) — tanpa ini, `ai.agent_runs` tidak bisa diakses lewat client Supabase (PostgREST) sama sekali walau GRANT-nya sudah benar, dan AI Agent akan gagal simpan audit log (webhook sendiri kemungkinan tetap jalan karena errornya di-catch, tapi log gagal tersimpan diam-diam) — **cek dan tambahkan sebelum mengisi `ANTHROPIC_API_KEY`**.
 - Redeploy setelah env var terisi, lalu tes kirim pesan WA ke nomor sandbox Kapso, cek `ai.agent_runs` ada baris baru & Temperature/balasan sesuai ekspektasi.
 
+Task 025
+
+**Sesi 30 September 2026 (pagi) — Claude Console pulih, optimasi biaya AI Agent.**
+
+- **Claude Console (`platform.claude.com`) sudah pulih** — dicek ulang ke status.claude.com, "All Systems Operational". Incident 29 Sep resolved sejak 16:27 UTC. Yohan bisa lanjut buat `ANTHROPIC_API_KEY`.
+- **Pertanyaan biaya Claude API** — dijawab pakai skill `claude-api` (bukan dari ingatan, harga model berubah-ubah). Tabel harga terkini: Sonnet 5.5 $2/$10 per MTok (default kode kita), Haiku 4.5 $1/$5, Opus 5.5 $4/$20 (overkill untuk tugas ini).
+- **Optimasi biaya — `output_config.effort: "low"`** diterapkan ke `interpretLeadReply.ts` (env var baru `ANTHROPIC_EFFORT`, default `"low"`, override ke `"medium"`/`"high"` tanpa ubah kode). Alasan: token "thinking" Claude tetap ditagih sebagai output walau disembunyikan dari respons (`display` default `"omitted"`) — kode sebelumnya tidak set `effort` sama sekali, jadi default `high` di Sonnet 5.5, padahal tugas kita cuma klasifikasi Temperature + draft balasan pendek (bukan reasoning berlapis, cocok dengan rekomendasi resmi Anthropic untuk effort rendah). Simulasi estimasi (berbasis ~1.000 token input/pesan, sebelum ada data live): `effort: "low"` ±$0,004–0,006/pesan vs default `high` ±$0,007–0,014/pesan (potensi hemat 40–60%). **Angka pasti belum diverifikasi** — begitu AI Agent aktif, cek `response.usage` di `ai.agent_runs.llm_raw_response` untuk angka nyata, bandingkan dengan estimasi ini.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS.
+
 ### Next Task
 
-Task 024
+Task 026
 
 **Checklist buat sesi berikutnya:**
 
-0. **Cek status.claude.com** — 29 Sep 2026 malam ada incident aktif ("Degraded Performance" di Claude Console `platform.claude.com`) yang memblokir Yohan bikin `ANTHROPIC_API_KEY`. Kalau sudah pulih, lanjutkan ke poin 1. Kalau di sesi berikutnya masih terganggu, tanyakan Yohan apakah mau tetap tunggu atau pindah ke provider lain (OpenAI/Gemini — arsitektur `interpretLeadReply.ts` sudah ditulis modular supaya provider gampang diganti tanpa bongkar `applyAgentDecision()`).
-1. **Verifikasi AI Agent end-to-end** setelah `ANTHROPIC_API_KEY` diisi & schema `ai` di-expose (lihat Task 023) — kirim beberapa skenario pesan uji ke sandbox Kapso (lead baru semangat, lead minta batal, lead tanya harga spesifik yang tidak ada datanya, dll), cek `ai.agent_runs` dan hasil di CRM.
+1. **Verifikasi AI Agent end-to-end** — Claude Console sudah pulih, tinggal: isi `ANTHROPIC_API_KEY` di Vercel, expose schema `ai` di Data API, redeploy, lalu kirim beberapa skenario pesan uji ke sandbox Kapso (lead baru semangat, lead minta batal, lead tanya harga spesifik yang tidak ada datanya, dll), cek `ai.agent_runs` dan hasil di CRM. **Sekalian verifikasi estimasi biaya effort `"low"` di Task 025** — bandingkan `response.usage` asli vs simulasi.
 2. **Tambahkan rate-limit/cooldown auto-reply** kalau hasil tes menunjukkan risiko balasan berulang terlalu cepat.
 3. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda 2x sekarang — sengaja, bukan lupa) — baru relevan setelah AI Agent terverifikasi aman di sandbox.
 4. **Alur dokumen tanda tangan lead closing** — 🔵 **sudah diriset penuh (29 Sep 2026 malam), belum diintegrasikan.** Spreadsheet "List Penjualan" + Apps Script "Form Otomatis" (generate BAST/Form KPR BSN/PPJB, trigger manual, output Google Doc untuk print+tanda tangan fisik, sudah dukung multi-developer) — detail lengkap di `docs/modules/crm.mdx` bagian "Alur Dokumen Tanda Tangan (Lead Closing)". Yohan konfirmasi eksplisit: simpan dulu sebagai referensi, belum waktunya diintegrasikan ke platform — jangan mulai bangun tanpa arahan baru.
 5. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih. **Mulai 29 Sep 2026, semua fitur baru harus dibangun dengan kesadaran ini** (lihat memory `multi-tenant-forward-compat`) — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari.
-6. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai (sekarang sudah ada pemanggilan Claude API sungguhan lewat AI Agent, jadi ini mulai relevan), jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang.
+6. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai (sekarang sudah ada pemanggilan Claude API sungguhan lewat AI Agent, jadi ini mulai relevan — bisa dihitung dari `ai.agent_runs.llm_raw_response`), jumlah AI crawler, visitor listing/foto, download foto/video — nol instrumentasi di codebase sekarang.
 7. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja, tidak urgent.
-8. ~~Docs sweep penuh (`docs/database/schema.mdx`, `erd.mdx`, `docs/release/changelog.mdx`) untuk migration `048`/`049` dan schema `ai`~~ — ✅ selesai (29 Sep malam, sebelum sesi ditutup).
-9. **Backlog "10 AI Agent"** dari arsip pra-Claude (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) sudah didokumentasikan lengkap di `docs/modules/ai.mdx` bagian "Backlog 10 AI Agent dari Arsip Pra-Claude" — jadikan referensi kalau AI Agent butuh dipecah tanggung jawabnya lebih lanjut (Property Intelligence buat rekomendasi listing, Reporting Agent terpisah, dll), TIDAK perlu dibangun ke-10-nya sekaligus.
+8. **Backlog "10 AI Agent"** dari arsip pra-Claude (`project-docs/archive/17 Juli 2026/AGENTS.md` v1.8) sudah didokumentasikan lengkap di `docs/modules/ai.mdx` bagian "Backlog 10 AI Agent dari Arsip Pra-Claude" — jadikan referensi kalau AI Agent butuh dipecah tanggung jawabnya lebih lanjut (Property Intelligence buat rekomendasi listing, Reporting Agent terpisah, dll), TIDAK perlu dibangun ke-10-nya sekaligus.
 
 ---
 
 # Last Updated
 
-29 September 2026 (malam)
+30 September 2026 (pagi)
 
 ---
 
