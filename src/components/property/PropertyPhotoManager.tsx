@@ -68,6 +68,24 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
   }
 
   async function handleRemove(url: string) {
+    if (!window.confirm("Hapus foto ini permanen? Foto akan dihapus dari penyimpanan (R2) dan TIDAK BISA dipulihkan lagi.")) {
+      return;
+    }
+
+    setError(null);
+
+    const res = await fetch("/api/properties/delete-photo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setError(body?.error ?? "Gagal hapus foto dari R2");
+      return;
+    }
+
     const supabase = createClient();
     await updatePhotoUrls(
       supabase,
