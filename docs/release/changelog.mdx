@@ -51,6 +51,30 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 30 September 2026 — AI Agent Live-Test, Knowledge Base, Kirim Foto WA, Backfill Data Pemilik
+
+Claude Console pulih dari outage, AI Agent diaktifkan penuh dan langsung dites Yohan lewat WA sandbox Kapso — 2 celah desain ketemu & diperbaiki sesi yang sama, ditambah fitur kirim foto listing dan backfill data pemilik/komisi listing lama.
+
+### Added
+
+- **Optimasi biaya AI Agent** — `output_config.effort: "low"` (`ANTHROPIC_EFFORT` env var, override opsional). Token "thinking" Claude tetap ditagih sebagai output walau disembunyikan dari respons — sebelumnya default `high` padahal tugasnya cuma klasifikasi Temperature + draft balasan pendek. Estimasi hemat 40–60% biaya per pesan
+- **`knowledge.entries`** (migration `050`, schema `knowledge` baru dipakai pertama kali) — istilah area lokal (mis. "Kotabaru") dipetakan ke nama jalan resminya, dipakai AI Agent supaya kenali listing lewat sebutan sehari-hari masyarakat, bukan cuma alamat administratif resmi
+- **Field wajib "Tag Lokasi (AI Info)"** (`metadata.ai_tags`) per listing — istilah lokal/informal (Kotabaru/Kobar, Serdam, dekat Untan, Paris 2, dll), wajib diisi saat tambah/edit listing, dipakai pencocokan listing AI Agent
+- **Notifikasi follow-up manusia dari AI Agent** — field `needsFollowUp`/`followUpNote` di keputusan AI, kirim notifikasi in-app ke agen yang di-assign (atau semua admin) begitu AI mentok karena celah data, supaya ada tindak lanjut manual tercatat
+- **AI Agent bisa kirim foto listing asli via WhatsApp** — konteks listing yang dikirim ke LLM sekarang menyertakan `photo_urls`/`video_url`; AI kirim foto sebagai pesan gambar WhatsApp asli lewat Kapso (`type: "image"`, bukan cuma link teks), disaring balik ke URL yang benar-benar ada di data (anti-halusinasi). Foto AI juga dirender sebagai gambar asli di Lead Detail & Recent Chats
+- **Data Pemilik & Nilai Komisi** ter-backfill untuk 83/84 listing existing (`metadata.owner`/`metadata.commission`) — sumber spreadsheet "Listing Baru 2024 Terbaru" tab "Input Data", dicocokkan lewat tag migrasi di `description`
+
+### Fixed
+
+- **AI Agent diam total setelah 1 balasan** — desain lama sengaja tidak balas kalau tidak ada data untuk dijawab, terasa seperti lead di-ignore. Sekarang selalu balas (kalimat bervariasi, bukan template), kecuali kasus sensitif murni manusia
+- **AI Agent tidak tahu listing yang sebenarnya available** — lead tanya pakai istilah lokal ("Kotabaru") tidak match ke listing yang alamatnya termasuk area itu, karena AI belum pernah dikasih akses ke `property.listings` sama sekali. Diperbaiki lewat Knowledge Base + akses listing asli (lihat Added)
+
+### Docs
+
+- **Verifikasi spreadsheet sumber data pemilik/komisi** — sempat salah sangka memakai spreadsheet "List Penjualan" (data closing Kapur Mas/Barunia), dikoreksi Yohan ke "Listing Baru 2024 Terbaru" (sumber migrasi 91 listing yang sebenarnya)
+
+---
+
 ## 29 September 2026 (malam) — AI Agent Otomatis, Notifikasi In-App, Cleanup Storage
 
 Urutan prioritas diubah Yohan malam ini: bukan sambungkan nomor WA produksi duluan, tapi AI Agent dimajukan; storage lama dibersihkan; alur dokumen tanda tangan diriset (belum diintegrasikan).

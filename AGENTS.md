@@ -36,10 +36,15 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Alur dokumen tanda tangan lead closing SUDAH DIRISET PENUH** (29 Sep 2026 malam, read-only, Task 023/024) — spreadsheet "List Penjualan" + Apps Script "Form Otomatis" (generate BAST/Form KPR BSN/PPJB, sudah dukung multi-developer). Detail lengkap: `docs/modules/crm.mdx` bagian "Alur Dokumen Tanda Tangan (Lead Closing)". **Belum diintegrasikan ke platform** — Yohan konfirmasi simpan dulu sebagai referensi, jangan mulai bangun tanpa arahan baru.
 
-**Kerjaan sekarang (lihat Task 026 di `docs/status.mdx` untuk checklist lengkap):**
-1. Verifikasi AI Agent end-to-end — isi `ANTHROPIC_API_KEY` di Vercel, expose schema `ai` di Data API, redeploy, tes beberapa skenario pesan di sandbox Kapso, cek `ai.agent_runs`. Sekalian bandingkan biaya asli (`response.usage`) vs estimasi simulasi di Task 025.
-2. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — **ditunda 2x sekarang** (sengaja), baru relevan setelah AI Agent terverifikasi aman.
-3. Multi-tenant SaaS, instrumentasi tracking, dan item lain — lihat Task 026 lengkap.
+**AI Agent sudah live-tested & 2 bug besar sudah diperbaiki** (30 September 2026 siang-malam, Task 026 di `docs/status.mdx`) — jangan bangun ulang, baca Task 026 dulu. (1) AI sempat diam total setelah 1 balasan kalau tidak ada data — diperbaiki: sekarang selalu balas (variasi kalimat) + field `needsFollowUp`/`followUpNote` kirim notifikasi in-app ke agen yang di-assign kalau AI mentok karena celah data. (2) AI tidak tahu listing yang sebenarnya available walau lead pakai istilah lokal ("Kotabaru" dst) — diperbaiki lewat `knowledge.entries` (migration 050, istilah area → nama jalan) + akses `property.listings` asli (`relevantListings.ts`) + field wajib baru **"Tag Lokasi (AI Info)"** (`metadata.ai_tags`) per listing. **AI Agent sekarang juga bisa kirim foto listing asli lewat WhatsApp** (bukan cuma link teks) — pakai `photo_urls`/`video_url` dari metadata listing, dikirim via Kapso `type: "image"`.
+
+**Data Pemilik & Nilai Komisi 83/84 listing existing sudah SELESAI di-backfill** (30 September 2026, Task 026) — sumber: tab "Input Data" spreadsheet "Listing Baru 2024 Terbaru" (bukan "List Penjualan"), dicocokkan lewat tag `GDI/2026/<n>` di `description`. Tersimpan di `metadata.owner`/`metadata.commission`, tampil di `PropertyConfidentialFields.tsx` (khusus admin/agent yang di-assign).
+
+**Kerjaan sekarang (lihat Task 027 di `docs/status.mdx` untuk checklist lengkap):**
+1. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — AI Agent sudah live-tested & bug besar sudah diperbaiki, jadi ini realistis jadi prioritas berikutnya.
+2. Verifikasi biaya AI Agent asli (`response.usage` di `ai.agent_runs.llm_raw_response`) vs estimasi simulasi Task 025.
+3. Isi `ai_tags` ("Tag Lokasi AI Info") untuk 91 listing migrasi lama — field ini baru wajib untuk listing baru/diedit ulang, belum retroaktif.
+4. Multi-tenant SaaS, instrumentasi tracking, dan item lain — lihat Task 027 lengkap.
 
 **Multi-tenant SaaS masa depan** juga mulai dibahas (27-28 Sep) — dipetakan Model A (SaaS multi-tenant sungguhan, re-arsitektur besar) vs Model B (duplikasi instance per pelanggan, nol perubahan kode), belum dipilih. Detail: `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". **Mulai 29 Sep 2026, Yohan menegaskan: semua fitur baru (bukan cuma nanti) harus dibangun dengan KESADARAN ini** — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari. Lihat memory `multi-tenant-forward-compat`.
 
