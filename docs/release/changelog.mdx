@@ -51,6 +51,30 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 30 September 2026 (lanjutan) — Live-Test Kedua AI Agent, Hapus Foto/Listing dari R2, Usage Report
+
+Lanjutan sesi 30 September — Yohan tes WA lebih jauh, 4 bug baru ketemu & diperbaiki; sekalian hapus foto/listing sekarang benar-benar bersihkan R2, dan usage AI Agent nyata masuk laporan harian.
+
+### Added
+
+- **Usage AI Agent nyata di Daily Report (per user) & Platform Report (agregat)** — pesan diproses, balasan terkirim, foto dikirim, butuh follow-up, token in/out, estimasi biaya (`getAiAgentUsage.ts`, dari `ai.agent_runs`). Menggantikan section "KPI AI Agent (Rencana)" yang sebelumnya ilustratif untuk bagian dasar ini
+- **Indikator "mengetik..." WhatsApp** — webhook kirim `typing_indicator` (Kapso) begitu pesan bakal diproses AI Agent, supaya lead tahu ada proses berjalan
+- **Hapus foto listing sekarang benar-benar hapus dari R2** (`POST /api/properties/delete-photo`), wajib konfirmasi "TIDAK BISA dipulihkan lagi"
+- **Hapus listing sekarang ikut hapus semua fotonya dari R2** — listing-nya sendiri tetap bisa dipulihkan (soft delete), tapi fotonya permanen hilang, konfirmasi menjelaskan ini eksplisit
+
+### Fixed
+
+- **AI Agent "lupa" listing yang sedang dibahas di follow-up singkat** — pencarian listing sekarang ikut baca 4 pesan terakhir percakapan, bukan cuma pesan baru
+- **Tag lokasi listing (`ai_tags`) tidak pernah sampai ke LLM + tidak ada ranking pencocokan** — tag sekarang dikirim ke LLM sebagai konteks, match di tag dibobot 2x lebih tinggi dari match di title/address
+- **AI Agent tidak baca kolom Deskripsi listing** — detail seperti DP akad/harga per blok yang ditulis bebas di Deskripsi sekarang ikut dikirim ke LLM (dibatasi 1500 karakter)
+- **AI Agent terlalu "buru-buru" menawarkan foto/video** — sekarang digating kata kunci di pesan lead (hemat token sekaligus)
+
+### Changed
+
+- **Field "Tag Lokasi (AI Info)" direlabel "Tag / Info AI (Lokasi & Kategori)"** — dikonfirmasi sudah bisa diisi kategori (mis. "rumah subsidi"), bukan cuma istilah lokasi
+
+---
+
 ## 30 September 2026 — AI Agent Live-Test, Knowledge Base, Kirim Foto WA, Backfill Data Pemilik
 
 Claude Console pulih dari outage, AI Agent diaktifkan penuh dan langsung dites Yohan lewat WA sandbox Kapso — 2 celah desain ketemu & diperbaiki sesi yang sama, ditambah fitur kirim foto listing dan backfill data pemilik/komisi listing lama.

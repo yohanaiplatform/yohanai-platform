@@ -18,6 +18,8 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | CRUD Listing | ✅ List, detail, tambah (`/properties`, `/properties/new`, `/properties/[slug]`) |
 | URL Listing | ✅ Slug manusiawi (mis. `/properties/rumah-murah-desa-kapur`), bukan UUID — migration `042` |
 | Upload Foto | ✅ Ke Cloudflare R2 (aktif penuh 29 Sep 2026, custom domain `img.yohanai.id`), dikompres di browser dulu, upload lewat `POST /api/properties/upload-photo` (server-side, secret R2 tidak sampai browser). Menggantikan Supabase Storage bucket `properties` — 272/272 foto lama sudah dimigrasi, 298 file lama di Supabase Storage sudah dihapus (29 Sep 2026 malam) |
+| Hapus Foto | ✅ Benar-benar hapus dari R2 (30 Sep 2026 malam) — sebelumnya cuma buang referensi dari `metadata.photo_urls`, file-nya tetap nyangkut selamanya. Lewat `POST /api/properties/delete-photo`, wajib konfirmasi "TIDAK BISA dipulihkan lagi" dulu |
+| Tag / Info AI (Lokasi & Kategori) | ✅ `metadata.ai_tags`, wajib diisi min. 1 istilah saat tambah/edit listing — istilah lokal informal (Kotabaru/Kobar/dekat Untan) MAUPUN kategori (mis. "rumah subsidi"), dipakai AI Agent buat mengenali & mencocokkan listing. 91 listing migrasi lama belum terisi (field ini baru wajib untuk listing baru/diedit ulang, belum retroaktif) |
 | Data Pemilik & Nilai Komisi | ✅ Rahasia (28 Sep 2026) — `metadata.owner`/`metadata.commission`, admin+agent yang di-assign saja yang lihat, edit admin-only |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
@@ -27,7 +29,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Kepemilikan per Agent | ✅ Kolom `assigned_to` + RLS `listings_owner_or_admin` (migration `043`) — agent cuma lihat listing miliknya, admin lihat & assign semua |
 | Migrasi Data Lama | ✅ 91 listing dari spreadsheet legacy Griya Indonesia dimigrasikan (28 Sep 2026) — lihat "Migrasi dari Spreadsheet" di bawah |
 | Edit Judul/Harga/Alamat/Deskripsi | ✅ `PropertyMainFieldsEditable.tsx` di halaman detail |
-| Hapus Listing | ✅ Soft delete (`deleted_at`), tombol "Hapus" di halaman detail |
+| Hapus Listing | ✅ Soft delete (`deleted_at`) — listing-nya sendiri bisa dipulihkan lewat database. **Fotonya TIDAK ikut soft-delete** — sejak 30 Sep 2026 malam, hapus listing juga hapus PERMANEN semua fotonya dari R2 (tidak bisa dipulihkan), konfirmasi menjelaskan ini eksplisit sebelum lanjut |
 | Watermark Foto | ✅ Logo Yohan.AI otomatis di tengah tiap foto yang diupload (`watermarkPhoto.ts`, Canvas API browser) + retroaktif ke 291 foto lama (`sharp`, one-off) |
 | Klik Foto / Download | ✅ Klik foto buka ukuran penuh, tombol Download terpisah (fetch+blob) |
 | Sembunyikan/Tampilkan Listing | ✅ Beda dari Hapus -- sementara, listing hilang dari `/properties` + wajib dicek AI Agent (nanti) sebelum referensi ke lead |
@@ -51,6 +53,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
   "video_url": string | null,
   "contact_phone": string | null,
   "photo_urls": string[],
+  "ai_tags": string[],
   "hidden": boolean,
   "owner": { "name": string | null, "phone": string | null } | null,
   "commission": { "type": "percentage" | "fixed" | null, "value": number | null } | null

@@ -537,22 +537,40 @@ Task 026
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS untuk seluruh perubahan kode sesi ini.
 
+Task 027
+
+**Sesi 30 September 2026 (malam, lanjutan) — live-test kedua, 4 bug lagi diperbaiki, fitur hapus foto R2, backfill instrumentasi laporan.**
+
+- **Usage AI Agent nyata masuk Daily Report (per user) + Platform Report (agregat)** (commit `bfd5b38`) — `getAiAgentUsage.ts` baru: pesan diproses, balasan terkirim, foto dikirim, butuh follow-up, token in/out, estimasi biaya (dari `ai.agent_runs.llm_raw_response.usage`, harga Sonnet 5.5). Bagian "KPI AI Agent (Rencana)" lama direlabel "Fitur Lanjutan" supaya tidak kontradiksi dengan data nyata yang sekarang tampil.
+- **Bug ditemukan & diperbaiki: AI Agent "lupa" listing yang sedang dibahas di follow-up singkat** (commit `7411fdc`) — pencarian listing cuma baca kata kunci dari pesan BARU, jadi follow-up seperti "sudah bisa kirim foto?" kehilangan konteks listing yang sempat ke-detect di pesan sebelumnya. Diperbaiki: kata kunci pencarian sekarang juga baca 4 pesan terakhir percakapan. Sekalian tambah indikator "mengetik..." WhatsApp (`typing_indicator` Kapso) begitu webhook terima pesan yang bakal diproses AI Agent.
+- **Yohan minta AI Agent jangan buru-buru kirim foto/video kalau tidak diminta** (commit `66c3f4d`, sekalian hemat token) — baris "Foto:"/"Video:" per listing + instruksi cara kirimnya sekarang digating lewat deteksi kata kunci pada pesan BARU (foto/photo/poto/gambar/pic/video/penampakan/denah). Kalau tidak match, data itu tidak ikut terkirim ke LLM sama sekali (bukan cuma diinstruksikan menahan diri) — hemat ~10-20% token di pesan yang tidak menyinggung foto/video.
+- **Bug ditemukan & diperbaiki: tag lokasi listing (`ai_tags`) tidak pernah sampai ke LLM + tidak ada ranking pencocokan** (commit `3d2aa6c`) — listing "Purnama Golden" sudah ditag Kotabaru/Kobar/subsidi, tapi AI tetap bilang "belum ada data" karena (1) tag-nya cuma dipakai buat pencarian internal, tidak pernah ditampilkan ke LLM, dan (2) listing yang match presisi lewat tag bisa tersingkir dari 6 slot MAX_RESULTS oleh listing lain yang kata generiknya (mis. "kota") kebetulan nyangkut di alamat. Diperbaiki: tag ikut dikirim sebagai baris "Tag lokasi/info", match di tag dibobot 2x lebih tinggi dari match di title/address.
+- **Fitur hapus foto listing sekarang benar-benar hapus dari R2** (commit `c505e18`) — sebelumnya cuma buang URL dari `metadata.photo_urls`, file-nya tetap nyangkut di R2 selamanya. Sekarang lewat `POST /api/properties/delete-photo` (server-side, secret R2 tidak sampai ke browser), wajib konfirmasi "TIDAK BISA dipulihkan lagi" dulu.
+- **Fitur hapus listing sekarang ikut hapus semua fotonya dari R2** (commit `febed2f`) — sebelumnya listing di-soft-delete tapi fotonya tetap menumpuk di R2 selamanya. Konfirmasi diperjelas: listing-nya sendiri tetap bisa dipulihkan lewat database, tapi fotonya PERMANEN hilang.
+- **Bug ditemukan & diperbaiki: AI Agent tidak baca kolom Deskripsi listing** (commit `8a0a7e3`) — pertanyaan "dp akad berapa?" yang jawabannya ada di Deskripsi (rincian DP/harga KPR-cash per blok) dijawab "belum pegang rincian", karena konteks listing yang dikirim ke LLM cuma title/alamat/harga/status/tag, `description` tidak pernah diteruskan. Sekalian direlabel "Tag Lokasi (AI Info)" → "Tag / Info AI (Lokasi & Kategori)" di form, karena field ini memang sudah dipakai buat kategori juga (mis. "rumah subsidi"), bukan cuma istilah lokasi.
+- **Debugging panjang (~2 jam) skrip cleanup foto orphan R2** — 6 foto orphan berhasil dibersihkan dari R2, root cause murni `R2_ACCOUNT_ID` dan `R2_ACCESS_KEY_ID` ketuker di `.env.local` (sama-sama hex 32 karakter, gampang mirip) — bukan soal permission/IP/jaringan/SDK yang sempat dicurigai duluan. Sekalian ketahuan `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` di Vercel juga tipe "Sensitive" (tidak bisa ditarik ulang). Detail lengkap: jebakan baru di `AGENTS.md`.
+- **Ditemukan: Cloudflare "AI Crawl Control"** (`dash.cloudflare.com/.../ai/overview`, domain `yohanai.id`) — dashboard siap pakai yang sudah menghitung request AI crawler (OpenAI, Google, Microsoft/Anthropic/Apple/ByteDance/Perplexity/Common Crawl/DuckDuckGo/Huawei dll) per domain, gratis, tanpa kode tambahan di sisi kita. **Belum diintegrasikan ke Platform Report** — Yohan minta ditambahkan nanti (lihat Task 028 poin 1).
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS untuk seluruh perubahan kode sesi ini.
+
+**Yohan pause development sampai pemberitahuan lanjut** — mau update data lead & listing existing yang masih aktif dulu (manual, lewat UI), baru lanjut development sesi berikutnya.
+
 ### Next Task
 
-Task 027
+Task 028
 
 **Checklist buat sesi berikutnya:**
 
-1. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja, bukan lupa) — AI Agent sudah live-tested & 2 bug besar sudah diperbaiki sesi ini, jadi ini realistis jadi prioritas berikutnya kalau Yohan sudah puas dengan hasil tes.
-2. **Verifikasi biaya AI Agent asli** — bandingkan `response.usage` di `ai.agent_runs.llm_raw_response` (sekarang sudah ada data live sungguhan) vs estimasi simulasi Task 025 (`effort: "low"` ±$0,004–0,006/pesan).
-3. **Tambahkan rate-limit/cooldown auto-reply** kalau tes lapangan lebih lanjut menunjukkan risiko balasan berulang terlalu cepat.
-4. **Isi `ai_tags` ("Tag Lokasi AI Info") untuk 91 listing migrasi lama** — field ini baru wajib untuk listing baru/yang diedit ulang (lihat Task 026), belum retroaktif. Tanpa ini, AI Agent cuma bisa cocokkan listing lama lewat title/address literal, bukan istilah lokal.
-5. **Tambah entri `knowledge.entries` lain** kalau ada area/istilah lokal lain yang sering dipakai lead tapi belum di-cover ("Area Kotabaru" baru 1 entri contoh) — bisa ditambah manual lewat SQL/dashboard Supabase, tidak perlu kode baru.
-6. **Alur dokumen tanda tangan lead closing** — 🔵 sudah diriset penuh (29 Sep 2026 malam), belum diintegrasikan. Detail: `docs/modules/crm.mdx` bagian "Alur Dokumen Tanda Tangan (Lead Closing)". Yohan konfirmasi eksplisit: simpan dulu sebagai referensi — jangan mulai bangun tanpa arahan baru.
-7. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih. Semua fitur baru harus dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`) — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari.
-8. **Instrumentasi tracking untuk Daily/Platform Report** — token AI terpakai & estimasi biaya **✅ sudah masuk** (`getAiAgentUsage.ts`, bagian "AI Agent Hari Ini" di Daily Report per user + agregat di Platform Report, 30 Sep 2026 malam). Jumlah AI crawler, visitor listing/foto, download foto/video masih nol instrumentasi.
-9. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja, tidak urgent.
-10. **Backlog "10 AI Agent"** dari arsip pra-Claude — didokumentasikan lengkap di `docs/modules/ai.mdx` bagian "Backlog 10 AI Agent dari Arsip Pra-Claude", jadikan referensi kalau AI Agent butuh dipecah tanggung jawabnya lebih lanjut, TIDAK perlu dibangun ke-10-nya sekaligus.
+1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`. Ini menutup salah satu dari 3 item instrumentasi yang masih nol di poin 6 bawah.
+2. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja) — AI Agent sudah live-tested 2x dan total 6 bug besar sudah diperbaiki, realistis jadi prioritas berikutnya kalau Yohan sudah puas.
+3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Hari Ini" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
+4. **Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama** — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif; AI Agent cuma bisa jawab detail (DP, harga per blok) untuk listing yang Deskripsi-nya sudah lengkap.
+5. **Tambah entri `knowledge.entries` lain** kalau ada area/istilah lokal lain yang sering dipakai lead tapi belum di-cover ("Area Kotabaru" baru 1 entri contoh).
+6. **Instrumentasi tracking Daily/Platform Report yang masih nol**: AI crawler (lihat poin 1), visitor listing/foto, download foto/video.
+7. **Alur dokumen tanda tangan lead closing** — sudah diriset penuh, belum diintegrasikan, simpan dulu sebagai referensi (`docs/modules/crm.mdx`).
+8. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih, semua fitur baru tetap dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`).
+9. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja.
+10. **Backlog "10 AI Agent"** dari arsip pra-Claude — referensi non-mengikat di `docs/modules/ai.mdx`.
 
 ---
 

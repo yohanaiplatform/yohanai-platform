@@ -40,11 +40,20 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Data Pemilik & Nilai Komisi 83/84 listing existing sudah SELESAI di-backfill** (30 September 2026, Task 026) — sumber: tab "Input Data" spreadsheet "Listing Baru 2024 Terbaru" (bukan "List Penjualan"), dicocokkan lewat tag `GDI/2026/<n>` di `description`. Tersimpan di `metadata.owner`/`metadata.commission`, tampil di `PropertyConfidentialFields.tsx` (khusus admin/agent yang di-assign).
 
-**Kerjaan sekarang (lihat Task 027 di `docs/status.mdx` untuk checklist lengkap):**
-1. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — AI Agent sudah live-tested & bug besar sudah diperbaiki, jadi ini realistis jadi prioritas berikutnya.
-2. Verifikasi biaya AI Agent asli (`response.usage` di `ai.agent_runs.llm_raw_response`) vs estimasi simulasi Task 025.
-3. Isi `ai_tags` ("Tag Lokasi AI Info") untuk 91 listing migrasi lama — field ini baru wajib untuk listing baru/diedit ulang, belum retroaktif.
-4. Multi-tenant SaaS, instrumentasi tracking, dan item lain — lihat Task 027 lengkap.
+**Live-test kedua AI Agent + total 6 bug ditemukan & diperbaiki** (30 September 2026 malam, Task 027 di `docs/status.mdx`) — jangan bangun ulang, baca Task 027 dulu sebelum sentuh `src/lib/ai/`. Ringkasan: AI sempat "lupa" listing yang dibahas di follow-up singkat (pencarian sekarang ikut baca riwayat chat), tag lokasi (`ai_tags`) tidak pernah sampai ke LLM + belum ada ranking pencocokan (sekarang dikirim + dibobot 2x), AI tidak baca kolom `description` listing sama sekali (detail DP/harga per blok jadi tidak terjawab — sekarang ikut dikirim, dibatasi 1500 karakter), dan AI sempat terlalu "buru-buru" menawarkan foto/video (sekarang digating kata kunci di pesan lead, sekalian hemat token). **Field "Tag Lokasi (AI Info)" direlabel "Tag / Info AI (Lokasi & Kategori)"** — sudah dikonfirmasi bisa diisi kategori (mis. "rumah subsidi"), bukan cuma istilah lokasi.
+
+**Hapus foto & hapus listing sekarang benar-benar hapus dari Cloudflare R2** (30 September 2026 malam) — sebelumnya cuma buang referensi di `metadata.photo_urls`, file-nya tetap menumpuk selamanya. `POST /api/properties/delete-photo` (baru) dipanggil dari `PropertyPhotoManager.tsx` (hapus 1 foto) dan `PropertyMainFieldsEditable.tsx` (hapus listing → loop hapus semua fotonya) — keduanya wajib konfirmasi eksplisit dulu ("TIDAK BISA dipulihkan"). 6 foto orphan lama juga sudah dibersihkan manual lewat skrip sekali-pakai — **lihat jebakan baru di bagian bawah AGENTS.md ini soal `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID` yang gampang ketuker** kalau nanti butuh kredensial R2 buat skrip lokal lagi.
+
+**Cloudflare "AI Crawl Control" ditemukan** (30 Sep 2026 malam) — dashboard siap pakai (`dash.cloudflare.com/.../ai/overview`, domain `yohanai.id`) yang sudah menghitung request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) per domain, gratis, tanpa kode tambahan. **Belum diintegrasikan ke Platform Report** — Yohan minta ditambahkan sesi berikutnya (Task 028 poin 1).
+
+**Yohan pause development** — sementara update data lead & listing existing yang masih aktif secara manual dulu lewat UI, baru lanjut development lagi setelah itu. Jangan mulai kerjaan baru tanpa diminta ulang.
+
+**Kerjaan sekarang (lihat Task 028 di `docs/status.mdx` untuk checklist lengkap):**
+1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.
+2. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — AI Agent sudah live-tested 2x & total 6 bug besar sudah diperbaiki.
+3. Verifikasi biaya AI Agent asli (`response.usage` di `ai.agent_runs.llm_raw_response`) vs estimasi simulasi Task 025.
+4. Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif.
+5. Multi-tenant SaaS, instrumentasi tracking sisanya (visitor/download), dan item lain — lihat Task 028 lengkap.
 
 **Multi-tenant SaaS masa depan** juga mulai dibahas (27-28 Sep) — dipetakan Model A (SaaS multi-tenant sungguhan, re-arsitektur besar) vs Model B (duplikasi instance per pelanggan, nol perubahan kode), belum dipilih. Detail: `docs/modules/crm.mdx` bagian "Multi-Tenant untuk SaaS". **Mulai 29 Sep 2026, Yohan menegaskan: semua fitur baru (bukan cuma nanti) harus dibangun dengan KESADARAN ini** — bukan berarti mulai bangun infrastruktur `tenant_id` sekarang, tapi hindari desain yang diam-diam mengasumsikan "cuma 1 bisnis di seluruh database" kalau gampang dihindari. Lihat memory `multi-tenant-forward-compat`.
 
