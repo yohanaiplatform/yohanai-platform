@@ -112,6 +112,12 @@ export async function interpretLeadReply(
   }
 
   const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
+  // Tugas ini klasifikasi Temperature + draft balasan pendek -- bukan reasoning
+  // berlapis, jadi effort rendah cukup (dan jauh lebih murah: token "thinking"
+  // tetap ditagih walau disembunyikan dari respons). Naikkan ke "medium" lewat
+  // env var kalau tes lapangan nunjukkan klasifikasi sering meleset di kasus
+  // ambigu -- jangan ubah kode, cukup ganti ANTHROPIC_EFFORT di Vercel.
+  const effort = process.env.ANTHROPIC_EFFORT || "low";
 
   let res: Response;
   try {
@@ -127,6 +133,7 @@ export async function interpretLeadReply(
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
         messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage) }],
+        output_config: { effort },
       }),
     });
   } catch (err) {
