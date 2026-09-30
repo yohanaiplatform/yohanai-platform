@@ -8,7 +8,11 @@ export interface ListingMatch {
   address: string | null;
   price: number | null;
   status: string | null;
+  photoUrls: string[];
+  videoUrl: string | null;
 }
+
+const MAX_PHOTOS_PER_LISTING = 3;
 
 const MAX_RESULTS = 6;
 
@@ -54,11 +58,16 @@ export async function findRelevantListings(
 
   return matches.slice(0, MAX_RESULTS).map((listing) => {
     const metadata = (listing.metadata ?? {}) as Record<string, unknown>;
+    const photoUrls = Array.isArray(metadata.photo_urls)
+      ? (metadata.photo_urls as unknown[]).map(String).slice(0, MAX_PHOTOS_PER_LISTING)
+      : [];
     return {
       title: listing.title,
       address: listing.address,
       price: listing.price === null ? null : Number(listing.price),
       status: (metadata.status as string | undefined) ?? null,
+      photoUrls,
+      videoUrl: (metadata.video_url as string | undefined) || null,
     };
   });
 }

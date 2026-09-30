@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
-import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
+import { sendWhatsAppText, sendWhatsAppImage } from "@/lib/whatsapp/kapso";
 import type { AgentDecision } from "@/lib/ai/interpretLeadReply";
 import { createNotification } from "@/lib/notifications/createNotification";
 import { getAdminUserIds } from "@/lib/notifications/getAdminUserIds";
@@ -71,6 +71,28 @@ export async function applyAgentDecision(
       replyMessageId = inserted?.id ?? null;
 
       await supabaseAdmin.schema("chat").from("conversations").update({ status: "active" }).eq("id", input.conversationId);
+    }
+  }
+
+  // Kirim foto asli (bukan cuma link teks) kalau AI memutuskan ada foto yang
+  // relevan -- sharePhotoUrls sudah disaring di interpretLeadReply() supaya
+  // cuma berisi URL yang benar-benar ada di data listing, tidak pernah
+  // halusinasi LLM. Kirim satu per satu (WhatsApp/Kapso tidak punya endpoint
+  // multi-image sekali kirim); satu foto gagal tidak menggagalkan yang lain.
+  for (const photoUrl of decision.sharePhotoUrls) {
+    const sendResult = await sendWhatsAppImage(input.leadPhone, photoUrl);
+
+    if (sendResult.success) {
+      await supabaseAdmin
+        .schema("chat")
+        .from("messages")
+        .insert({
+          conversation_id: input.conversationId,
+          sender_type: "agent",
+          sender_id: null,
+          content: photoUrl,
+          metadata: { wa_message_id: sendResult.messageId ?? null, message_type: "image", ai_generated: true },
+        });
     }
   }
 

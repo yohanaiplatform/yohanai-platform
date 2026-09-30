@@ -28,6 +28,8 @@ export interface AgentListingContext {
   address: string | null;
   price: number | null;
   status: string | null;
+  photoUrls: string[];
+  videoUrl: string | null;
 }
 
 export interface AgentDecision {
@@ -37,6 +39,7 @@ export interface AgentDecision {
   confidence: "high" | "medium" | "low";
   needsFollowUp: boolean;
   followUpNote: string | null;
+  sharePhotoUrls: string[];
 }
 
 export interface InterpretLeadReplyResult {
@@ -71,13 +74,18 @@ ATURAN BALAS OTOMATIS:
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
 
+ATURAN KIRIM FOTO/VIDEO (sharePhotoUrls):
+- Kalau lead minta lihat foto/penampakan unit, dan salah satu listing di "Listing Tersedia" (di bawah) punya baris "Foto:" dengan URL -- isi sharePhotoUrls dengan URL-URL itu APA ADANYA (copy-paste persis, JANGAN diubah/dipersingkat/dikarang), maksimal dari SATU listing yang paling relevan dengan pertanyaan lead. Sistem akan mengirim tiap URL itu sebagai foto asli terpisah di WhatsApp, jadi replyText cukup bilang mis. "ini fotonya ya" tanpa perlu tempel URL foto di teks.
+- Kalau listing yang relevan punya baris "Video:", sebutkan link video itu (copy-paste persis) di dalam replyText sebagai teks biasa -- video TIDAK dikirim otomatis lewat sharePhotoUrls.
+- Kalau tidak ada foto/video yang cocok di daftar listing, sharePhotoUrls: [] dan jangan mengarang link apa pun -- akui saja fotonya belum ada/akan dikirim menyusul (dan set needsFollowUp true).
+
 ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
 - followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
 - needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
-{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null}`;
+{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[]}`;
 
 function formatRupiah(n: number): string {
   return `Rp${n.toLocaleString("id-ID")}`;
@@ -100,10 +108,14 @@ function buildUserPrompt(
 
   const listingsText = listings.length
     ? listings
-        .map(
-          (l) =>
-            `- ${l.title} -- ${l.address ?? "alamat tidak tercatat"} -- ${l.price ? formatRupiah(l.price) : "harga tidak tercatat"} -- status: ${l.status ?? "tidak diketahui"}`
-        )
+        .map((l) => {
+          const lines = [
+            `- ${l.title} -- ${l.address ?? "alamat tidak tercatat"} -- ${l.price ? formatRupiah(l.price) : "harga tidak tercatat"} -- status: ${l.status ?? "tidak diketahui"}`,
+          ];
+          if (l.photoUrls.length) lines.push(`  Foto: ${l.photoUrls.join(" | ")}`);
+          if (l.videoUrl) lines.push(`  Video: ${l.videoUrl}`);
+          return lines.join("\n");
+        })
         .join("\n")
     : "(tidak ada listing yang cocok ditemukan)";
 
@@ -140,7 +152,11 @@ function isValidDecision(value: unknown): value is AgentDecision {
   const validConfidence = v.confidence === "high" || v.confidence === "medium" || v.confidence === "low";
   const validNeedsFollowUp = typeof v.needsFollowUp === "boolean";
   const validFollowUpNote = v.followUpNote === null || v.followUpNote === undefined || typeof v.followUpNote === "string";
-  return validTemp && validReply && validReasoning && validConfidence && validNeedsFollowUp && validFollowUpNote;
+  const validSharePhotoUrls =
+    v.sharePhotoUrls === undefined || (Array.isArray(v.sharePhotoUrls) && v.sharePhotoUrls.every((u) => typeof u === "string"));
+  return (
+    validTemp && validReply && validReasoning && validConfidence && validNeedsFollowUp && validFollowUpNote && validSharePhotoUrls
+  );
 }
 
 /**
@@ -214,6 +230,14 @@ export async function interpretLeadReply(
 
   // followUpNote boleh diomit oleh LLM saat needsFollowUp false -- normalisasi ke null.
   if (parsed.followUpNote === undefined) parsed.followUpNote = null;
+  if (parsed.sharePhotoUrls === undefined) parsed.sharePhotoUrls = [];
+
+  // Jangan percaya URL apa adanya dari LLM (walau sudah diinstruksikan copy-paste
+  // persis) -- saring ke URL yang BENAR-BENAR ada di daftar foto listing yang
+  // dikirim sebagai konteks. Mencegah link hasil halusinasi terkirim sebagai
+  // pesan WhatsApp beneran.
+  const knownPhotoUrls = new Set(listings.flatMap((l) => l.photoUrls));
+  parsed.sharePhotoUrls = parsed.sharePhotoUrls.filter((u) => knownPhotoUrls.has(u));
 
   return { decision: parsed, rawResponse: json, error: null };
 }

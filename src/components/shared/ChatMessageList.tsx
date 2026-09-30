@@ -10,8 +10,10 @@ export interface ChatMessage {
   sender_type: string;
   content: string;
   created_at: string;
-  /** true kalau pesan aslinya media (foto/video/dokumen) -- konten mentahnya (link storage Kapso) sengaja tidak ditampilkan. */
+  /** true kalau pesan aslinya media (foto/video/dokumen) DARI LEAD -- konten mentahnya (link storage Kapso) sengaja tidak ditampilkan. */
   has_media?: boolean;
+  /** "image" kalau ini pesan foto YANG DIKIRIM AI Agent (content = URL R2 publik, aman ditampilkan langsung). */
+  message_type?: string;
 }
 
 const MEDIA_NOTICE = "📎 Lampiran (foto/video/dokumen) -- buka WhatsApp untuk melihat.";
@@ -24,19 +26,18 @@ export function toChatMessage(row: {
   created_at: string;
   metadata?: unknown;
 }): ChatMessage {
-  const metadata = row.metadata;
-  const hasMedia = Boolean(
-    metadata && typeof metadata === "object" && !Array.isArray(metadata)
-      ? (metadata as Record<string, unknown>).has_media
-      : false
-  );
+  const metadata =
+    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : {};
 
   return {
     id: row.id,
     sender_type: row.sender_type,
     content: row.content,
     created_at: row.created_at,
-    has_media: hasMedia,
+    has_media: Boolean(metadata.has_media),
+    message_type: typeof metadata.message_type === "string" ? metadata.message_type : undefined,
   };
 }
 
@@ -79,9 +80,14 @@ export function ChatMessageList({ messages, emptyLabel }: ChatMessageListProps) 
             m.sender_type === "customer" ? "self-start bg-muted" : "self-end bg-brand/10"
           )}
         >
-          <p className={cn("whitespace-pre-wrap", m.has_media && "italic text-muted-foreground")}>
-            {m.has_media ? MEDIA_NOTICE : m.content}
-          </p>
+          {m.message_type === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element -- URL R2 eksternal, bukan aset Next.js
+            <img src={m.content} alt="Foto listing" className="max-w-full rounded-md" />
+          ) : (
+            <p className={cn("whitespace-pre-wrap", m.has_media && "italic text-muted-foreground")}>
+              {m.has_media ? MEDIA_NOTICE : m.content}
+            </p>
+          )}
           <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(m.created_at)}</p>
         </li>
       ))}
