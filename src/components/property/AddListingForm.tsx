@@ -109,7 +109,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
     }
 
     if (aiTagsList.length === 0) {
-      setError("Tag Lokasi (AI Info) wajib diisi minimal 1 istilah.");
+      setError("Tag / Info AI wajib diisi minimal 1 istilah.");
       return;
     }
 
@@ -337,18 +337,19 @@ export function AddListingForm({ categories }: AddListingFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="aiTags">Tag Lokasi (AI Info) *</Label>
+        <Label htmlFor="aiTags">Tag / Info AI (Lokasi & Kategori) *</Label>
         <Input
           id="aiTags"
           value={aiTags}
           onChange={(e) => setAiTags(e.target.value)}
-          placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2"
+          placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2, rumah subsidi, subsidi kobar"
           required
         />
         <p className="text-xs text-muted-foreground">
-          Istilah lokal/informal yang masyarakat pakai untuk lokasi ini (BUKAN nama administratif resmi) --
-          pisahkan dengan koma. Dipakai AI Agent untuk mengenali listing ini saat lead tanya pakai istilah
-          sehari-hari, bukan alamat resmi.
+          Pisahkan dengan koma -- boleh istilah lokal/informal lokasi (BUKAN nama administratif resmi, mis.
+          Kotabaru/Kobar/dekat Untan) MAUPUN kategori/ciri listing (mis. rumah subsidi, subsidi kobar, rumah
+          second). Dipakai AI Agent untuk mengenali & mencocokkan listing ini saat lead tanya pakai istilah
+          sehari-hari, bukan istilah resmi/formal.
         </p>
       </div>
 

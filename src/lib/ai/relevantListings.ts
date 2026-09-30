@@ -9,6 +9,7 @@ export interface ListingMatch {
   price: number | null;
   status: string | null;
   aiTags: string[];
+  description: string | null;
   photoUrls: string[];
   videoUrl: string | null;
 }
@@ -16,6 +17,12 @@ export interface ListingMatch {
 const MAX_PHOTOS_PER_LISTING = 3;
 
 const MAX_RESULTS = 6;
+
+// Deskripsi listing sering berisi detail penting yang tidak ada di field
+// lain (mis. rincian DP/harga per blok, promo) -- WAJIB dikirim ke AI,
+// tapi dibatasi panjangnya (bisa ratusan kata per listing, dikali sampai
+// 6 listing per pesan) supaya token tidak membengkak tanpa kendali.
+const MAX_DESCRIPTION_CHARS = 1500;
 
 // Skor match tag lokasi (metadata.ai_tags) dibobot lebih tinggi dari
 // title/address -- ai_tags itu sinyal yang SENGAJA diisi agen per listing
@@ -58,7 +65,7 @@ export async function findRelevantListings(
   const { data } = await supabaseAdmin
     .schema("property")
     .from("listings")
-    .select("title, address, price, metadata")
+    .select("title, address, price, metadata, description")
     .is("deleted_at", null);
 
   if (!data) return [];
@@ -89,12 +96,22 @@ export async function findRelevantListings(
     const photoUrls = Array.isArray(metadata.photo_urls)
       ? (metadata.photo_urls as unknown[]).map(String).slice(0, MAX_PHOTOS_PER_LISTING)
       : [];
+
+    // Buang tag bookkeeping migrasi ("[Migrasi dari spreadsheet, GDI/2026/xx]")
+    // -- itu internal, bukan sesuatu yang perlu/boleh dibaca AI Agent.
+    const cleanedDescription = listing.description?.replace(/\[Migrasi dari spreadsheet,[^\]]*\]/g, "").trim() || null;
+    const description =
+      cleanedDescription && cleanedDescription.length > MAX_DESCRIPTION_CHARS
+        ? `${cleanedDescription.slice(0, MAX_DESCRIPTION_CHARS)}...`
+        : cleanedDescription;
+
     return {
       title: listing.title,
       address: listing.address,
       price: listing.price === null ? null : Number(listing.price),
       status: (metadata.status as string | undefined) ?? null,
       aiTags,
+      description,
       photoUrls,
       videoUrl: (metadata.video_url as string | undefined) || null,
     };

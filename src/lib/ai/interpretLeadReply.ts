@@ -29,6 +29,7 @@ export interface AgentListingContext {
   price: number | null;
   status: string | null;
   aiTags: string[];
+  description: string | null;
   photoUrls: string[];
   videoUrl: string | null;
 }
@@ -71,7 +72,7 @@ ATURAN BALAS OTOMATIS:
 - SELALU balas (replyText TIDAK boleh null) -- diam total terkesan lead di-ignore. Satu-satunya alasan replyText: null adalah kalau pesan lead butuh keputusan manusia murni yang sensitif (komplain serius, ancaman hukum, negosiasi harga besar) -- itu jarang, bukan default.
 - replyText singkat (1-2 kalimat), natural, sopan, bahasa Indonesia, gaya agen properti manusia asli -- BUKAN kalimat template/robot. **Variasikan kata-katanya setiap kali** -- kalau dalam percakapan yang sama Anda sudah bilang "saya cek dulu ya" sebelumnya dan sekarang harus bilang hal serupa lagi (pertanyaan lain yang juga tidak ada datanya), JANGAN ulangi kalimat persis sama -- ganti susunan kata/gaya seolah orang berbeda yang sedang mengetik balasan wajar, bukan copy-paste.
 - JANGAN mengarang detail properti spesifik (harga, unit, ketersediaan, lokasi persis) yang TIDAK ADA di konteks yang diberikan -- kalau lead tanya hal spesifik yang Anda tidak punya datanya, akui dengan wajar (bukan defensif) bahwa itu perlu dicek dulu, dan sebutkan akan diteruskan/dikabari -- JANGAN menebak angka atau detail apa pun.
-- **TAPI kalau di bawah ada bagian "Info Area" dan/atau "Listing Tersedia" yang relevan dengan pertanyaan lead, itu DATA ASLI dari database -- gunakan dengan percaya diri.** Sebutkan nama listing/alamat/harga/status dari daftar itu secara natural. JANGAN bilang "akan dicek dulu" untuk sesuatu yang datanya SUDAH ada di daftar itu -- langsung informasikan. "Tidak ada data" cuma berlaku untuk hal yang benar-benar tidak muncul di kedua daftar itu.
+- **TAPI kalau di bawah ada bagian "Info Area" dan/atau "Listing Tersedia" yang relevan dengan pertanyaan lead, itu DATA ASLI dari database -- gunakan dengan percaya diri.** Sebutkan nama listing/alamat/harga/status dari daftar itu secara natural. **Baris "Deskripsi" per listing (kalau ada) sering berisi detail spesifik yang ditanya lead -- DP akad, harga KPR vs cash per blok/tipe, promo, cicilan -- BACA dan pakai itu untuk jawab, jangan cuma lihat harga/status ringkasan di baris atasnya.** JANGAN bilang "akan dicek dulu" untuk sesuatu yang datanya SUDAH ada di daftar itu (termasuk yang ada di Deskripsi) -- langsung informasikan. "Tidak ada data" cuma berlaku untuk hal yang benar-benar tidak muncul di manapun (title/alamat/harga/status/Deskripsi/tag).
 - **Baris "Tag lokasi/info" di tiap listing (kalau ada) berisi istilah lokal/kategori yang SENGAJA ditandai agen** (mis. nama kawasan informal seperti Kotabaru/Kobar, atau kategori seperti "subsidi") -- kalau lead tanya pakai istilah itu (mis. "subsidi di Kobar") dan listing yang match punya tag itu, ANGGAP itu jawaban valid untuk pertanyaan tersebut, JANGAN bilang "belum ada data" hanya karena kata itu tidak muncul di title/alamat resminya.
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
@@ -133,6 +134,7 @@ function buildUserPrompt(
             `- ${l.title} -- ${l.address ?? "alamat tidak tercatat"} -- ${l.price ? formatRupiah(l.price) : "harga tidak tercatat"} -- status: ${l.status ?? "tidak diketahui"}`,
           ];
           if (l.aiTags.length) lines.push(`  Tag lokasi/info: ${l.aiTags.join(", ")}`);
+          if (l.description) lines.push(`  Deskripsi: ${l.description}`);
           if (photoVideoIntent) {
             if (l.photoUrls.length) lines.push(`  Foto: ${l.photoUrls.join(" | ")}`);
             if (l.videoUrl) lines.push(`  Video: ${l.videoUrl}`);

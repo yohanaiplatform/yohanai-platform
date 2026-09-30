@@ -91,7 +91,7 @@ export function PropertyEditableFields({
       .filter(Boolean);
 
     if (aiTagsList.length === 0) {
-      setError("Tag Lokasi (AI Info) wajib diisi minimal 1 istilah.");
+      setError("Tag / Info AI wajib diisi minimal 1 istilah.");
       return;
     }
 
@@ -149,7 +149,7 @@ export function PropertyEditableFields({
           <DetailField label="Carport" value={carport} />
           <DetailField label="Sertifikat" value={certificateType} />
           <DetailField label="No. HP Kontak (di flyer)" value={contactPhone} />
-          <DetailField label="Tag Lokasi (AI Info)" value={aiTags.length ? aiTags.join(", ") : undefined} />
+          <DetailField label="Tag / Info AI" value={aiTags.length ? aiTags.join(", ") : undefined} />
         </div>
       </div>
     );
@@ -259,16 +259,16 @@ export function PropertyEditableFields({
         </div>
 
         <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-          <Label htmlFor="edit-aiTags">Tag Lokasi (AI Info) *</Label>
+          <Label htmlFor="edit-aiTags">Tag / Info AI (Lokasi & Kategori) *</Label>
           <Input
             id="edit-aiTags"
             value={formAiTags}
             onChange={(e) => setFormAiTags(e.target.value)}
-            placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2"
+            placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2, rumah subsidi, subsidi kobar"
           />
           <p className="text-xs text-muted-foreground">
-            Istilah lokal/informal lokasi ini, pisahkan dengan koma -- dipakai AI Agent, bukan nama
-            administratif resmi.
+            Pisahkan dengan koma -- istilah lokal/informal lokasi MAUPUN kategori/ciri listing (mis. rumah
+            subsidi), dipakai AI Agent, bukan istilah resmi/formal.
           </p>
         </div>
       </div>
