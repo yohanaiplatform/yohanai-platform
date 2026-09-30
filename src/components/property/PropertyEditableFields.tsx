@@ -39,6 +39,7 @@ interface PropertyEditableFieldsProps {
   carport: number | null;
   certificateType: string | null;
   contactPhone: string | null;
+  aiTags: string[];
 }
 
 export function PropertyEditableFields({
@@ -52,6 +53,7 @@ export function PropertyEditableFields({
   carport,
   certificateType,
   contactPhone,
+  aiTags,
 }: PropertyEditableFieldsProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +68,7 @@ export function PropertyEditableFields({
   const [formCarport, setFormCarport] = useState(carport?.toString() ?? "");
   const [formCertificateType, setFormCertificateType] = useState(certificateType ?? "");
   const [formContactPhone, setFormContactPhone] = useState(contactPhone ?? "");
+  const [formAiTags, setFormAiTags] = useState(aiTags.join(", "));
 
   function handleCancel() {
     setFormStatus(status ?? "available");
@@ -76,11 +79,22 @@ export function PropertyEditableFields({
     setFormCarport(carport?.toString() ?? "");
     setFormCertificateType(certificateType ?? "");
     setFormContactPhone(contactPhone ?? "");
+    setFormAiTags(aiTags.join(", "));
     setError(null);
     setIsEditing(false);
   }
 
   async function handleSave() {
+    const aiTagsList = formAiTags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (aiTagsList.length === 0) {
+      setError("Tag Lokasi (AI Info) wajib diisi minimal 1 istilah.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -102,6 +116,7 @@ export function PropertyEditableFields({
           carport: formCarport ? Number(formCarport) : null,
           certificate_type: formCertificateType || null,
           contact_phone: formContactPhone.trim() || null,
+          ai_tags: aiTagsList,
         },
       })
       .eq("id", listingId);
@@ -134,6 +149,7 @@ export function PropertyEditableFields({
           <DetailField label="Carport" value={carport} />
           <DetailField label="Sertifikat" value={certificateType} />
           <DetailField label="No. HP Kontak (di flyer)" value={contactPhone} />
+          <DetailField label="Tag Lokasi (AI Info)" value={aiTags.length ? aiTags.join(", ") : undefined} />
         </div>
       </div>
     );
@@ -240,6 +256,20 @@ export function PropertyEditableFields({
             onChange={(e) => setFormContactPhone(e.target.value)}
             placeholder="mis. 0821-5041-5012"
           />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2 lg:col-span-3">
+          <Label htmlFor="edit-aiTags">Tag Lokasi (AI Info) *</Label>
+          <Input
+            id="edit-aiTags"
+            value={formAiTags}
+            onChange={(e) => setFormAiTags(e.target.value)}
+            placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2"
+          />
+          <p className="text-xs text-muted-foreground">
+            Istilah lokal/informal lokasi ini, pisahkan dengan koma -- dipakai AI Agent, bukan nama
+            administratif resmi.
+          </p>
         </div>
       </div>
 

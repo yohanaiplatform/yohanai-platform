@@ -55,6 +55,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
   const [certificateType, setCertificateType] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [contactPhone, setContactPhone] = useState("");
+  const [aiTags, setAiTags] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,8 +98,18 @@ export function AddListingForm({ categories }: AddListingFormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    const aiTagsList = aiTags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     if (!title.trim() || !price.trim() || !assignedTo) {
       setError("Judul, Harga, dan Ditugaskan ke wajib diisi.");
+      return;
+    }
+
+    if (aiTagsList.length === 0) {
+      setError("Tag Lokasi (AI Info) wajib diisi minimal 1 istilah.");
       return;
     }
 
@@ -122,6 +133,7 @@ export function AddListingForm({ categories }: AddListingFormProps) {
       certificateType,
       videoUrl,
       contactPhone,
+      aiTags: aiTagsList,
     });
 
     setSubmitting(false);
@@ -322,6 +334,22 @@ export function AddListingForm({ categories }: AddListingFormProps) {
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="aiTags">Tag Lokasi (AI Info) *</Label>
+        <Input
+          id="aiTags"
+          value={aiTags}
+          onChange={(e) => setAiTags(e.target.value)}
+          placeholder="mis. Kotabaru, Kobar, dekat Untan, Paris 2"
+          required
+        />
+        <p className="text-xs text-muted-foreground">
+          Istilah lokal/informal yang masyarakat pakai untuk lokasi ini (BUKAN nama administratif resmi) --
+          pisahkan dengan koma. Dipakai AI Agent untuk mengenali listing ini saat lead tanya pakai istilah
+          sehari-hari, bukan alamat resmi.
+        </p>
       </div>
 
       <p className="text-sm text-muted-foreground">

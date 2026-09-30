@@ -21,6 +21,8 @@ export interface CreateListingInput {
   certificateType?: string;
   videoUrl?: string;
   contactPhone?: string;
+  /** Istilah lokal/informal lokasi (mis. "Kotabaru", "Serdam") -- dipakai AI Agent cari listing relevan, wajib diisi di form. */
+  aiTags: string[];
 }
 
 export interface CreateListingResult {
@@ -61,6 +63,7 @@ export async function createListing(
         certificate_type: input.certificateType || null,
         video_url: input.videoUrl?.trim() || null,
         contact_phone: input.contactPhone?.trim() || null,
+        ai_tags: input.aiTags,
         photo_urls: [],
       },
     })

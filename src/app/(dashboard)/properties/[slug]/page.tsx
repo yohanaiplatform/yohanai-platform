@@ -60,6 +60,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const certificateType = getListingMetadataValue<string>(listing.metadata, "certificate_type");
   const videoUrl = getListingMetadataValue<string>(listing.metadata, "video_url");
   const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
+  const aiTags = getListingMetadataValue<string[]>(listing.metadata, "ai_tags") ?? [];
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
   const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
   const owner = getListingMetadataValue<{ name: string | null; phone: string | null }>(
@@ -146,6 +147,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           carport={carport}
           certificateType={certificateType}
           contactPhone={contactPhone}
+          aiTags={aiTags}
         />
       </SectionCard>
 
