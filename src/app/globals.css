@@ -66,3 +66,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * Cetak/export PDF laporan (mis. Laporan Pemasaran listing) -- sembunyikan
+ * semua chrome aplikasi (sidebar, header, tombol), tampilkan cuma elemen
+ * ber-class .print-area. Dipakai lewat window.print() browser (Save as
+ * PDF), bukan html2canvas/jsPDF seperti PropertyFlyer -- laporan ini
+ * berupa tabel/teks panjang yang perlu auto-pagination multi-halaman,
+ * yang cuma disediakan print engine browser, bukan canvas tunggal.
+ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

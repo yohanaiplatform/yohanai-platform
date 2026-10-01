@@ -11,12 +11,14 @@ import { LeadDetailField } from "@/components/crm/LeadDetailField";
 import { LeadEditableFields } from "@/components/crm/LeadEditableFields";
 import { LeadNotes } from "@/components/crm/LeadNotes";
 import { LeadWhatsApp } from "@/components/crm/LeadWhatsApp";
+import { LeadListingLink } from "@/components/crm/LeadListingLink";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getLeadById } from "@/lib/crm/getLeadById";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
 import { getLeadNotes } from "@/lib/crm/getLeadNotes";
 import { getLeadConversation } from "@/lib/crm/getLeadConversation";
+import { getListingsForSelect } from "@/lib/property/getListings";
 import { createClient } from "@/lib/supabase/server";
 import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
@@ -92,8 +94,10 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
   const { data: notes } = await getLeadNotes(supabase, id);
   const { conversationId, data: chatMessages } = await getLeadConversation(supabase, id);
+  const listingsForSelect = await getListingsForSelect(supabase);
 
   const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
+  const manualListingId = getLeadMetadataString(lead.metadata, "manual_listing_id");
   const kategori = getLeadMetadataString(lead.metadata, "kategori");
   const sumberInformasi = getLeadMetadataString(lead.metadata, "sumber_informasi");
   const permintaan = getLeadMetadataString(lead.metadata, "permintaan");
@@ -131,6 +135,17 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           <LeadDetailField
             label={t.detail.lastUpdated}
             value={formatDateTime(lead.updated_at)}
+          />
+          <LeadDetailField
+            label="Kaitkan ke Listing"
+            value={
+              <LeadListingLink
+                leadId={lead.id}
+                metadata={lead.metadata}
+                manualListingId={manualListingId}
+                listings={listingsForSelect}
+              />
+            }
           />
         </div>
       </SectionCard>

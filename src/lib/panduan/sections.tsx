@@ -286,6 +286,11 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Ubah Temperature dan siapa yang ditugaskan (assigned) ke lead itu.",
             "Percakapan WhatsApp tampil live di bagian bawah -- bisa balas langsung dari situ, update real-time tanpa refresh halaman.",
             "Catatan (notes) bisa ditambahkan untuk mencatat detail penting yang tidak masuk field standar.",
+            <>
+              <strong>Kaitkan ke Listing</strong> -- kaitkan lead ini manual ke satu listing tertentu, dipakai
+              untuk Laporan Pemasaran listing itu (lihat panduan terpisah). Berguna kalau Kategori lead ini
+              terlalu umum untuk otomatis cocok ke listing manapun.
+            </>,
           ]}
         />
         <GuideHeading>Export</GuideHeading>
@@ -414,6 +419,60 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           Bagian ini rahasia -- cuma admin dan agent yang ditugaskan ke listing itu yang bisa lihat, dan tidak
           pernah ikut ke flyer/export promosi.
         </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "laporan-pemasaran-listing",
+    title: "Laporan Pemasaran Listing",
+    description: "Laporan untuk vendor/pemilik, otomatis dari data lead -- nomor HP disamarkan.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Tiap listing punya halaman laporan sendiri -- tombol <strong>&quot;Laporan Pemasaran&quot;</strong>{" "}
+          di halaman detail listing. Laporan ini dirancang untuk dikirim ke vendor/pemilik properti, format
+          mirip laporan manual yang dulu dipakai, tapi sekarang otomatis terisi dari data lead.
+        </GuideP>
+
+        <GuideHeading>Langkah 1: Tentukan lead mana yang terkait listing ini</GuideHeading>
+        <GuideP>
+          Belum ada cara otomatis sepenuhnya -- lead dikaitkan ke listing lewat salah satu dari 2 cara:
+        </GuideP>
+        <GuideList
+          items={[
+            <>
+              <strong>Kategori Lead</strong> -- di halaman laporan, centang Kategori yang sesuai listing ini
+              (mis. &quot;Calon Konsumen Kapur Mas&quot;). Lead dengan Kategori itu otomatis masuk laporan.
+              Cocok kalau Kategori-nya sudah spesifik ke satu listing.
+            </>,
+            <>
+              <strong>Kaitkan ke Listing manual</strong> -- untuk lead dengan Kategori yang terlalu umum (mis.
+              &quot;Kons. Cari Rumah Murah&quot;, bisa untuk listing manapun), buka halaman Lead Detail lead
+              itu, pilih listing yang sesuai lewat dropdown &quot;Kaitkan ke Listing&quot; berdasarkan hasil
+              percakapan WhatsApp dengan lead tersebut.
+            </>,
+          ]}
+        />
+
+        <GuideHeading>Langkah 2: Atur periode & cetak</GuideHeading>
+        <GuideP>
+          Pilih rentang tanggal (default 30 hari terakhir), klik &quot;Terapkan&quot;. Isi &quot;Catatan
+          Agent&quot; dan &quot;Rekomendasi&quot; kalau perlu (teks bebas, tidak tersimpan -- isi ulang tiap kali
+          generate laporan baru). Klik <strong>&quot;Cetak / Simpan PDF&quot;</strong> -- browser akan buka
+          dialog print, pilih &quot;Save as PDF&quot; untuk menyimpan sebagai file.
+        </GuideP>
+
+        <GuideNote>
+          <strong>Nomor HP lead di laporan ini otomatis disamarkan</strong> (6 digit terakhir diganti titik-titik)
+          -- laporan ini keluar ke pihak luar (vendor/pemilik), beda dari tampilan nomor HP lengkap di CRM yang
+          cuma untuk tim internal.
+        </GuideNote>
+        <GuideNote>
+          Bagian &quot;Sumber Informasi&quot; di laporan pakai kategori sumber yang sama dengan yang dipakai di
+          CRM sekarang (Iklan Meta/Google, Ketemu di Lokasi, dst). Laporan ini belum menghitung jumlah
+          telepon/kunjungan per lead -- platform belum punya data itu.
+        </GuideNote>
       </>
     ),
   },

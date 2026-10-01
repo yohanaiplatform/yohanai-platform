@@ -13,6 +13,7 @@ import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
 import { PropertyVideoEmbed } from "@/components/property/PropertyVideoEmbed";
 import { PropertyExportButtons } from "@/components/property/PropertyExportButtons";
+import { Button } from "@/components/ui/button";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { getListingMetadataValue } from "@/lib/property/getListings";
@@ -88,23 +89,30 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
         title={listing.title}
         description={listing.category_name ?? undefined}
         action={
-          <PropertyExportButtons
-            filenameBase={listing.slug}
-            data={{
-              title: listing.title,
-              price: listing.price,
-              address: listing.address,
-              photoUrls,
-              bedrooms,
-              bathrooms,
-              landArea,
-              buildingArea,
-              carport,
-              certificateType,
-              contactPhone,
-              status,
-            }}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/properties/${listing.slug}/report`}>
+              <Button type="button" variant="outline" size="sm">
+                Laporan Pemasaran
+              </Button>
+            </Link>
+            <PropertyExportButtons
+              filenameBase={listing.slug}
+              data={{
+                title: listing.title,
+                price: listing.price,
+                address: listing.address,
+                photoUrls,
+                bedrooms,
+                bathrooms,
+                landArea,
+                buildingArea,
+                carport,
+                certificateType,
+                contactPhone,
+                status,
+              }}
+            />
+          </div>
         }
       >
         <div className="space-y-5">

@@ -50,6 +50,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Halaman Sales (`/sales`) sudah SELESAI dibangun dari stub kosong** (1 Oktober 2026, Task 029 di `docs/status.mdx`) — dua fitur: Follow-up Hot Lead (lead Hot/Warm overdue 48 jam, dibatasi 20 + link ke CRM) dan Proses Closing (checklist 3 langkah per lead Closing: PPJB Ditandatangani → Berkas Lengkap + kekurangan dokumen → BAST Kunci, toggle KPR). **Jangan bangun ulang** — baca `docs/modules/sales.mdx` dulu. Progress checklist disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **tanpa tabel/migration baru**). Visi besar modul Sales (`sales.opportunities`/`sales.pipeline`/Commission/AI Prediction) di `docs/modules/sales.mdx` masih murni rencana pra-Claude, belum mulai dikerjakan — jangan disamakan dengan v1 yang sudah live.
 
+**Laporan Pemasaran per listing sudah SELESAI dibangun** (1 Oktober 2026 sore, `docs/status.mdx` setelah Task 029) — halaman baru `/properties/[slug]/report`, laporan vendor/pemilik otomatis dari data lead (format mirip laporan manual lama Yohan). **Jangan bangun ulang** — baca `docs/modules/property.mdx` bagian "Laporan Pemasaran" dulu. Poin penting: TIDAK ADA relasi FK lead<->listing di database — lead dicocokkan lewat `metadata.lead_kategori_match` listing (kategori) ATAU `metadata.manual_listing_id` lead (override manual dari Lead Detail, field baru "Kaitkan ke Listing"). Nomor HP lead disamarkan 6 digit terakhir (laporan ini ke pihak luar). Export pakai `window.print()` browser, BUKAN html2canvas+jsPDF seperti `PropertyFlyer.tsx` (butuh pagination multi-halaman). **Query lead-per-listing WAJIB pakai pagination `.range()`** — PostgREST membatasi 1000 baris per request, sempat ketemu bug nyata (listing Kapur Mas, >1300 lead, terpotong diam-diam ke 1000) sebelum diperbaiki.
+
 **Yohan pause development** — sementara update data lead & listing existing yang masih aktif secara manual dulu lewat UI, baru lanjut development lagi setelah itu. Beberapa permintaan kecil/perbaikan tetap masuk di sela-sela itu (lihat Task 029) — bukan berarti development benar-benar berhenti total, cuma tidak mulai inisiatif besar baru tanpa diminta ulang.
 
 **Kerjaan sekarang (lihat Task 030 di `docs/status.mdx` untuk checklist lengkap):**
@@ -120,6 +122,9 @@ src/lib/panduan/sections.tsx  Registry PANDUAN_SECTIONS (12 topik) — in-app us
 src/app/(dashboard)/panduan/  Index grid kartu + /panduan/[slug] detail per topik
 src/lib/sales/getSalesData.ts getHotFollowUpLeads()/getClosingLeads()/getClosingChecklist() — data halaman Sales (Task 029)
 src/components/sales/         HotLeadFollowUpList, ClosingLeadCard (checklist 3 langkah PPJB->Berkas->BAST Kunci, state optimistik)
+src/lib/property/getListingReport.ts  getListingReport()/maskPhone() — data Laporan Pemasaran, pagination .range() WAJIB (PostgREST cap 1000 baris)
+src/app/(dashboard)/properties/[slug]/report/  Halaman Laporan Pemasaran per listing (vendor report, export via window.print())
+src/components/crm/LeadListingLink.tsx  "Kaitkan ke Listing" manual di Lead Detail -- metadata.manual_listing_id
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
 ```

@@ -604,6 +604,18 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS, ditest manual
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual: reproduksi bug asli lewat lead nyata "Bg. Ali" (dikonfirmasi lewat SQL: `berkas_items: []` tapi `bast_kunci: true`), verifikasi fix membuat tampilannya jadi jujur (2/3) tanpa mengubah data. Verifikasi kartu pilihan topik + split Hot (414)/Warm (222) = 636 total cocok dengan angka sebelum dipisah.
 
+**Fitur baru sama hari -- Laporan Pemasaran per listing** (Yohan lampirkan contoh laporan vendor lama PDF, minta dibuatkan versi otomatis dari data lead):
+
+- **Halaman baru `/properties/[slug]/report`** -- tombol "Laporan Pemasaran" di header listing. Format mirip laporan manual lama (Properti/Project, Data Prospek, Sumber Informasi, Catatan Agent, Rekomendasi, tanda tangan agent) tapi otomatis terisi dari `customer.leads`, bukan diisi manual.
+- **Keputusan lead-ke-listing dari klarifikasi Yohan** (tidak ada FK langsung di database): (1) kategori lead (`metadata->>kategori`) dicocokkan ke `metadata.lead_kategori_match` listing (checkbox di halaman laporan, `ListingLeadKategoriMatch.tsx`) -- untuk kategori yang sudah spesifik ke satu listing (mis. "Calon Konsumen Kapur Mas"). (2) Override manual `metadata.manual_listing_id` di lead (dropdown "Kaitkan ke Listing" baru di Lead Detail, `LeadListingLink.tsx`) -- untuk kategori yang terlalu umum (mis. "Kons. Cari Rumah Murah"), ditentukan agen dari hasil percakapan WA. AI auto-classify disebut Yohan sebagai arah masa depan, sengaja TIDAK dibangun sekarang.
+- **Nomor HP lead disamarkan 6 digit terakhir** (`maskPhone()`) -- laporan ini keluar ke vendor/pemilik eksternal.
+- **Sumber Informasi pakai kategori `sumber_informasi` yang sudah ada di CRM sekarang**, bukan kategori laporan lama (Spanduk/Website/dst) -- keputusan eksplisit Yohan, akurat tanpa kerja tambahan.
+- **Bagian "Aktifitas" (Pembicaraan Telepon/Kunjungan/dst) SENGAJA di-skip** -- platform belum punya data ini sama sekali, keputusan eksplisit Yohan untuk v1.
+- **Export lewat `window.print()` browser** (Save as PDF), BUKAN html2canvas+jsPDF seperti `PropertyFlyer.tsx` -- laporan tabel/teks panjang butuh auto-pagination multi-halaman, cuma disediakan print engine browser. CSS `@media print` baru di `globals.css`.
+- **Bug ditemukan & diperbaiki saat testing manual**: query lead pertama kali cuma 1 request tanpa pagination -- PostgREST membatasi 1000 baris per request, listing dengan lead banyak (Kapur Mas, >1300 lead) diam-diam terpotong ke 1000 tanpa peringatan apa pun. Ketemu karena laporan sempat nampilkan persis "1000 lead" -- angka bulat yang mencurigakan saat testing pakai listing Kapur Mas Residence sungguhan. Diperbaiki dengan loop `.range()` per 1000 baris (pola sama seperti `getAllLeadsForExport()` di CRM).
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest end-to-end pakai listing nyata "Kapur Mas Type 36, Tahap 2" + kategori "Calon Konsumen Kapur Mas": jumlah lead di laporan (1325) diverifikasi cocok PERSIS dengan `COUNT(*)` SQL langsung (1325 = 1325) setelah fix pagination. Data owner/vendor, nama agent, dan phone masking semua diverifikasi tampil benar dari data produksi sungguhan.
+
 ### Next Task
 
 Task 030

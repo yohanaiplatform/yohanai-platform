@@ -51,6 +51,21 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (sore) — Laporan Pemasaran Listing (Vendor Report Otomatis)
+
+### Added
+
+- **Halaman baru `/properties/[slug]/report`** — laporan pemasaran per listing untuk dikirim ke vendor/pemilik properti, format mirip laporan manual lama tapi otomatis dari data lead platform: Data Prospek (nomor HP disamarkan 6 digit terakhir), breakdown Sumber Informasi, Catatan Agent, Rekomendasi, tanda tangan agent
+- **"Kaitkan ke Listing"** di Lead Detail — kaitkan manual satu lead ke listing tertentu, untuk lead dengan Kategori yang terlalu umum untuk otomatis cocok
+- **Konfigurasi "Kategori Lead yang Terkait"** per listing (checkbox di halaman laporan) — menentukan lead mana yang otomatis masuk laporan listing itu
+- Export lewat print browser (Save as PDF) — mendukung laporan multi-halaman otomatis, beda dari export flyer gambar tunggal
+
+### Fixed
+
+- Query lead-per-listing sempat terpotong diam-diam ke 1000 baris (batas default PostgREST) untuk listing dengan lead sangat banyak — diperbaiki dengan pagination `.range()`
+
+---
+
 ## 1 Oktober 2026 (siang, lanjutan 3) — Bug Checklist Kosong Diperbaiki, Halaman Sales Direstrukturisasi
 
 ### Fixed

@@ -112,6 +112,25 @@ export async function getListings(
   };
 }
 
+export interface ListingSelectOption {
+  id: string;
+  title: string;
+}
+
+/** Daftar ringkas {id, title} semua listing -- dipakai dropdown "Kaitkan ke Listing" di Lead Detail. */
+export async function getListingsForSelect(
+  supabase: SupabaseClient<Database>
+): Promise<ListingSelectOption[]> {
+  const { data } = await supabase
+    .schema("property")
+    .from("listings")
+    .select("id, title")
+    .is("deleted_at", null)
+    .order("title", { ascending: true });
+
+  return data ?? [];
+}
+
 export function getListingMetadataValue<T = string>(metadata: Json, key: string): T | null {
   if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) {
     return null;
