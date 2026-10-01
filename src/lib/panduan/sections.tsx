@@ -200,6 +200,11 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideHeading>Lengkapi Profil (Tier 2 -- umum untuk semua)</GuideHeading>
         <GuideList
           items={[
+            <>
+              <strong>Nama Brand</strong> -- nama yang tampil di header <strong>Laporan Pemasaran</strong> yang
+              Anda generate untuk vendor/pemilik listing (mis. &quot;Rizal Property&quot;). Kosongkan untuk
+              pakai nama lengkap Anda sebagai gantinya.
+            </>,
             <><strong>Foto Profil</strong> -- isi dengan link URL foto (bukan upload langsung).</>,
             <><strong>Facebook</strong> dan <strong>Instagram</strong> -- link profil media sosial Anda, opsional tapi membantu lead percaya Anda agen sungguhan.</>,
           ]}
@@ -464,9 +469,21 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         </GuideP>
 
         <GuideNote>
+          <strong>Tabel Data Prospek cuma tampilkan 10 lead paling baru</strong> di periode yang dipilih,
+          supaya laporan tetap muat 1 halaman cetak. Bagian &quot;Sumber Informasi&quot; di bawahnya tetap
+          menghitung SEMUA lead di periode itu, bukan cuma yang 10 ditampilkan -- kalau butuh daftar lengkap,
+          persempit dulu rentang tanggalnya.
+        </GuideNote>
+        <GuideNote>
           <strong>Nomor HP lead di laporan ini otomatis disamarkan</strong> (6 digit terakhir diganti titik-titik)
           -- laporan ini keluar ke pihak luar (vendor/pemilik), beda dari tampilan nomor HP lengkap di CRM yang
           cuma untuk tim internal.
+        </GuideNote>
+        <GuideNote>
+          <strong>Header laporan pakai &quot;Nama Brand&quot; dari Profil Anda</strong> (lihat panduan Update
+          Profil) -- kosongkan field itu untuk pakai nama lengkap Anda sebagai gantinya. Website yang tertera
+          masih &quot;yohanai.id&quot; untuk semua user -- akan jadi halaman pribadi per user begitu fitur
+          landing page dibangun.
         </GuideNote>
         <GuideNote>
           Bagian &quot;Sumber Informasi&quot; di laporan pakai kategori sumber yang sama dengan yang dipakai di

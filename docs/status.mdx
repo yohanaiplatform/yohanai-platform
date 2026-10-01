@@ -616,6 +616,14 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest end-to-end pakai listing nyata "Kapur Mas Type 36, Tahap 2" + kategori "Calon Konsumen Kapur Mas": jumlah lead di laporan (1325) diverifikasi cocok PERSIS dengan `COUNT(*)` SQL langsung (1325 = 1325) setelah fix pagination. Data owner/vendor, nama agent, dan phone masking semua diverifikasi tampil benar dari data produksi sungguhan.
 
+**Lanjutan sama hari (sore) -- Laporan Pemasaran disempurnakan dari feedback Yohan langsung setelah dicoba** (kirim contoh PDF hasil generate, "sudah keren" + 2 perbaikan):
+
+1. **Header brand diganti jadi per-user, bukan hardcode "Griya Indonesia Real Estate"** -- field baru "Nama Brand" (`auth_ext.profiles.brand_name`, migration `053`) ditambahkan ke Edit Profile (section "Lengkapi Profil", Tier 2 umum). Laporan sekarang pakai `brand_name` agen yang generate, fallback ke nama lengkap kalau kosong. Website masih statis "yohanai.id" untuk semua user (belum ada fitur landing page per-user -- Yohan sebut sebagai arah masa depan: `yohanai.id/rizalproperty` dst).
+2. **Tabel Data Prospek dibatasi 10 lead terbaru** (`DISPLAY_LEAD_LIMIT` di `getListingReport.ts`), bukan semua lead di periode -- laporan contoh sempat 2 halaman (14 lead), sekarang muat 1 halaman. Sumber Informasi tetap dihitung dari SEMUA lead di periode (bukan cuma 10 yang tampil), supaya statistiknya tetap akurat. Keterangan lead dipotong ke 60 karakter (`truncateKeterangan()`) + tabel dibikin lebih ringkas (font/padding lebih kecil, whitespace-nowrap kolom pendek) supaya 10 baris + semua section lain muat 1 halaman cetak.
+3. **Dicatat sebagai memory, BUKAN dikerjakan**: Yohan sekalian bilang nanti mau redesain halaman Profile (sembunyikan field tak perlu + tambah logo/watermark setting) -- sengaja ditunda ke sesi lain, lihat memory `profile-page-redesign-deferred`. Field Nama Brand di atas cuma scope kecil yang memang dibutuhkan sekarang, bukan bagian dari redesain itu.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual: field Nama Brand diisi & disimpan (sempat salah ketik ke field lain dulu karena klik meleset -- dikoreksi, diverifikasi lewat SQL `brand_name` tersimpan benar), laporan listing Kapur Mas dicek ulang header-nya berubah ikut Nama Brand + tabel cuma 10 baris + Sumber Informasi tetap 45 (bukan cuma dari 10 yang tampil). Data uji coba (Nama Brand di akun `admin@yohanai.id`) dikembalikan ke `null` setelah testing -- itu akun developer murni, bukan identitas bisnis sungguhan.
+
 ### Next Task
 
 Task 030

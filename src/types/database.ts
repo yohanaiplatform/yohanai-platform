@@ -178,6 +178,7 @@ export type Database = {
         Row: {
           address_line: string | null
           avatar_url: string | null
+          brand_name: string | null
           business_role_id: string | null
           created_at: string
           created_by: string | null
@@ -201,6 +202,7 @@ export type Database = {
         Insert: {
           address_line?: string | null
           avatar_url?: string | null
+          brand_name?: string | null
           business_role_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -224,6 +226,7 @@ export type Database = {
         Update: {
           address_line?: string | null
           avatar_url?: string | null
+          brand_name?: string | null
           business_role_id?: string | null
           created_at?: string
           created_by?: string | null

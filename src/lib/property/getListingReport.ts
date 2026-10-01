@@ -27,12 +27,22 @@ export interface ListingReportResult {
   error: boolean;
 }
 
+/** Tabel Data Prospek cuma tampilkan N lead paling baru -- laporan harus muat 1 halaman cetak. */
+export const DISPLAY_LEAD_LIMIT = 10;
+
+const KETERANGAN_MAX_LENGTH = 60;
+
 /** Samarkan 6 digit terakhir nomor HP -- laporan ini dikirim ke vendor/pemilik listing, bukan dipakai internal. */
 export function maskPhone(phone: string | null): string {
   if (!phone) return "-";
   const digits = phone.replace(/[^0-9]/g, "");
   if (digits.length <= 6) return "•".repeat(digits.length);
   return `+${digits.slice(0, -6)}${"•".repeat(6)}`;
+}
+
+/** Potong jadi 1 baris -- tabel laporan harus muat 1 halaman cetak, teks panjang bikin baris melebar ke bawah. */
+function truncateKeterangan(value: string): string {
+  return value.length > KETERANGAN_MAX_LENGTH ? `${value.slice(0, KETERANGAN_MAX_LENGTH - 1)}…` : value;
 }
 
 function formatTanggalInput(value: string): string {
@@ -157,8 +167,13 @@ export async function getListingReport(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 
+  // Tabel Data Prospek cuma tampilkan N lead TERBARU (space terbatas di 1
+  // halaman laporan) -- tapi Sumber Informasi & totalLeads tetap dihitung
+  // dari SEMUA lead yang cocok di periode itu, bukan cuma yang ditampilkan.
+  const displayRows = rows.slice(0, DISPLAY_LEAD_LIMIT);
+
   const assignedIds = Array.from(
-    new Set(rows.map((r) => r.assigned_to).filter((id): id is string => Boolean(id)))
+    new Set(displayRows.map((r) => r.assigned_to).filter((id): id is string => Boolean(id)))
   );
   const agentNameById = new Map<string, string>();
   if (assignedIds.length > 0) {
@@ -173,7 +188,7 @@ export async function getListingReport(
     }
   }
 
-  const leads: ListingReportLead[] = rows.map((row) => {
+  const leads: ListingReportLead[] = displayRows.map((row) => {
     const nama = `${row.first_name} ${row.last_name}`.trim() || "Lead";
     const keterangan =
       getLeadMetadataString(row.metadata, "komentar") ??
@@ -184,7 +199,7 @@ export async function getListingReport(
     return {
       id: row.id,
       nama,
-      keterangan,
+      keterangan: truncateKeterangan(keterangan),
       phoneMasked: maskPhone(row.phone),
       agentName: row.assigned_to ? (agentNameById.get(row.assigned_to) ?? "-") : "-",
       tanggalInput: formatTanggalInput(row.created_at),

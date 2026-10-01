@@ -51,6 +51,19 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (sore, lanjutan) — Brand per User di Laporan, Batasi 10 Lead per Halaman
+
+### Added
+
+- **Field "Nama Brand" baru di Edit Profile** (`auth_ext.profiles.brand_name`) — ditampilkan di header Laporan Pemasaran, menggantikan "GRIYA INDONESIA REAL ESTATE" yang sebelumnya hardcode. Kosongkan untuk pakai nama lengkap sebagai gantinya
+
+### Changed
+
+- **Tabel Data Prospek di Laporan Pemasaran dibatasi 10 lead terbaru** — supaya laporan muat 1 halaman cetak (sebelumnya bisa 2+ halaman). Statistik Sumber Informasi tetap dihitung dari semua lead di periode, bukan cuma yang 10 ditampilkan
+- Tabel laporan dibuat lebih ringkas (font/padding lebih kecil), teks Keterangan dipotong ke 60 karakter per baris
+
+---
+
 ## 1 Oktober 2026 (sore) — Laporan Pemasaran Listing (Vendor Report Otomatis)
 
 ### Added

@@ -104,6 +104,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
+  const [brandName, setBrandName] = useState("");
   const [roleDetails, setRoleDetails] = useState<Record<string, string>>({});
 
   // -------------------------------------------------------------
@@ -127,7 +128,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
           .schema("auth_ext")
           .from("profiles")
           .select(
-            "business_role_id, first_name, address_line, wilayah_desa_id, avatar_url, facebook_url, instagram_url, role_details"
+            "business_role_id, first_name, address_line, wilayah_desa_id, avatar_url, facebook_url, instagram_url, brand_name, role_details"
           )
           .eq("user_id", userId)
           .single(),
@@ -149,6 +150,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
         setAvatarUrl(profile.avatar_url ?? "");
         setFacebookUrl(profile.facebook_url ?? "");
         setInstagramUrl(profile.instagram_url ?? "");
+        setBrandName(profile.brand_name ?? "");
         setRoleDetails((profile.role_details as unknown as Record<string, string>) ?? {});
       }
 
@@ -257,6 +259,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
         avatar_url: avatarUrl || null,
         facebook_url: facebookUrl || null,
         instagram_url: instagramUrl || null,
+        brand_name: brandName || null,
         role_details: roleDetails,
       })
       .eq("user_id", userId);
@@ -373,6 +376,19 @@ export function EditProfileForm({ userId }: { userId: string }) {
       {/* ---------------- Lengkapi Profil (Tier 2 umum) ---------------- */}
       <section className="space-y-4">
         <h3 className="font-medium">Lengkapi Profil</h3>
+
+        <div className="space-y-2">
+          <Label htmlFor="brand-name">Nama Brand</Label>
+          <Input
+            id="brand-name"
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            placeholder="mis. Rizal Property"
+          />
+          <p className="text-xs text-muted-foreground">
+            Ditampilkan di header Laporan Pemasaran yang Anda generate -- kosongkan untuk pakai nama lengkap Anda.
+          </p>
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="avatar-url">Foto Profil (URL)</Label>

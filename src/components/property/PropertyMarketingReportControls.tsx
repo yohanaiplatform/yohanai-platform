@@ -67,7 +67,7 @@ function NotesEditor({ label, placeholder, value, onChange }: NotesEditorProps) 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={3}
+        rows={2}
         className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 print:resize-none print:border-none print:p-0"
       />
     </div>
