@@ -1,4 +1,15 @@
 // src/lib/panduan/sections.tsx
+//
+// WAJIB diupdate tiap kali ada fitur baru/berubah di aplikasi (bagian dari
+// perintah "Update Docs" Yohan, bukan cuma docs/ developer -- lihat memory
+// update-docs-command). Dua aturan penulisan yang sudah ditegaskan Yohan
+// (1 Okt 2026):
+//   1. Tulis JUJUR soal status fitur (ready/partial/coming_soon) -- jangan
+//      fabrikasi instruksi untuk fitur yang belum ada.
+//   2. JANGAN bocorkan detail backend/admin-only ke konten yang dibaca user
+//      biasa (mis. "role diatur manual admin lewat Supabase Dashboard" itu
+//      terlalu teknis/internal -- cukup bilang "hubungi admin"). Konten
+//      ditulis dari sudut pandang END USER, bukan developer.
 
 import type { ReactNode } from "react";
 
@@ -50,8 +61,7 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
       <>
         <GuideP>
           Yohan.AI bisa diakses lewat email/password atau Google. Begitu akun dibuat, sistem mengirim email
-          verifikasi (kecuali akun dibuat manual lewat Supabase Dashboard dengan opsi &quot;Auto Confirm
-          User&quot; dicentang -- langsung aktif tanpa verifikasi).
+          verifikasi.
         </GuideP>
         <GuideHeading>Login</GuideHeading>
         <GuideP>
@@ -83,21 +93,11 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           sistem: <code>super_admin</code>, <code>admin</code>, <code>manager</code>, <code>agent</code>,{" "}
           <code>marketing</code>, <code>customer_service</code>.
         </GuideP>
-        <GuideHeading>Yang benar-benar membedakan akses hari ini</GuideHeading>
-        <GuideList
-          items={[
-            <>
-              <strong>Admin/Super Admin</strong> -- lihat & kelola SEMUA lead dan listing di seluruh platform,
-              tanpa batasan.
-            </>,
-            <>
-              <strong>Role lain (manager, agent, marketing, dst)</strong> -- cuma lihat lead/listing yang
-              di-<em>assign</em> ke akun itu sendiri. Saat ini semua role non-admin diperlakukan SAMA secara
-              teknis (belum ada pembeda akses antara manager dan agent) -- pembedaan lebih detail antar role
-              masih direncanakan, belum dibangun.
-            </>,
-          ]}
-        />
+        <GuideHeading>Yang membedakan akses</GuideHeading>
+        <GuideP>
+          Role lain (manager, agent, marketing, dst) cuma lihat lead/listing yang di-<em>assign</em> ke akun itu
+          sendiri -- tidak bisa lihat data milik akun lain.
+        </GuideP>
         <GuideHeading>Cara role ditentukan</GuideHeading>
         <GuideP>
           Role tidak dipilih sendiri saat mendaftar -- diatur manual oleh admin lewat database setelah akun
@@ -115,14 +115,60 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
       <>
         <GuideP>
           Halaman <strong>Profil</strong> (ikon akun di kanan atas) menampilkan progress bar kelengkapan profil
-          dan form edit nama serta data pribadi lain.
+          dan form edit data diri. Progress bar naik otomatis begitu field terisi -- tidak ada tombol
+          &quot;simpan kelengkapan&quot; terpisah, cukup isi lalu klik &quot;Simpan Perubahan&quot;.
         </GuideP>
+
+        <GuideHeading>Data Dasar (Tier 1 -- wajib)</GuideHeading>
         <GuideList
           items={[
-            "Progress bar naik otomatis begitu field wajib terisi -- tidak perlu tombol \"simpan kelengkapan\" terpisah.",
-            "Perubahan tersimpan langsung ke database saat form di-submit.",
+            <>
+              <strong>Anda seorang...</strong> -- pilih kategori yang paling cocok: <em>Agen dari Kantor
+              Agen</em>, <em>Agen Freelance</em>, <em>Developer</em>, atau <em>Pemilik Properti Pribadi</em>.
+              Pilihan ini menentukan field tambahan apa yang muncul di bagian &quot;Detail Tambahan&quot; di
+              bawah.
+            </>,
+            <><strong>Nama Lengkap</strong> -- tampil di seluruh platform sebagai identitas Anda.</>,
+            <>
+              <strong>Nomor Telepon/WA</strong> -- statusnya cuma informasi (terverifikasi/belum), belum bisa
+              diisi/diubah dari form ini -- fitur verifikasi nomor telepon sendiri belum aktif.
+            </>,
+            <><strong>Alamat</strong> dan <strong>Wilayah</strong> (Provinsi sampai Desa) -- lokasi domisili Anda.</>,
           ]}
         />
+
+        <GuideHeading>Lengkapi Profil (Tier 2 -- umum untuk semua)</GuideHeading>
+        <GuideList
+          items={[
+            <><strong>Foto Profil</strong> -- isi dengan link URL foto (bukan upload langsung).</>,
+            <><strong>Facebook</strong> dan <strong>Instagram</strong> -- link profil media sosial Anda, opsional tapi membantu lead percaya Anda agen sungguhan.</>,
+          ]}
+        />
+
+        <GuideHeading>Detail Tambahan (beda-beda sesuai &quot;Anda seorang...&quot;)</GuideHeading>
+        <GuideP>Field di bagian ini cuma muncul sesuai kategori yang Anda pilih di Data Dasar:</GuideP>
+        <GuideList
+          items={[
+            <>
+              <strong>Agen dari Kantor Agen</strong> -- Nama Kantor/Agensi, Jabatan, apakah punya Sertifikasi
+              Broker Properti (kalau Ya, muncul field No. Sertifikat Broker), dan apakah Member AREBI (Asosiasi
+              Real Estate Broker Indonesia).
+            </>,
+            <>
+              <strong>Agen Freelance</strong> -- Spesialisasi Properti (mis. rumah subsidi, tanah komersial),
+              Area Layanan, dan Sertifikasi Broker Properti (sama seperti di atas).
+            </>,
+            <><strong>Developer</strong> -- Nama Perusahaan dan NIB/Legalitas.</>,
+            <>
+              <strong>Pemilik Properti Pribadi</strong> -- Tipe Aset yang dimiliki, dan jumlah properti yang mau
+              dijual/disewakan.
+            </>,
+          ]}
+        />
+        <GuideP>
+          Field-field ini membantu platform (dan lead yang nanti chat dengan Anda) tahu latar belakang &amp;
+          kredibilitas Anda -- semakin lengkap, semakin baik.
+        </GuideP>
       </>
     ),
   },
@@ -150,8 +196,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           email Anda sebagai test user secara manual.
         </GuideP>
         <GuideNote>
-          Fitur Settings lain (preferensi notifikasi, dll) masih akan ditambahkan -- halaman ini akan terus
-          berkembang.
+          Fitur Settings lain masih akan ditambahkan -- termasuk rencana <strong>watermark foto milik
+          sendiri</strong> (saat ini watermark logo Yohan.AI terpasang otomatis di semua foto listing yang
+          diupload, belum bisa diganti per user). Halaman ini akan terus berkembang.
         </GuideNote>
       </>
     ),
@@ -210,6 +257,20 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
               <strong>Hapus foto itu PERMANEN</strong> -- begitu dikonfirmasi, file-nya benar-benar hilang dari
               penyimpanan (R2), tidak bisa dipulihkan lagi. Selalu ada konfirmasi dulu sebelum terhapus.
             </>,
+          ]}
+        />
+        <GuideHeading>Standar foto yang bagus</GuideHeading>
+        <GuideList
+          items={[
+            <>
+              <strong>Upload foto ASLI properti</strong> (hasil jepretan kamera/HP biasa) -- BUKAN desain
+              promosi jadi yang sudah ada teks harga/judul/logo sendiri di atasnya. Watermark Yohan.AI otomatis
+              ditambahkan di tengah foto -- kalau fotonya sudah penuh teks promosi sendiri, hasilnya jadi
+              bertabrakan dan sulit dibaca.
+            </>,
+            "Pencahayaan cukup terang (siang hari/lampu menyala), tidak blur, dan orientasi foto yang benar (tidak terbalik/miring).",
+            "Utamakan foto tampak depan rumah/bangunan sebagai foto sampul (foto pertama) -- itu yang paling dilihat orang di daftar listing.",
+            "Resolusi cukup besar (jangan screenshot dari aplikasi chat/medsos -- biasanya sudah terkompres rendah) supaya tetap tajam setelah ikut dikompres otomatis sistem.",
           ]}
         />
         <GuideHeading>Sembunyikan vs Hapus</GuideHeading>
