@@ -51,6 +51,18 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 — Perbaikan Jendela Waktu Laporan, Akun Pemakaian Personal
+
+### Fixed
+
+- **Daily/Platform Report cuma rangkum 7 jam, bukan 1 hari penuh** — cron jalan 07:00 WIB, tapi batas bawah query "hari ini" dihitung dari tengah malam WIB hari yang sama (window datanya cuma 00:00-07:00 WIB). `getReportDayWindow()` baru merangkum satu hari penuh KEMARIN (WIB) secara konsisten di semua laporan. Label email "Hari Ini" direvisi jadi "Kemarin"
+
+### Changed
+
+- **Struktur akun** — akun pemakaian personal baru `yohanbenyamin@gmail.com` (role `agent`) dibuat, seluruh 1972 lead + 85 listing aktif dipindah dari `admin@yohanai.id` ke akun ini. `admin@yohanai.id` sekarang murni akun developer
+
+---
+
 ## 30 September 2026 (lanjutan) — Live-Test Kedua AI Agent, Hapus Foto/Listing dari R2, Usage Report
 
 Lanjutan sesi 30 September — Yohan tes WA lebih jauh, 4 bug baru ketemu & diperbaiki; sekalian hapus foto/listing sekarang benar-benar bersihkan R2, dan usage AI Agent nyata masuk laporan harian.

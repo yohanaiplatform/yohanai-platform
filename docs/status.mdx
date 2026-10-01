@@ -555,20 +555,29 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS 
 
 **Yohan pause development sampai pemberitahuan lanjut** — mau update data lead & listing existing yang masih aktif dulu (manual, lewat UI), baru lanjut development sesi berikutnya.
 
+Task 028
+
+**Sesi 1 Oktober 2026 (pagi) — bug jendela waktu laporan + akun pemakaian personal.**
+
+- **Bug ditemukan & diperbaiki: Daily/Platform Report cuma rangkum 7 jam, bukan 1 hari penuh** — cron jalan 07:00 WIB, tapi batas bawah query "hari ini" dihitung dari tengah malam WIB HARI YANG SAMA, jadi window datanya cuma 00:00-07:00 WIB (nyaris kosong). `getReportDayWindow()` baru menggantikan `startOfTodayISO()` — sekarang konsisten merangkum SATU HARI PENUH kemarin (WIB) di `getDailyReport.ts`, `getPlatformReport.ts`, `getAiAgentUsage.ts`. Label email "Hari Ini" direvisi jadi "Kemarin" biar tidak menyesatkan.
+- **Akun pemakaian personal Yohan dibuat**: `yohanbenyamin@gmail.com` (role `agent`) — Yohan buat sendiri lewat Supabase Dashboard (pembuatan akun login tidak bisa dilakukan Claude). Semua 1972 lead + 85 listing aktif yang sebelumnya `assigned_to = admin@yohanai.id` dipindah ke akun baru ini. `admin@yohanai.id` sekarang murni akun developer (0 lead/listing "miliknya sendiri", tetap lihat semua lewat akses admin). Lihat struktur akun lengkap di `AGENTS.md`.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS untuk perubahan kode. Reassignment data diverifikasi lewat query langsung (jumlah lead/listing per akun dicek sebelum & sesudah).
+
 ### Next Task
 
-Task 028
+Task 029
 
 **Checklist buat sesi berikutnya:**
 
-1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`. Ini menutup salah satu dari 3 item instrumentasi yang masih nol di poin 6 bawah.
+1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja) — AI Agent sudah live-tested 2x dan total 6 bug besar sudah diperbaiki, realistis jadi prioritas berikutnya kalau Yohan sudah puas.
-3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Hari Ini" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
-4. **Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama** — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif; AI Agent cuma bisa jawab detail (DP, harga per blok) untuk listing yang Deskripsi-nya sudah lengkap.
+3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
+4. **Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama** — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif; AI Agent cuma bisa jawab detail (DP, harga per blok) untuk listing yang Deskripsi-nya sudah lengkap. **Yohan sedang kerjakan manual sesi ini** (update lead & listing aktif) sebelum lanjut development lagi.
 5. **Tambah entri `knowledge.entries` lain** kalau ada area/istilah lokal lain yang sering dipakai lead tapi belum di-cover ("Area Kotabaru" baru 1 entri contoh).
 6. **Instrumentasi tracking Daily/Platform Report yang masih nol**: AI crawler (lihat poin 1), visitor listing/foto, download foto/video.
 7. **Alur dokumen tanda tangan lead closing** — sudah diriset penuh, belum diintegrasikan, simpan dulu sebagai referensi (`docs/modules/crm.mdx`).
-8. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih, semua fitur baru tetap dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`).
+8. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih, semua fitur baru tetap dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`). **Akun `yohanbenyamin@gmail.com` (role `agent`, data aktif sungguhan) sekarang jadi acuan utama kalau ada pembatasan akses baru buat role non-admin** — bukan akun test kosong.
 9. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja.
 10. **Backlog "10 AI Agent"** dari arsip pra-Claude — referensi non-mengikat di `docs/modules/ai.mdx`.
 
@@ -576,7 +585,7 @@ Task 028
 
 # Last Updated
 
-30 September 2026 (malam)
+1 Oktober 2026 (pagi)
 
 ---
 
