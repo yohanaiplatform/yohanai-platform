@@ -606,6 +606,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           lead DAN kirim notifikasi in-app ke agen yang ditugaskan (atau semua admin kalau lead belum
           ditugaskan) -- supaya ada tindak lanjut manual, bukan hilang begitu saja.
         </GuideP>
+        <GuideHeading>Ringkasan Percakapan Otomatis</GuideHeading>
+        <GuideP>
+          Tiap kali membalas, AI juga menulis/memperbarui 1 catatan ringkasan singkat per lead (muncul di
+          Catatan Lead sebagai penulis &quot;AI Agent (ringkasan otomatis)&quot;) -- berisi inti percakapan
+          sejauh ini (preferensi, listing yang sudah dibahas, status follow-up). Ini jadi memori AI untuk
+          balasan berikutnya, supaya tetap nyambung walau riwayat chat panjang atau ada pesan WhatsApp lama
+          yang hilang.
+        </GuideP>
       </>
     ),
   },

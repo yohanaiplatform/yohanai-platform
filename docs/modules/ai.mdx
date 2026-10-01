@@ -113,6 +113,18 @@ Yohan kirim 2 screenshot percakapan WA sandbox: AI sempat langsung menjawab "Ren
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested ke sandbox Kapso sesungguhnya** (perubahan prompt tidak bisa ditest tanpa kirim WA sungguhan) -- Yohan perlu test sendiri lewat WhatsApp untuk konfirmasi perilaku barunya sebelum dianggap final.
 
+## AI Agent — Ringkasan Percakapan Otomatis (Rolling Summary) per Lead (1 Oktober 2026 malam)
+
+Diminta Yohan setelah saya kasih contoh rangkuman manual untuk lead "Test Lead"/Pak Yohan: *"lakukan hal yang sama kalau nanti follow-up lead lain... bisa pelajari summary ini juga sebagai acuan awal, agar tidak boros token atau menghindari pesan di whatsapp terhapus... AI tak kehilangan konteks percakapan dengan lead."* Jadi fitur permanen, bukan cuma 1 kali manual.
+
+**Cara kerja:** setiap kali AI Agent proses pesan WA masuk, LLM diminta SELALU mengembalikan field baru `conversationSummary` (maks ±500 karakter, Bahasa Indonesia) -- menggabungkan ringkasan lama (kalau ada) dengan info dari pesan baru jadi satu ringkasan ter-update (bukan ditambah/append, tapi dikonsolidasi ulang tiap kali). `applyAgentDecision.ts` menyimpannya ke `customer.notes` sebagai "rolling summary": soft-delete note ringkasan lama (`author_label = "AI Agent (ringkasan otomatis)"`) lalu insert yang baru -- jadi cuma SATU note ringkasan yang aktif per lead di satu waktu (tidak membanjiri Timeline manual dengan duplikat), riwayat lama tetap ada di database (soft-deleted) kalau perlu ditelusuri. Webhook (`src/app/api/whatsapp/webhook/route.ts`) membaca note aktif ini SEBELUM memanggil LLM dan mengirimkannya sebagai konteks "Ringkasan percakapan sebelumnya" -- jadi AI tetap punya memori jangka panjang walau riwayat chat mentah yang dikirim ke LLM dibatasi 10 pesan terakhir, dan tetap berguna kalau ada pesan WA lama yang hilang/terhapus di sisi Kapso.
+
+**Migration `054`** -- GRANT SELECT/INSERT/UPDATE `customer.notes` ke `service_role` (sebelumnya cuma `authenticated`, pola GRANT-yang-hilang yang sudah berulang kali dicatat di `AGENTS.md`). Tanpa ini, AI Agent (jalan lewat `service_role`) akan gagal diam-diam dengan "permission denied for table notes" begitu coba menulis ringkasan.
+
+**1 note ringkasan awal ditulis manual** untuk lead "Test Lead"/Pak Yohan (`58269010-d01b-4f33-ab7e-ceab35e32083`, dikoreksi Yohan jadi "Bang Yohan") berdasarkan transkrip percakapan asli yang sudah ada, pakai marker `author_label` yang sama -- supaya run AI Agent berikutnya untuk lead itu otomatis "mewarisi" ringkasan ini sebagai titik awal, bukan mulai dari nol.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. GRANT diverifikasi lewat `information_schema.table_privileges` (SELECT/INSERT/UPDATE untuk `service_role` ada). Note ringkasan awal diverifikasi tersimpan & terbaca lewat query langsung. **Perilaku generate-ringkasan belum live-tested ke sandbox sungguhan** -- sama seperti perubahan prompt lain di atas, Yohan perlu test sendiri lewat WhatsApp.
+
 ## Backlog "10 AI Agent" dari Arsip Pra-Claude (dicatat 29 September 2026, non-mengikat)
 
 Yohan minta ditelusuri seluruh `project-docs/` untuk cari tahu berapa AI Agent yang sebenarnya direncanakan untuk platform ini (dugaan: mungkin masih dari era ChatGPT), untuk dicatat sebagai homework/backlog ke depan. Hasil penelusuran menyeluruh (cross-check timestamp semua file, bukan cuma baca satu dokumen):

@@ -51,6 +51,15 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (malam, lanjutan) — AI Agent: Ringkasan Percakapan Otomatis per Lead
+
+### Added
+
+- **AI Agent sekarang menyimpan ringkasan percakapan otomatis per lead** (`conversationSummary`, rolling summary) ke `customer.notes` — dipakai lagi sebagai konteks di balasan berikutnya, supaya AI tidak kehilangan memori jangka panjang walau riwayat chat mentah dibatasi atau pesan WhatsApp lama hilang/terhapus
+- Migration `054` — GRANT `service_role` ke `customer.notes` (dibutuhkan fitur di atas)
+
+---
+
 ## 1 Oktober 2026 (malam) — AI Agent: Deflect Survey/Nego/Maps, Konfirmasi Nama; Field Link Maps Listing
 
 ### Added

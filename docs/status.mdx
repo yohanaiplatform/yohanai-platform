@@ -639,6 +639,15 @@ Task 030
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested ke sandbox Kapso sesungguhnya** -- perubahan system prompt tidak bisa dites tanpa kirim WA sungguhan, Yohan perlu test sendiri lewat WhatsApp sebelum dianggap final.
 
+**Lanjutan sama malam -- Ringkasan Percakapan Otomatis (Rolling Summary) per lead.** Setelah saya kasih contoh rangkuman manual untuk lead "Test Lead"/Pak Yohan dari transkrip chat asli, Yohan minta ini jadi fitur permanen: *"lakukan hal yang sama kalau nanti follow-up lead lain... bisa pelajari summary ini juga sebagai acuan awal, agar tidak boros token atau menghindari pesan di whatsapp terhapus... AI tak kehilangan konteks percakapan dengan lead."*
+
+- AI Agent sekarang SELALU mengembalikan field `conversationSummary` (maks ±500 karakter) tiap kali proses pesan WA -- mengonsolidasi ringkasan lama + pesan baru jadi satu ringkasan ter-update. Disimpan sebagai "rolling summary" di `customer.notes`: soft-delete note ringkasan lama (`author_label = "AI Agent (ringkasan otomatis)"`), insert yang baru -- cuma 1 note aktif per lead, tidak membanjiri Timeline manual.
+- Webhook membaca note aktif ini SEBELUM panggil LLM, dikirim sebagai konteks "Ringkasan percakapan sebelumnya" -- memori jangka panjang yang tidak hilang walau riwayat chat mentah dibatasi 10 pesan, dan tetap berguna kalau pesan WA lama hilang/terhapus di sisi Kapso.
+- **Migration `054`** -- GRANT SELECT/INSERT/UPDATE `customer.notes` ke `service_role` (sebelumnya cuma `authenticated` sejak `038`) -- pola GRANT-yang-hilang yang berulang, lihat `AGENTS.md`. Diverifikasi lewat `information_schema.table_privileges` sebelum dipakai kode.
+- **1 note ringkasan awal ditulis manual** untuk lead "Test Lead"/Pak Yohan berdasarkan transkrip asli, pakai marker yang sama -- jadi titik awal buat run AI Agent berikutnya, bukan mulai dari nol.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. GRANT diverifikasi lewat query langsung, note awal diverifikasi tersimpan & terbaca. **Belum live-tested ke sandbox sungguhan.**
+
 ### Next Task
 
 Task 031
