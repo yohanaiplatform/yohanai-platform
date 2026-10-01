@@ -51,6 +51,21 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (siang, lanjutan 3) — Bug Checklist Kosong Diperbaiki, Halaman Sales Direstrukturisasi
+
+### Fixed
+
+- **Bug nyata ditemukan Yohan saat pakai beneran: checklist bisa "tertandai selesai" walau 0 dokumen** — `berkasReady` sekarang wajib `berkas_items.length > 0`, tidak cuma `outstandingItems === 0` (yang otomatis true kalau array-nya memang kosong)
+- **Checklist dokumen sekarang ikut terisi otomatis begitu Metode Pembayaran dipilih** — sebelumnya cuma ter-seed saat panel "Berkas Lengkap" dibuka, jadi kalau metode dipilih setelahnya, checklist-nya tetap kosong selamanya
+- **Panel "Berkas Lengkap" otomatis terbuka kalau sudah ada isinya** — sebelumnya selalu collapsed di awal walau checklist-nya sudah terisi
+
+### Changed
+
+- **Halaman Sales sekarang diawali 2 kartu pilihan topik** (Follow-up Hot Lead / Proses Closing) — klik untuk buka isinya, bukan langsung menampilkan semua list dari atas ke bawah
+- **Follow-up Hot Lead dipisah jadi 2 list terpisah**: Hot dan Warm, masing-masing dengan batas tampilan dan link "lihat semua di CRM" sendiri-sendiri
+
+---
+
 ## 1 Oktober 2026 (siang, lanjutan 2) — Checklist Dokumen Dipecah per Metode Pembayaran
 
 ### Changed

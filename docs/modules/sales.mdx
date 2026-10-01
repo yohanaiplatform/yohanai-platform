@@ -39,9 +39,15 @@ Sales Module bertujuan untuk (**visi jangka panjang, lihat "Current Features (v1
 
 # Current Features (v1 -- Live, 1 Oktober 2026)
 
+## Struktur Halaman: 2 Kartu Pilihan Topik
+
+✅ **Selesai, direstrukturisasi sama hari dari feedback Yohan** (sebelumnya "Follow-up Hot Lead" dan "Proses Closing" langsung dirender penuh dari atas ke bawah sekaligus). Begitu masuk `/sales`, yang tampil pertama cuma 2 kartu ringkas (`SalesSectionPicker.tsx`): judul, deskripsi 1 baris, dan jumlah lead. Klik salah satu kartu untuk buka isi topik itu (daftar lead yang relevan), tombol "Kembali" untuk balik ke pilihan 2 kartu. State dikelola client-side (`useState`), tidak ada URL/query param -- refresh halaman selalu balik ke tampilan 2 kartu.
+
+---
+
 ## Follow-up Hot Lead
 
-✅ **Selesai.** Lead Temperature Hot/Warm yang belum di-follow-up dalam 48 jam terakhir (logika sama seperti insight "Follow-up Backlog" di Dashboard), ditampilkan sebagai daftar lengkap -- bukan cuma hitungan. Dibatasi ke 20 lead paling mendesak (diurutkan dari yang paling lama tidak disentuh) plus link "lihat semua di CRM" ke `/crm?temperature=hot,warm` -- data backfill lama bisa ratusan lead Hot/Warm untuk satu akun, tidak praktis dirender semua sekaligus di satu halaman. Lihat `src/lib/sales/getSalesData.ts` (`getHotFollowUpLeads`) dan `src/components/sales/HotLeadFollowUpList.tsx`.
+✅ **Selesai, dipecah jadi 2 kelompok terpisah sama hari** (sebelumnya 1 daftar gabungan Hot+Warm). Lead yang belum di-follow-up dalam 48 jam terakhir (logika sama seperti insight "Follow-up Backlog" di Dashboard) sekarang ditampilkan sebagai 2 list terpisah -- **Hot** dan **Warm** -- masing-masing dengan badge warna sendiri, dibatasi ke 20 lead paling mendesak (diurutkan dari yang paling lama tidak disentuh), dan link "lihat semua di CRM" sendiri-sendiri (`/crm?temperature=hot` atau `/crm?temperature=warm`, bukan gabungan `hot,warm` seperti sebelumnya). `getHotFollowUpLeads()` sekarang balikin `{ hot: FollowUpBucket, warm: FollowUpBucket, error }`, bukan 1 array gabungan -- lihat `src/lib/sales/getSalesData.ts` dan `src/components/sales/HotLeadFollowUpList.tsx` (sekarang generic, nerima prop `temperature`).
 
 ---
 
@@ -59,12 +65,18 @@ Sales Module bertujuan untuk (**visi jangka panjang, lihat "Current Features (v1
 | Cash Bertahap | 3 | Sama seperti Cash |
 
 1. **PPJB Ditandatangani**
-2. **Berkas Lengkap** -- klik untuk buka sub-checklist dokumen. **Begitu dibuka pertama kali setelah Metode Pembayaran dipilih (checklist masih kosong), otomatis terisi sesuai tabel di atas** -- agen tinggal centang yang relevan dan hapus (`Hapus`) yang tidak perlu untuk lead itu, bisa juga tambah dokumen lain di luar daftar standar. Kalau Metode Pembayaran belum dipilih, muncul pesan ajakan pilih dulu (bukan diam-diam kosong). Langkah ini dianggap selesai kalau berkas sudah disubmit DAN semua item yang tersisa di checklist sudah tercentang
+2. **Berkas Lengkap** -- klik untuk buka/tutup sub-checklist dokumen (otomatis terbuka di awal kalau sudah pernah diisi sebelumnya, lihat bug di bawah). **Begitu Metode Pembayaran dipilih, checklist yang masih kosong langsung otomatis terisi** sesuai tabel di atas -- agen tinggal centang yang relevan dan hapus (`Hapus`) yang tidak perlu untuk lead itu, bisa juga tambah dokumen lain di luar daftar standar. Kalau Metode Pembayaran belum dipilih, muncul pesan ajakan pilih dulu (bukan diam-diam kosong). Langkah ini dianggap selesai kalau berkas sudah disubmit DAN **ada minimal 1 dokumen di checklist** DAN semua dokumennya sudah tercentang
 3. **BAST Kunci** -- serah terima kunci (= akad selesai di Notaris, dan di Bank juga kalau Metode Pembayaran-nya salah satu dari 2 varian KPR, label menyesuaikan otomatis)
 
 Guard sederhana: langkah 3 baru bisa ditandai selesai setelah langkah 1 dan 2 beres. Status bar bertema biru (outline = belum, biru penuh = selesai) dengan hover state. Progress disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **bukan tabel baru**) lewat update langsung dari client (pola sama seperti `LeadEditableFields.tsx` di CRM), dengan state lokal optimistik (bukan `router.refresh()`) supaya klik checklist di halaman berisi banyak lead tidak melompat-lompat posisi scroll-nya. Lihat `src/lib/sales/getSalesData.ts` (`getClosingChecklist`/`getClosingLeads`/`BERKAS_ITEMS_BY_PAYMENT_METHOD`) dan `src/components/sales/ClosingLeadCard.tsx`.
 
-**Jebakan yang ditemukan & diperbaiki saat build ini**: dropdown Metode Pembayaran sempat menampilkan raw value (`"cash_bertahap"`) alih-alih label (`"Cash Bertahap"`) -- pola yang sama persis dengan jebakan `Select`/`SelectValue` yang sudah lama didokumentasikan di `AGENTS.md` ("Dropdown Ditugaskan ke" di CRM kena ini duluan). Solusinya identik: resolve label dari value yang dipilih, taruh sebagai `children` eksplisit di `SelectValue`.
+**Bug nyata ditemukan Yohan sendiri saat pakai beneran, diperbaiki sama hari**: 2 lead sama-sama "KPR Subsidi" tapi satu kelihatan checklist-nya lengkap, satu lagi kosong padahal status "X/3 langkah selesai" sama-sama penuh. Root cause ganda:
+1. **`berkasReady` tidak mengecek jumlah dokumen** -- cuma `berkas_submitted && outstandingItems === 0`. Checklist kosong (`berkas_items: []`) bikin `outstandingItems` otomatis 0 juga (array kosong = tidak ada yang "outstanding"), jadi centang "Berkas sudah disubmit" doang tanpa dokumen apa pun bisa bikin langkah ini dianggap selesai. **Diperbaiki**: tambah syarat `berkas_items.length > 0`.
+2. **Seeding dokumen cuma terjadi saat panel dibuka** (`toggleBerkasOpen`), bukan saat Metode Pembayaran dipilih. Kalau metode dipilih SETELAH panel sempat dibuka (atau tanpa pernah dibuka sama sekali), checklist-nya tetap kosong selamanya walau metodenya sudah tercatat benar. **Diperbaiki**: `setPaymentMethod()` sekarang langsung seed checklist juga kalau masih kosong.
+
+Ditemukan di data nyata: lead "Bg. Ali" -- `payment_method: kpr_subsidi`, `berkas_submitted: true`, `bast_kunci: true`, tapi `berkas_items: []`. Datanya sengaja tidak diubah manual setelah fix, dibiarkan supaya tampilannya otomatis jujur (2/3, bukan 3/3 palsu) dan Yohan review sendiri lewat UI yang sudah benar.
+
+**Jebakan lain yang ditemukan & diperbaiki saat build ini**: dropdown Metode Pembayaran sempat menampilkan raw value (`"cash_bertahap"`) alih-alih label (`"Cash Bertahap"`) -- pola yang sama persis dengan jebakan `Select`/`SelectValue` yang sudah lama didokumentasikan di `AGENTS.md` ("Dropdown Ditugaskan ke" di CRM kena ini duluan). Solusinya identik: resolve label dari value yang dipilih, taruh sebagai `children` eksplisit di `SelectValue`.
 
 **Terhubung ke AI Agent**: daftar dokumen per metode pembayaran yang sama juga disimpan sebagai `knowledge.entries` (migration `051`, diperluas `052` untuk 4 metode) -- AI Agent bisa langsung jawab FAQ "syarat KPR apa saja?" (termasuk beda Subsidi/Non-Subsidi/Cash) dari lead lewat WhatsApp tanpa eskalasi ke agen manusia.
 

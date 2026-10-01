@@ -22,19 +22,27 @@ export interface HotFollowUpLead extends LeadRow {
 
 const HOT_FOLLOW_UP_DISPLAY_LIMIT = 20;
 
+export interface FollowUpBucket {
+  data: HotFollowUpLead[];
+  totalCount: number;
+}
+
 /**
  * Lead Hot/Warm yang belum di-follow-up dalam 48 jam terakhir -- logika
  * sama seperti getFollowUpBacklogInsight() di getDashboardInsights.ts,
  * tapi balikin daftar lead lengkap (bukan cuma hitungan) buat halaman
- * Sales. Dibatasi ke yang paling mendesak (HOT_FOLLOW_UP_DISPLAY_LIMIT) --
- * data backfill lama sering berjumlah ratusan, merender semuanya sekaligus
- * di satu halaman tidak praktis. totalCount dipakai buat tautan "lihat
- * semua" ke /crm yang sudah ter-filter.
+ * Sales. Hot dan Warm dipisah jadi 2 bucket terpisah (diminta Yohan --
+ * dua kategori urgensinya beda) dibatasi masing-masing ke yang paling
+ * mendesak (HOT_FOLLOW_UP_DISPLAY_LIMIT) -- data backfill lama sering
+ * berjumlah ratusan, merender semuanya sekaligus tidak praktis.
+ * totalCount per bucket dipakai buat tautan "lihat semua" ke /crm yang
+ * sudah ter-filter per temperature.
  */
 export async function getHotFollowUpLeads(
   supabase: SupabaseClient<Database>
-): Promise<{ data: HotFollowUpLead[]; totalCount: number; error: boolean }> {
+): Promise<{ hot: FollowUpBucket; warm: FollowUpBucket; error: boolean }> {
   const cutoff = Date.now() - FOLLOW_UP_OVERDUE_HOURS * 60 * 60 * 1000;
+  const empty: FollowUpBucket = { data: [], totalCount: 0 };
 
   const { data, error } = await supabase
     .schema("customer")
@@ -46,7 +54,7 @@ export async function getHotFollowUpLeads(
     .is("deleted_at", null);
 
   if (error || !data) {
-    return { data: [], totalCount: 0, error: true };
+    return { hot: empty, warm: empty, error: true };
   }
 
   const overdue = data
@@ -58,21 +66,25 @@ export async function getHotFollowUpLeads(
           ? Math.floor((Date.now() - parsed) / (60 * 60 * 1000))
           : null;
       const isOverdue = hoursSinceFollowUp === null || parsed < cutoff;
-      return { lead, hoursSinceFollowUp, isOverdue };
+      const temperature = getLeadMetadataString(lead.metadata, "status_funnel_awal")?.toLowerCase() ?? "";
+      return { lead, hoursSinceFollowUp, isOverdue, temperature };
     })
-    .filter((x) => x.isOverdue)
-    .sort(
-      (a, b) =>
-        (b.hoursSinceFollowUp ?? Number.MAX_SAFE_INTEGER) -
-        (a.hoursSinceFollowUp ?? Number.MAX_SAFE_INTEGER)
-    )
-    .map(({ lead, hoursSinceFollowUp }) => ({ ...lead, hoursSinceFollowUp }));
+    .filter((x) => x.isOverdue);
 
-  return {
-    data: overdue.slice(0, HOT_FOLLOW_UP_DISPLAY_LIMIT),
-    totalCount: overdue.length,
-    error: false,
-  };
+  function bucket(temperature: "hot" | "warm"): FollowUpBucket {
+    const filtered = overdue
+      .filter((x) => x.temperature === temperature)
+      .sort(
+        (a, b) =>
+          (b.hoursSinceFollowUp ?? Number.MAX_SAFE_INTEGER) -
+          (a.hoursSinceFollowUp ?? Number.MAX_SAFE_INTEGER)
+      )
+      .map(({ lead, hoursSinceFollowUp }) => ({ ...lead, hoursSinceFollowUp }));
+
+    return { data: filtered.slice(0, HOT_FOLLOW_UP_DISPLAY_LIMIT), totalCount: filtered.length };
+  }
+
+  return { hot: bucket("hot"), warm: bucket("warm"), error: false };
 }
 
 export interface ClosingChecklistItem {

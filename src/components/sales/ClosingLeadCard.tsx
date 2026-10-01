@@ -39,7 +39,9 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
   const [checklist, setChecklist] = useState(initialChecklist);
   const [saving, setSaving] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
-  const [berkasOpen, setBerkasOpen] = useState(false);
+  // Kalau checklist-nya sudah pernah diisi sebelumnya, langsung tampilkan isinya --
+  // jangan paksa klik 2x (buka kartu, lalu buka lagi detail Berkas) buat lihat data yang sudah ada.
+  const [berkasOpen, setBerkasOpen] = useState(initialChecklist.berkas_items.length > 0);
   const [newItemLabel, setNewItemLabel] = useState("");
 
   /**
@@ -69,9 +71,21 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
   }
 
   const outstandingItems = checklist.berkas_items.filter((item) => !item.done).length;
-  const berkasReady = checklist.berkas_submitted && outstandingItems === 0;
+  // berkas_items.length > 0 WAJIB -- tanpa ini, lead yang belum pernah diisi checklist-nya
+  // sama sekali (0 item) tetap lolos dianggap "lengkap" begitu "Berkas sudah disubmit"
+  // dicentang, padahal belum ada satu dokumen pun yang tercatat.
+  const berkasReady =
+    checklist.berkas_submitted && checklist.berkas_items.length > 0 && outstandingItems === 0;
   const canMarkBastKunci = checklist.bast_kunci || (checklist.ppjb_signed && berkasReady);
   const doneCount = [checklist.ppjb_signed, berkasReady, checklist.bast_kunci].filter(Boolean).length;
+
+  function buildSeededItems(method: PaymentMethod): ClosingChecklistItem[] {
+    return BERKAS_ITEMS_BY_PAYMENT_METHOD[method].map((label, i) => ({
+      id: `seed-${i}-${Date.now()}`,
+      label,
+      done: false,
+    }));
+  }
 
   function togglePpjb() {
     if (saving) return;
@@ -88,24 +102,30 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
     persist({ ...checklist, bast_kunci: !checklist.bast_kunci });
   }
 
+  /**
+   * Isi checklist langsung begitu metode dipilih (bukan cuma saat panel Berkas
+   * Lengkap dibuka) -- kalau urutannya "pilih metode dulu, baru buka Berkas
+   * Lengkap", seharusnya sudah terisi tanpa perlu klik tambahan. Sebelumnya
+   * seeding cuma dipicu dari toggleBerkasOpen(), jadi kalau metode dipilih
+   * SETELAH panel sempat dibuka (atau tanpa pernah dibuka), checklist-nya
+   * tetap kosong selamanya -- itu yang bikin 2 lead sama-sama "KPR Subsidi"
+   * tapi satu kelihatan ada checklist-nya, satu lagi kosong.
+   */
   function setPaymentMethod(method: PaymentMethod) {
     if (saving) return;
-    persist({ ...checklist, payment_method: method });
+    const next: ClosingChecklist = { ...checklist, payment_method: method };
+    if (checklist.berkas_items.length === 0) {
+      next.berkas_items = buildSeededItems(method);
+    }
+    persist(next);
   }
 
-  /** Buka detail Berkas Lengkap -- kalau checklist-nya masih kosong DAN metode pembayaran sudah dipilih, isi otomatis sesuai dokumen metode itu. */
+  /** Buka/tutup detail Berkas Lengkap -- kalau checklist-nya masih kosong DAN metode pembayaran sudah dipilih, isi otomatis sesuai dokumen metode itu (jaga-jaga kalau belum sempat ke-seed dari setPaymentMethod, mis. data lama). */
   function toggleBerkasOpen() {
     const next = !berkasOpen;
     setBerkasOpen(next);
     if (next && checklist.berkas_items.length === 0 && checklist.payment_method) {
-      const seeded: ClosingChecklistItem[] = BERKAS_ITEMS_BY_PAYMENT_METHOD[checklist.payment_method].map(
-        (label, i) => ({
-          id: `seed-${i}-${Date.now()}`,
-          label,
-          done: false,
-        })
-      );
-      persist({ ...checklist, berkas_items: seeded });
+      persist({ ...checklist, berkas_items: buildSeededItems(checklist.payment_method) });
     }
   }
 

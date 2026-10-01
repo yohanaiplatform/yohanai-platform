@@ -304,15 +304,18 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     Content: () => (
       <>
         <GuideP>
-          Menu <strong>Sales</strong> punya dua bagian: daftar lead yang butuh follow-up segera, dan checklist
-          proses closing untuk lead yang sudah deal.
+          Menu <strong>Sales</strong> punya dua topik: daftar lead yang butuh follow-up segera, dan checklist
+          proses closing untuk lead yang sudah deal. Begitu masuk halaman ini, yang tampil cuma 2 kartu pilihan
+          topik -- klik salah satu untuk buka isinya, klik &quot;Kembali&quot; untuk balik pilih topik lain.
+          Daftar lead yang panjang tidak langsung dirender semua sekaligus dari atas ke bawah.
         </GuideP>
 
         <GuideHeading>Follow-up Hot Lead</GuideHeading>
         <GuideP>
-          Menampilkan lead Temperature Hot/Warm yang belum di-follow-up dalam 48 jam terakhir, diurutkan dari
-          yang paling lama tidak disentuh. Dibatasi ke 20 lead paling mendesak di halaman ini -- kalau lebih
-          banyak, ada link &quot;lihat semua di CRM&quot; buat daftar lengkapnya.
+          Menampilkan lead yang belum di-follow-up dalam 48 jam terakhir, dipisah jadi 2 kelompok terpisah --{" "}
+          <strong>Hot</strong> dan <strong>Warm</strong> -- masing-masing diurutkan dari yang paling lama tidak
+          disentuh. Tiap kelompok dibatasi ke 20 lead paling mendesak -- kalau lebih banyak, ada link
+          &quot;lihat semua di CRM&quot; buat daftar lengkap kelompok itu saja.
         </GuideP>
 
         <GuideHeading>Proses Closing</GuideHeading>
@@ -335,13 +338,16 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           items={[
             <><strong>PPJB Ditandatangani</strong> -- klik lingkaran langkah 1 begitu PPJB (Perjanjian Pengikatan Jual Beli) sudah ditandatangani konsumen.</>,
             <>
-              <strong>Berkas Lengkap</strong> -- klik lingkaran langkah 2 untuk buka detail checklist dokumen.
-              <strong> Begitu dibuka pertama kali setelah Metode Pembayaran dipilih, daftar dokumen yang sesuai
+              <strong>Berkas Lengkap</strong> -- klik lingkaran langkah 2 untuk buka/tutup detail checklist
+              dokumen (kalau checklist-nya sudah pernah diisi sebelumnya, otomatis langsung terbuka, tidak perlu
+              diklik ulang). <strong>Begitu Metode Pembayaran dipilih, daftar dokumen yang sesuai langsung
               otomatis terisi</strong> -- tinggal centang yang sudah lengkap dan klik &quot;Hapus&quot; untuk
               dokumen yang ternyata tidak relevan ke lead itu (mis. dokumen khusus Wiraswasta kalau pemohonnya
               Karyawan), atau tambah dokumen lain di luar daftar standar lewat kolom di bawahnya. Centang juga
               &quot;Berkas sudah disubmit&quot;. Langkah ini baru dianggap selesai (lingkaran jadi biru penuh)
-              kalau berkas sudah disubmit DAN semua item yang tersisa di checklist sudah tercentang.
+              kalau berkas sudah disubmit DAN ada minimal 1 dokumen di checklist DAN semua dokumennya sudah
+              tercentang -- centang &quot;sudah disubmit&quot; saja tanpa checklist dokumen apa pun TIDAK
+              dianggap selesai.
             </>,
             <>
               <strong>BAST Kunci</strong> -- serah terima kunci, artinya sudah akad. Langkah ini cuma bisa

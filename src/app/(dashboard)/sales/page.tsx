@@ -1,10 +1,7 @@
 // src/app/(dashboard)/sales/page.tsx
 import { createClient } from "@/lib/supabase/server";
-import { SectionCard } from "@/components/ui/section-card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { getHotFollowUpLeads, getClosingLeads } from "@/lib/sales/getSalesData";
-import { HotLeadFollowUpList } from "@/components/sales/HotLeadFollowUpList";
-import { ClosingLeadCard } from "@/components/sales/ClosingLeadCard";
+import { SalesSectionPicker } from "@/components/sales/SalesSectionPicker";
 
 export default async function SalesPage() {
   const supabase = await createClient();
@@ -23,40 +20,13 @@ export default async function SalesPage() {
         </p>
       </header>
 
-      <SectionCard
-        title="Follow-up Hot Lead"
-        description="Lead Hot/Warm yang belum di-follow-up dalam 48 jam terakhir."
-      >
-        <HotLeadFollowUpList
-          data={followUps.data}
-          totalCount={followUps.totalCount}
-          error={followUps.error}
-        />
-      </SectionCard>
-
-      <SectionCard
-        title="Proses Closing"
-        description="Checklist tiap lead yang sudah closing -- dari PPJB sampai BAST Kunci."
-      >
-        {closingLeads.error ? (
-          <EmptyState title="Error" description="Gagal memuat daftar closing." />
-        ) : closingLeads.data.length === 0 ? (
-          <EmptyState title="Belum Ada" description="Belum ada lead dengan Temperature Closing." />
-        ) : (
-          <div className="space-y-4">
-            {closingLeads.data.map((lead) => (
-              <ClosingLeadCard
-                key={lead.id}
-                leadId={lead.id}
-                nama={`${lead.first_name} ${lead.last_name}`.trim() || "Lead"}
-                phone={lead.phone}
-                metadata={lead.metadata}
-                checklist={lead.checklist}
-              />
-            ))}
-          </div>
-        )}
-      </SectionCard>
+      <SalesSectionPicker
+        hot={followUps.hot}
+        warm={followUps.warm}
+        followUpError={followUps.error}
+        closingLeads={closingLeads.data}
+        closingError={closingLeads.error}
+      />
     </div>
   );
 }
