@@ -91,6 +91,31 @@ export interface ClosingChecklist {
   bast_kunci: boolean;
 }
 
+/**
+ * Daftar dokumen standar pengajuan KPR/KPA -- sumber: form resmi "Layanan
+ * KPR/KPA" Griya Indonesia Real Estate. Diisi otomatis begitu agen pertama
+ * kali buka detail Berkas Lengkap satu lead (list kosong) -- agen tinggal
+ * centang yang relevan dan hapus yang tidak perlu untuk lead itu (3 item
+ * terakhir ditandai sesuai jenis pekerjaan pemohon, biasanya cuma salah
+ * satu yang relevan per lead).
+ */
+export const DEFAULT_BERKAS_ITEMS: string[] = [
+  "Down Payment (DP)",
+  "Fotokopi KTP Pemohon",
+  "Fotokopi KTP Suami/Istri atau Surat Keterangan Belum Menikah",
+  "Fotokopi Kartu Keluarga",
+  "Fotokopi Akta Nikah / Akta Cerai / Akta Pisah Harta",
+  "Fotokopi NPWP / SPT PPh21",
+  "Data Keuangan dan/atau Rekening Koran/Tabungan 3 Bulan Terakhir",
+  "Pas Foto 3x4 Suami Istri Masing-masing 2 Lembar",
+  "Foto Tempat Kerja",
+  "Sket Lokasi Tempat Kerja",
+  "Materai 6000 Sebanyak 12 Lembar",
+  "Slip Gaji & Surat Keterangan Kerja Asli (Karyawan)",
+  "Fotokopi Surat Izin Praktek/Surat Pengangkatan (Profesional)",
+  "Fotokopi Laporan Keuangan Usaha, SIUP, TDP/Akta Perusahaan (Wiraswasta)",
+];
+
 export const EMPTY_CLOSING_CHECKLIST: ClosingChecklist = {
   ppjb_signed: false,
   berkas_submitted: false,
