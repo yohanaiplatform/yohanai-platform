@@ -15,17 +15,19 @@ Modul ini menjadi pusat pengelolaan pipeline penjualan, opportunity, aktivitas c
 
 | Item | Status |
 |------|--------|
-| Development | 🟡 In Progress |
-| Production Ready | 🟡 Foundation |
-| Backend | 🟡 Partial |
-| UI | 🟡 In Progress |
+| Development | 🟡 v1 sederhana selesai, visi di bawah masih rencana |
+| Production Ready | ✅ Dua fitur inti sudah live |
+| Backend | 🟡 JSONB di `customer.leads.metadata`, belum tabel `sales.*` terpisah |
+| UI | ✅ `/sales` — Follow-up Hot Lead + Proses Closing |
 | AI Integration | 🔵 Planned |
+
+**1 Oktober 2026 — dibangun dari stub kosong ("Sprint 007", belum ada kode sama sekali) jadi v1 fungsional,** diminta Yohan khusus untuk 2 kebutuhan konkret (follow-up lead prioritas + tracking progres closing sampai serah terima kunci) -- BUKAN implementasi dari visi "Objectives"/"Future Roadmap" di bawah (Opportunity Management, Commission, AI Prediction, dll), yang masih murni rencana jangka panjang dan belum mulai dikerjakan.
 
 ---
 
 # Objectives
 
-Sales Module bertujuan untuk:
+Sales Module bertujuan untuk (**visi jangka panjang, lihat "Current Features (v1 -- Live)" untuk yang sudah nyata**):
 
 - Mengelola Sales Pipeline
 - Memantau Opportunity
@@ -35,7 +37,31 @@ Sales Module bertujuan untuk:
 
 ---
 
-# Current Features
+# Current Features (v1 -- Live, 1 Oktober 2026)
+
+## Follow-up Hot Lead
+
+✅ **Selesai.** Lead Temperature Hot/Warm yang belum di-follow-up dalam 48 jam terakhir (logika sama seperti insight "Follow-up Backlog" di Dashboard), ditampilkan sebagai daftar lengkap -- bukan cuma hitungan. Dibatasi ke 20 lead paling mendesak (diurutkan dari yang paling lama tidak disentuh) plus link "lihat semua di CRM" ke `/crm?temperature=hot,warm` -- data backfill lama bisa ratusan lead Hot/Warm untuk satu akun, tidak praktis dirender semua sekaligus di satu halaman. Lihat `src/lib/sales/getSalesData.ts` (`getHotFollowUpLeads`) dan `src/components/sales/HotLeadFollowUpList.tsx`.
+
+---
+
+## Proses Closing (Checklist)
+
+✅ **Selesai.** Tiap lead Temperature **Closing** tampil sebagai kartu dengan status bar 3 langkah:
+
+1. **PPJB Ditandatangani**
+2. **Berkas Lengkap** -- sub-checklist bebas-tambah untuk kekurangan dokumen (mis. "KTP pasangan belum lengkap"), dianggap selesai kalau berkas sudah disubmit DAN semua item kekurangan sudah tercentang
+3. **BAST Kunci** -- serah terima kunci (= akad selesai di Notaris, dan di Bank juga kalau toggle "Pembelian KPR" aktif per lead, label menyesuaikan otomatis)
+
+Guard sederhana: langkah 3 baru bisa ditandai selesai setelah langkah 1 dan 2 beres. Progress disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **bukan tabel baru**) lewat update langsung dari client (pola sama seperti `LeadEditableFields.tsx` di CRM), dengan state lokal optimistik (bukan `router.refresh()`) supaya klik checklist di halaman berisi banyak lead tidak melompat-lompat posisi scroll-nya. Lihat `src/lib/sales/getSalesData.ts` (`getClosingChecklist`/`getClosingLeads`) dan `src/components/sales/ClosingLeadCard.tsx`.
+
+**Belum termasuk**: generate dokumen PPJB/BAST/Form KPR otomatis dari checklist ini. Alur dokumen tanda tangan closing (spreadsheet "List Penjualan" + Apps Script "Form Otomatis") sudah diriset penuh secara terpisah tapi masih read-only/referensi, belum diintegrasikan -- lihat bagian "Alur Dokumen Tanda Tangan (Lead Closing)" di `docs/modules/crm.mdx`.
+
+---
+
+# Visi Jangka Panjang (belum dibangun)
+
+Bagian di bawah ini (Sales Pipeline bertahap, Opportunity Management, Deal Tracking, Sales Performance/revenue analytics) adalah rencana arsitektur asli dari era pra-Claude (lihat "Last Updated" di bagian bawah dokumen ini) -- **belum ada kode sama sekali** untuk bagian ini, beda total dari 2 fitur v1 di atas yang sudah live.
 
 ## Sales Pipeline
 
@@ -135,7 +161,9 @@ types/
 
 # Database
 
-Primary Tables
+**v1 (live) -- tidak ada tabel baru.** Checklist closing disimpan di `customer.leads.metadata.closing_checklist` (JSONB), dibaca langsung dari `customer.leads` yang sudah ada -- mengikuti RLS `leads_owner_or_admin` yang sama seperti CRM (lihat `AGENTS.md`).
+
+Primary Tables (visi jangka panjang, belum dibangun)
 
 - sales.opportunities
 - sales.pipeline
@@ -171,7 +199,8 @@ Future Tables
 
 # Current Limitations
 
-- Pipeline masih sederhana
+- v1 cuma 2 fitur (follow-up Hot Lead + checklist closing) -- belum ada Pipeline bertahap, Opportunity, atau Deal Tracking seperti visi di bawah
+- Checklist closing murni pencatatan progres manual, belum generate dokumen PPJB/BAST/Form KPR otomatis
 - Belum ada Komisi
 - Belum ada Target Sales
 - Belum ada Forecast Revenue
@@ -214,6 +243,4 @@ AI Sales Prediction
 
 # Last Updated
 
-24 July 2026
-
-Sprint 009
+1 Oktober 2026 -- v1 (Follow-up Hot Lead + Proses Closing) dibangun dan live. Bagian "Visi Jangka Panjang" masih dari draft asli 24 July 2026 (Sprint 009), belum direvisi.

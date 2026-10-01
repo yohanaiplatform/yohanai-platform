@@ -51,6 +51,19 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (siang) — Halaman Sales Dibangun, Panduan Dashboard & Sales, Dashboard Quick Actions Diperbaiki
+
+### Added
+
+- **Halaman Sales (`/sales`)** — sebelumnya stub kosong, sekarang dua fitur live: **Follow-up Hot Lead** (lead Hot/Warm overdue 48 jam, top 20 + link ke CRM untuk sisanya) dan **Proses Closing** (checklist 3 langkah per lead Closing: PPJB Ditandatangani → Berkas Lengkap + kekurangan dokumen bebas-tambah → BAST Kunci, dengan toggle "Pembelian KPR" yang mengubah label langkah terakhir). Progress disimpan di `customer.leads.metadata.closing_checklist`, tanpa tabel/migration baru
+- **Section Panduan baru**: "Membaca Dashboard" dan "Follow-up & Proses Closing (Sales)"
+
+### Fixed
+
+- **Dashboard Quick Actions menjanjikan fitur yang tidak ada** — "Import Listing" cuma link ke daftar listing (tidak ada fitur import), "View Reports" link ke Sales yang saat itu masih stub. Diganti jadi 4 aksi yang semuanya nyata: Tambah Listing, Lihat Listing, Tambah Lead, Buka CRM
+
+---
+
 ## 1 Oktober 2026 — Perbaikan Jendela Waktu Laporan, Akun Pemakaian Personal
 
 ### Fixed

@@ -297,6 +297,52 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "follow-up-dan-closing",
+    title: "Follow-up & Proses Closing (Sales)",
+    description: "Prioritas follow-up Hot/Warm, dan checklist lead yang sudah closing.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Menu <strong>Sales</strong> punya dua bagian: daftar lead yang butuh follow-up segera, dan checklist
+          proses closing untuk lead yang sudah deal.
+        </GuideP>
+
+        <GuideHeading>Follow-up Hot Lead</GuideHeading>
+        <GuideP>
+          Menampilkan lead Temperature Hot/Warm yang belum di-follow-up dalam 48 jam terakhir, diurutkan dari
+          yang paling lama tidak disentuh. Dibatasi ke 20 lead paling mendesak di halaman ini -- kalau lebih
+          banyak, ada link &quot;lihat semua di CRM&quot; buat daftar lengkapnya.
+        </GuideP>
+
+        <GuideHeading>Proses Closing</GuideHeading>
+        <GuideP>
+          Semua lead Temperature <strong>Closing</strong> tampil sebagai kartu dengan status bar 3 langkah:
+        </GuideP>
+        <GuideList
+          items={[
+            <><strong>PPJB Ditandatangani</strong> -- klik lingkaran langkah 1 begitu PPJB (Perjanjian Pengikatan Jual Beli) sudah ditandatangani konsumen.</>,
+            <>
+              <strong>Berkas Lengkap</strong> -- klik lingkaran langkah 2 untuk buka detail: centang &quot;Berkas
+              sudah disubmit&quot;, lalu catat kekurangan dokumen satu per satu (mis. &quot;KTP pasangan belum
+              lengkap&quot;) dan centang tiap kekurangan begitu terpenuhi. Langkah ini baru dianggap selesai
+              (lingkaran jadi hijau) kalau berkas sudah disubmit DAN semua kekurangan sudah tercentang.
+            </>,
+            <>
+              <strong>BAST Kunci</strong> -- serah terima kunci, artinya sudah akad (di Notaris, dan di Bank juga
+              kalau pembeliannya KPR -- centang &quot;Pembelian KPR&quot; di kartu lead supaya labelnya
+              menyesuaikan). Langkah ini cuma bisa ditandai selesai setelah PPJB dan Berkas Lengkap beres duluan.
+            </>,
+          ]}
+        />
+        <GuideNote>
+          Checklist ini murni pencatatan progres di platform -- belum menghasilkan dokumen PPJB/BAST/Form KPR
+          secara otomatis. Dokumennya sendiri masih dibuat lewat proses terpisah seperti biasa.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
     slug: "mengelola-listing",
     title: "Mengelola Listing Properti",
     description: "Tambah listing baru, kelola foto, dan atur visibilitasnya.",

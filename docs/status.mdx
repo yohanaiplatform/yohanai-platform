@@ -564,9 +564,26 @@ Task 028
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS untuk perubahan kode. Reassignment data diverifikasi lewat query langsung (jumlah lead/listing per akun dicek sebelum & sesudah).
 
-### Next Task
+**Fitur "Panduan" (in-app user guide) dibangun -- 1 Oktober 2026 siang, di antara Task 028 dan Task 029, belum sempat tercatat di sini sebelumnya.** Net-new feature (sebelumnya tidak ada dokumentasi/README in-app sama sekali), dikerjakan lewat Plan Mode penuh atas permintaan Yohan. `src/lib/panduan/sections.tsx` -- registry `PANDUAN_SECTIONS`, 12 topik awal (mulai dari pendaftaran sampai berlangganan AI Model), tiap section punya status jujur (`ready`/`partial`/`coming_soon`) dan slot video YouTube opsional (kosong dulu, tinggal diisi link nanti tanpa kode baru). Halaman: `/panduan` (index grid kartu) dan `/panduan/[slug]` (detail). Sidebar dapat 1 item baru "Panduan". **Dua aturan editorial ditegaskan Yohan** (lihat komentar di kepala file `sections.tsx` dan memory `update-docs-command`): (1) status fitur harus jujur, jangan fabrikasi; (2) konten ditulis dari sudut pandang END USER, jangan bocorkan detail backend/admin-only (mis. "role diatur manual admin lewat Supabase Dashboard" -- dua kalimat seperti ini sempat ditulis lalu diminta dihapus Yohan). **Sejak fitur ini ada, "Update Docs" WAJIB ikut update `sections.tsx`** kalau ada fitur baru/berubah -- lihat memory `update-docs-command`.
 
 Task 029
+
+**Sesi 1 Oktober 2026 (siang) — Dashboard Quick Actions diperbaiki, Panduan Dashboard, halaman Sales dibangun.**
+
+- **Bug ditemukan & diperbaiki: tombol "Import Listing" dan "View Reports" di Dashboard Quick Actions menjanjikan fitur yang tidak ada** — "Import Listing" cuma link ke `/properties` (tidak ada fitur import CSV/spreadsheet sama sekali di kode), "View Reports" link ke `/sales` yang saat itu masih stub kosong. Diganti jadi 4 aksi yang semuanya nyata: Tambah Listing (`/properties/new`), Lihat Listing, Tambah Lead, Buka CRM.
+- **Section "Membaca Dashboard" ditambahkan ke Panduan** — menjelaskan tiap StatCard, Lead Funnel, Recent Leads/Chats, Buyer Behavior Insight, ringkasan listing, dan Quick Actions yang sudah diperbaiki.
+- **Halaman Sales dibangun dari nol** (sebelumnya stub "Sprint 007"), diminta Yohan untuk isi follow-up lead Hot dan proses closing:
+  - **Follow-up Hot Lead** — lead Hot/Warm yang belum di-follow-up 48 jam terakhir, dibatasi 20 paling mendesak (data backfill lama ada 636 lead Hot/Warm untuk 1 akun saja -- merender semua sekaligus tidak praktis) + link "lihat semua di CRM" buat sisanya.
+  - **Proses Closing** — tiap lead Temperature Closing dapat status bar 3 langkah: PPJB Ditandatangani → Berkas Lengkap (+ checklist kekurangan dokumen bebas-tambah per lead) → BAST Kunci (serah terima kunci = akad selesai; toggle "Pembelian KPR" per lead mengubah labelnya jadi "Akad Notaris & Bank"). Guard sederhana: BAST Kunci baru bisa ditandai selesai setelah PPJB + Berkas Lengkap beres.
+  - Progress disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **tanpa migration baru** -- pola sama seperti `metadata.hidden` di Property) lewat update langsung dari client, pola sama seperti `LeadEditableFields.tsx`. Pakai state lokal optimistik (bukan `router.refresh()`) supaya klik checklist di halaman berisi ratusan lead tidak melompat-lompat posisi scroll-nya -- ditemukan & diperbaiki saat testing manual di browser sebelum commit.
+  - **Belum termasuk**: generate dokumen PPJB/BAST/Form KPR otomatis dari checklist ini -- itu alur terpisah (lihat "Alur Dokumen Tanda Tangan" di `docs/modules/crm.mdx`), masih read-only/referensi, belum diintegrasikan.
+  - Section Panduan baru "Follow-up & Proses Closing (Sales)" ditambahkan sekalian.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS, ditest manual di browser (toggle checklist, tambah/hapus/centang kekurangan dokumen, guard BAST Kunci, label KPR dinamis) lewat akun `yohanbenyamin@gmail.com` langsung -- data uji coba di lead asli (Aloloisius - Ino, Siti Normadiah) dikembalikan ke kondisi kosong setelah testing, diverifikasi lewat query SQL langsung.
+
+### Next Task
+
+Task 030
 
 **Checklist buat sesi berikutnya:**
 
@@ -585,7 +602,7 @@ Task 029
 
 # Last Updated
 
-1 Oktober 2026 (pagi)
+1 Oktober 2026 (siang)
 
 ---
 

@@ -46,14 +46,18 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Cloudflare "AI Crawl Control" ditemukan** (30 Sep 2026 malam) — dashboard siap pakai (`dash.cloudflare.com/.../ai/overview`, domain `yohanai.id`) yang sudah menghitung request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) per domain, gratis, tanpa kode tambahan. **Belum diintegrasikan ke Platform Report** — Yohan minta ditambahkan sesi berikutnya (Task 028 poin 1).
 
-**Yohan pause development** — sementara update data lead & listing existing yang masih aktif secara manual dulu lewat UI, baru lanjut development lagi setelah itu. Jangan mulai kerjaan baru tanpa diminta ulang.
+**Fitur "Panduan" (in-app user guide untuk semua role) sudah SELESAI dibangun** (1 Oktober 2026, lihat `docs/status.mdx` antara Task 028-029) — `src/lib/panduan/sections.tsx` (registry `PANDUAN_SECTIONS`, 12 topik), halaman `/panduan` + `/panduan/[slug]`, link baru di Sidebar. **Jangan bangun ulang.** Dua aturan wajib tiap kali menyentuh file ini: status fitur harus jujur (`ready`/`partial`/`coming_soon`, jangan fabrikasi), dan konten ditulis dari sudut pandang END USER (jangan bocorkan detail backend/admin-only). **Sejak fitur ini ada, perintah "Update Docs" WAJIB ikut update `sections.tsx`** kalau ada fitur baru/berubah di aplikasi — lihat memory `update-docs-command`.
 
-**Kerjaan sekarang (lihat Task 028 di `docs/status.mdx` untuk checklist lengkap):**
+**Halaman Sales (`/sales`) sudah SELESAI dibangun dari stub kosong** (1 Oktober 2026, Task 029 di `docs/status.mdx`) — dua fitur: Follow-up Hot Lead (lead Hot/Warm overdue 48 jam, dibatasi 20 + link ke CRM) dan Proses Closing (checklist 3 langkah per lead Closing: PPJB Ditandatangani → Berkas Lengkap + kekurangan dokumen → BAST Kunci, toggle KPR). **Jangan bangun ulang** — baca `docs/modules/sales.mdx` dulu. Progress checklist disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **tanpa tabel/migration baru**). Visi besar modul Sales (`sales.opportunities`/`sales.pipeline`/Commission/AI Prediction) di `docs/modules/sales.mdx` masih murni rencana pra-Claude, belum mulai dikerjakan — jangan disamakan dengan v1 yang sudah live.
+
+**Yohan pause development** — sementara update data lead & listing existing yang masih aktif secara manual dulu lewat UI, baru lanjut development lagi setelah itu. Beberapa permintaan kecil/perbaikan tetap masuk di sela-sela itu (lihat Task 029) — bukan berarti development benar-benar berhenti total, cuma tidak mulai inisiatif besar baru tanpa diminta ulang.
+
+**Kerjaan sekarang (lihat Task 030 di `docs/status.mdx` untuk checklist lengkap):**
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.
 2. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — AI Agent sudah live-tested 2x & total 6 bug besar sudah diperbaiki.
 3. Verifikasi biaya AI Agent asli (`response.usage` di `ai.agent_runs.llm_raw_response`) vs estimasi simulasi Task 025.
 4. Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif.
-5. Multi-tenant SaaS, instrumentasi tracking sisanya (visitor/download), dan item lain — lihat Task 028 lengkap.
+5. Multi-tenant SaaS, instrumentasi tracking sisanya (visitor/download), dan item lain — lihat Task 030 lengkap.
 
 **Struktur akun saat ini (per 1 Oktober 2026): 3 user.** `admin@yohanai.id` (role `admin`) — akun developer MURNI, sengaja 0 lead/listing "miliknya sendiri" tapi tetap lihat semua data lewat akses admin (RLS bypass `assigned_to`). `yohanbenyamin@gmail.com` (role `agent`, dibuat 1 Okt 2026) — akun pemakaian personal Yohan yang sebenarnya, pegang 1972 lead + 85 listing (seluruh data aktif, dipindah dari admin) — **jadikan acuan utama kalau nanti ada pembatasan akses baru buat role non-admin, karena ini akun yang benar-benar dipakai harian, bukan akun test kosong.** `ramlan.hadiansyah@gmail.com` (role `agent`) — 1 lead + 1 listing, kolaborator Griya Indonesia. Laporan harian personal tiap akun otomatis ke email login masing-masing (kecuali ada override di `DAILY_REPORT_EMAIL_OVERRIDES`); admin selalu dapat laporan AGREGAT (bukan di-scope ke assigned_to) karena `isAdmin` flag, bukan karena jumlah datanya.
 
@@ -112,6 +116,10 @@ src/app/api/reports/daily/    GET endpoint (secret header), dipanggil cron GitHu
 src/lib/notifications/        createNotification()/getAdminUserIds() — notifikasi in-app (core.notifications), dipakai fitur "Ajukan Akses" Google Contacts
 src/app/api/google-contacts/request-access/, approve-access/  Alur "Ajukan Akses" test user Google OAuth (Google tidak bisa diotomasi dari sisi app, cuma bisa notify admin)
 src/lib/ai/                   interpretLeadReply.ts (panggil Claude API, fetch langsung tanpa SDK) + applyAgentDecision.ts (terapkan hasil: update Temperature, auto-reply WA, audit ai.agent_runs) — AI Agent otomatis (Task 015)
+src/lib/panduan/sections.tsx  Registry PANDUAN_SECTIONS (12 topik) — in-app user guide, WAJIB diupdate tiap "Update Docs" kalau ada fitur baru/berubah
+src/app/(dashboard)/panduan/  Index grid kartu + /panduan/[slug] detail per topik
+src/lib/sales/getSalesData.ts getHotFollowUpLeads()/getClosingLeads()/getClosingChecklist() — data halaman Sales (Task 029)
+src/components/sales/         HotLeadFollowUpList, ClosingLeadCard (checklist 3 langkah PPJB->Berkas->BAST Kunci, state optimistik)
 docs/                         Sumber halaman Mintlify (docs.yohanai.id)
 project-docs/                 Arsip dokumen era pra-Claude (ChatGPT/Qwen). Historis saja
 ```
