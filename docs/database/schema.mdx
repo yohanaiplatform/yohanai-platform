@@ -26,7 +26,7 @@ Yohan.AI memakai PostgreSQL 17 di Supabase dengan **schema terpisah per domain**
 
 ## Exposed Schemas
 
-Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara default. Schema `auth_ext`, `core`, `customer`, `chat`, dan `property` sudah ditambahkan manual di **Settings → Data API**. Schema yang belum ter-expose tidak akan bisa diakses dari aplikasi sama sekali, sekalipun RLS dan GRANT-nya sudah benar. **Schema `ai` BELUM di-expose** per 29 September 2026 malam (baru mulai dipakai lewat migration `049`) — perlu ditambahkan sebelum AI Agent bisa simpan audit log ke `ai.agent_runs`.
+Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara default. Schema `auth_ext`, `core`, `customer`, `chat`, `property`, `ai`, dan `knowledge` sudah ditambahkan manual di **Settings → Data API** (9 dari ~14 schema non-Postgres-internal; `ai` dan `knowledge` dikonfirmasi ulang ter-expose 1 Oktober 2026 lewat probe REST langsung, bukan cuma asumsi). Schema yang belum ter-expose tidak akan bisa diakses dari aplikasi sama sekali, sekalipun RLS dan GRANT-nya sudah benar -- schema `marketing`, `reporting`, `workflow` ada di database tapi belum pernah dipakai kode apa pun di repo ini dan statusnya belum dicek (kemungkinan sisa skema aspirasional lama, belum diverifikasi).
 
 ---
 
@@ -121,7 +121,7 @@ Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kaps
 
 ### agent_runs
 
-**Nyata, dipakai** — satu-satunya tabel `ai` yang sudah ada isinya (migration `049`, 29 September 2026 malam). Audit trail AI Agent otomatis (`POST /api/whatsapp/webhook` → `interpretLeadReply()` → `applyAgentDecision()`): snapshot konteks yang dikirim ke LLM (`input_snapshot` JSONB), respons mentah (`llm_raw_response` JSONB), `previous_temperature`/`decided_temperature`, `reply_text`/`reply_sent`/`reply_message_id`, `confidence`, `status` (`success`/`skipped`/`error`). Cuma diakses `service_role` (dipanggil dari webhook, bukan sesi login) — belum ada RLS policy karena belum ada UI baca langsung. **Schema `ai` sendiri belum di-expose di Supabase Settings → Data API** per 29 September 2026 malam — tanpa itu, tabel ini tidak bisa diakses PostgREST walau GRANT-nya benar, lihat jebakan di `AGENTS.md`.
+**Nyata, dipakai** — satu-satunya tabel `ai` yang sudah ada isinya (migration `049`, 29 September 2026 malam). Audit trail AI Agent otomatis (`POST /api/whatsapp/webhook` → `interpretLeadReply()` → `applyAgentDecision()`): snapshot konteks yang dikirim ke LLM (`input_snapshot` JSONB), respons mentah (`llm_raw_response` JSONB), `previous_temperature`/`decided_temperature`, `reply_text`/`reply_sent`/`reply_message_id`, `confidence`, `status` (`success`/`skipped`/`error`). Cuma diakses `service_role` (dipanggil dari webhook, bukan sesi login) — belum ada RLS policy karena belum ada UI baca langsung. Schema `ai` sudah di-expose di Supabase Settings → Data API (dikonfirmasi ulang 1 Oktober 2026), AI Agent aktif dan live-tested berkali-kali sejak 29 September 2026 malam -- lihat jebakan terkait di `AGENTS.md` kalau nanti ada schema baru lain yang perlu di-expose.
 
 ### models, prompts, interactions
 
