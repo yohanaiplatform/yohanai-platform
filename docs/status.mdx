@@ -624,6 +624,10 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest end-to
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual: field Nama Brand diisi & disimpan (sempat salah ketik ke field lain dulu karena klik meleset -- dikoreksi, diverifikasi lewat SQL `brand_name` tersimpan benar), laporan listing Kapur Mas dicek ulang header-nya berubah ikut Nama Brand + tabel cuma 10 baris + Sumber Informasi tetap 45 (bukan cuma dari 10 yang tampil). Data uji coba (Nama Brand di akun `admin@yohanai.id`) dikembalikan ke `null` setelah testing -- itu akun developer murni, bukan identitas bisnis sungguhan.
 
+**Lanjutan kedua sore itu -- bug scrollbar di Catatan Agent/Rekomendasi diperbaiki** (Yohan coba isi catatan panjang sendiri, kirim contoh PDF): textarea `rows` tetap nyimpen scrollbar internal yang ikut kebawa ke hasil cetak/PDF -- `window.print()` cuma merender DOM apa adanya, tidak nge-scroll ke tiap elemen, jadi teks panjang kepotong di hasil cetak walau kelihatan normal (bisa di-scroll) di layar. Diperbaiki dengan `useAutoResizeTextarea` (`PropertyMarketingReportControls.tsx`) -- ukur `scrollHeight` lewat `useEffect` tiap kali teks berubah, box selalu setinggi isinya, tidak pernah ada scrollbar. **Yohan eksplisit terima laporan jadi lebih dari 1 halaman A4 kalau catatannya memang panjang** -- yang tidak boleh cuma teks tersembunyi di balik scroll. Dikonfirmasi juga: header/footer bawaan browser print (URL, tanggal, nomor halaman) boleh tetap tampil, jangan dihilangkan.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual: isi Catatan Agent dengan teks panjang multi-baris, dikonfirmasi box tumbuh otomatis mengikuti isi, scrollbar hilang total.
+
 ### Next Task
 
 Task 030

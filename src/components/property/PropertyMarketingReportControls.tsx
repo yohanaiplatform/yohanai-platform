@@ -2,7 +2,7 @@
 
 // src/components/property/PropertyMarketingReportControls.tsx
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,16 +59,41 @@ interface NotesEditorProps {
   onChange: (value: string) => void;
 }
 
+/**
+ * Textarea biasa (rows tetap) bikin isi yang panjang disembunyikan di balik
+ * scrollbar internal -- kelihatan normal di layar (masih bisa di-scroll),
+ * tapi scrollbar itu ikut kebawa ke hasil cetak/PDF karena window.print()
+ * cuma merender DOM apa adanya, bukan nge-scroll ke tiap bagian. Makanya
+ * box harus tumbuh otomatis seukuran isinya -- kalau itu bikin laporan
+ * jadi lebih dari 1 halaman A4, itu memang diterima (dikonfirmasi Yohan),
+ * yang tidak boleh adalah teks yang terpotong/tersembunyi di balik scroll.
+ */
+function useAutoResizeTextarea(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
+  return ref;
+}
+
 function NotesEditor({ label, placeholder, value, onChange }: NotesEditorProps) {
+  const textareaRef = useAutoResizeTextarea(value);
+
   return (
     <div className="space-y-1">
       <Label className="text-xs font-semibold text-muted-foreground">{label}</Label>
       <textarea
+        ref={textareaRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={2}
-        className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 print:resize-none print:border-none print:p-0"
+        className="w-full resize-none overflow-hidden rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 print:border-none print:p-0"
       />
     </div>
   );
