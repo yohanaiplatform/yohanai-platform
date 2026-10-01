@@ -579,7 +579,14 @@ Task 029
   - **Belum termasuk**: generate dokumen PPJB/BAST/Form KPR otomatis dari checklist ini -- itu alur terpisah (lihat "Alur Dokumen Tanda Tangan" di `docs/modules/crm.mdx`), masih read-only/referensi, belum diintegrasikan.
   - Section Panduan baru "Follow-up & Proses Closing (Sales)" ditambahkan sekalian.
 
-Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS, ditest manual di browser (toggle checklist, tambah/hapus/centang kekurangan dokumen, guard BAST Kunci, label KPR dinamis) lewat akun `yohanbenyamin@gmail.com` langsung -- data uji coba di lead asli (Aloloisius - Ino, Siti Normadiah) dikembalikan ke kondisi kosong setelah testing, diverifikasi lewat query SQL langsung.
+**Lanjutan sama hari -- UX checklist closing diperbaiki langsung dari feedback Yohan** (kirim screenshot pemakaian nyata + 1 form resmi "Layanan KPR/KPA" Griya Indonesia):
+
+- **Kartu lead Closing collapsed by default** -- sebelumnya semua kartu selalu tampil penuh (nama, KPR toggle, status bar 3 langkah) sekaligus, makan banyak tempat kalau lead Closing banyak. Sekarang cuma baris ringkas (nama, No. HP, "X/3 langkah selesai"), klik nama untuk expand ke detail lengkap -- progresif/bertingkat, bukan sekali tampil semua.
+- **Checklist Berkas Lengkap terisi otomatis** -- 14 dokumen standar KPR/KPA (sumber: form resmi Griya Indonesia, bukan tebakan) muncul begitu dibuka pertama kali untuk satu lead, agen tinggal centang yang relevan + hapus yang tidak perlu, bukan ketik manual dari nol lagi. `DEFAULT_BERKAS_ITEMS` baru di `getSalesData.ts`.
+- **Status bar diganti ke tema biru** -- lingkaran outline biru (belum selesai) / biru penuh (selesai), dengan hover state yang lebih jelas menandakan bisa diklik. Sebelumnya abu-abu polos + hijau.
+- **Knowledge entry baru untuk AI Agent** (migration `051`) -- daftar syarat dokumen KPR yang sama diajarkan ke AI lewat `knowledge.entries`, supaya FAQ "syarat KPR apa saja?" dari lead bisa langsung dijawab AI tanpa eskalasi ke agen manusia. Diminta eksplisit oleh Yohan: "ini salah satu FAQ oleh lead, bisa kamu tambahkan untuk feeding AI Agent".
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS, ditest manual di browser (expand/collapse kartu, auto-seed 14 dokumen, warna stepper) lewat akun `yohanbenyamin@gmail.com` -- data uji coba (Ibu Gina) dikembalikan ke kondisi kosong setelah testing, diverifikasi lewat query SQL langsung. Data yang Yohan sendiri isi saat testing pribadi (Aloloisius - Ino, Siti Normadiah, Ibu Maria) sengaja TIDAK disentuh/direset -- itu data pemakaian nyata miliknya, bukan data uji coba sesi ini.
 
 ### Next Task
 

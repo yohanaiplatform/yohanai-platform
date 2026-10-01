@@ -47,13 +47,15 @@ Sales Module bertujuan untuk (**visi jangka panjang, lihat "Current Features (v1
 
 ## Proses Closing (Checklist)
 
-✅ **Selesai.** Tiap lead Temperature **Closing** tampil sebagai kartu dengan status bar 3 langkah:
+✅ **Selesai, UX direvisi sama hari (1 Oktober 2026) dari feedback Yohan langsung setelah live.** Tiap lead Temperature **Closing** tampil sebagai baris ringkas (nama, No. HP, "X/3 langkah selesai") -- **klik nama untuk expand** ke kartu detail dengan status bar 3 langkah (progressive disclosure, supaya daftar lead Closing yang banyak tidak makan tempat):
 
 1. **PPJB Ditandatangani**
-2. **Berkas Lengkap** -- sub-checklist bebas-tambah untuk kekurangan dokumen (mis. "KTP pasangan belum lengkap"), dianggap selesai kalau berkas sudah disubmit DAN semua item kekurangan sudah tercentang
+2. **Berkas Lengkap** -- klik untuk buka sub-checklist dokumen. **Begitu dibuka pertama kali untuk satu lead (checklist masih kosong), otomatis terisi 14 dokumen standar KPR/KPA** (`DEFAULT_BERKAS_ITEMS` di `getSalesData.ts`, sumber: form resmi "Layanan KPR/KPA" Griya Indonesia Real Estate) -- agen tinggal centang yang relevan dan hapus (`Hapus`) yang tidak perlu untuk lead itu, bisa juga tambah dokumen lain di luar daftar standar. Langkah ini dianggap selesai kalau berkas sudah disubmit DAN semua item yang tersisa di checklist sudah tercentang
 3. **BAST Kunci** -- serah terima kunci (= akad selesai di Notaris, dan di Bank juga kalau toggle "Pembelian KPR" aktif per lead, label menyesuaikan otomatis)
 
-Guard sederhana: langkah 3 baru bisa ditandai selesai setelah langkah 1 dan 2 beres. Progress disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **bukan tabel baru**) lewat update langsung dari client (pola sama seperti `LeadEditableFields.tsx` di CRM), dengan state lokal optimistik (bukan `router.refresh()`) supaya klik checklist di halaman berisi banyak lead tidak melompat-lompat posisi scroll-nya. Lihat `src/lib/sales/getSalesData.ts` (`getClosingChecklist`/`getClosingLeads`) dan `src/components/sales/ClosingLeadCard.tsx`.
+Guard sederhana: langkah 3 baru bisa ditandai selesai setelah langkah 1 dan 2 beres. Status bar bertema biru (outline = belum, biru penuh = selesai) dengan hover state. Progress disimpan di `customer.leads.metadata.closing_checklist` (JSONB, **bukan tabel baru**) lewat update langsung dari client (pola sama seperti `LeadEditableFields.tsx` di CRM), dengan state lokal optimistik (bukan `router.refresh()`) supaya klik checklist di halaman berisi banyak lead tidak melompat-lompat posisi scroll-nya. Lihat `src/lib/sales/getSalesData.ts` (`getClosingChecklist`/`getClosingLeads`/`DEFAULT_BERKAS_ITEMS`) dan `src/components/sales/ClosingLeadCard.tsx`.
+
+**Terhubung ke AI Agent**: daftar 14 dokumen KPR yang sama juga disimpan sebagai `knowledge.entries` (migration `051`) -- AI Agent bisa langsung jawab FAQ "syarat KPR apa saja?" dari lead lewat WhatsApp tanpa eskalasi ke agen manusia.
 
 **Belum termasuk**: generate dokumen PPJB/BAST/Form KPR otomatis dari checklist ini. Alur dokumen tanda tangan closing (spreadsheet "List Penjualan" + Apps Script "Form Otomatis") sudah diriset penuh secara terpisah tapi masih read-only/referensi, belum diintegrasikan -- lihat bagian "Alur Dokumen Tanda Tangan (Lead Closing)" di `docs/modules/crm.mdx`.
 
