@@ -260,7 +260,7 @@ function renderHtml(report: PlatformReport): string {
 
             <tr><td>
               ${sectionCard(
-                "AI Agent Hari Ini (Agregat Semua User)",
+                "AI Agent Kemarin (Agregat Semua User)",
                 null,
                 `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                   <tr>

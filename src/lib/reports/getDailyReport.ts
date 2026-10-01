@@ -6,7 +6,7 @@ import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsag
 
 export interface DailyReport {
   generatedAt: string;
-  /** Tanggal kalender WIB laporan ini (YYYY-MM-DD) -- dipakai buat link "lead baru hari ini" di email. */
+  /** Tanggal kalender WIB yang DIRANGKUM laporan ini (YYYY-MM-DD) -- yaitu KEMARIN relatif ke saat laporan dikirim (cron 07:00 WIB), bukan hari pengiriman. Dipakai buat dateline email & link "lead baru". */
   reportDateWIB: string;
   /** true kalau laporan ini agregat semua agent (admin/super_admin), false kalau di-scope ke satu user. */
   isAggregate: boolean;
@@ -68,14 +68,33 @@ function startOfTodayWIB(): Date {
   return new Date(wibMidnightUTC - WIB_OFFSET_MS);
 }
 
-/** Dipakai juga oleh getPlatformReport.ts supaya batas "hari ini" (AI Agent usage) konsisten antara Daily Report dan Platform Report. */
-export function startOfTodayISO(): string {
-  return startOfTodayWIB().toISOString();
+export interface ReportDayWindow {
+  /** Awal hari yang dilaporkan (WIB), ISO string -- batas bawah inklusif. */
+  startISO: string;
+  /** Awal hari SETELAHNYA (WIB), ISO string -- batas atas eksklusif. */
+  endISO: string;
+  /** Tanggal kalender (WIB) hari yang dilaporkan, YYYY-MM-DD. */
+  dateWIB: string;
 }
 
-function todayDateWIB(): string {
-  const wibNow = new Date(Date.now() + WIB_OFFSET_MS);
-  return wibNow.toISOString().slice(0, 10);
+/**
+ * Jendela SATU HARI PENUH yang dilaporkan -- hari KEMARIN (WIB), bukan "sejak
+ * tengah malam sampai sekarang" di hari laporan dikirim. Cron jalan 07:00 WIB
+ * tiap hari (lihat .github/workflows/daily-report.yml) -- kalau batas
+ * bawahnya "hari ini 00:00 WIB", datanya cuma kebagian 7 jam (00:00-07:00),
+ * nyaris kosong. Ketemu & diperbaiki 1 Oktober 2026 atas laporan Yohan.
+ * Dipakai Daily Report, Platform Report, dan getAiAgentUsage.ts supaya
+ * konsisten semua merangkum hari yang sama.
+ */
+export function getReportDayWindow(): ReportDayWindow {
+  const startOfToday = startOfTodayWIB();
+  const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+  const wibYesterday = new Date(startOfYesterday.getTime() + WIB_OFFSET_MS);
+  return {
+    startISO: startOfYesterday.toISOString(),
+    endISO: startOfToday.toISOString(),
+    dateWIB: wibYesterday.toISOString().slice(0, 10),
+  };
 }
 
 function isOverdue(metadata: unknown, cutoffISO: string): boolean {
@@ -107,7 +126,7 @@ export async function getDailyReport(
   options: GetDailyReportOptions = {}
 ): Promise<DailyReport> {
   const assignedTo = options.assignedTo ?? null;
-  const todayStart = startOfTodayISO();
+  const { startISO: dayStart, endISO: dayEnd, dateWIB } = getReportDayWindow();
   const followUpCutoff = new Date(Date.now() - FOLLOW_UP_OVERDUE_HOURS * 60 * 60 * 1000).toISOString();
   const frozenCutoff = new Date(Date.now() - FROZEN_LEAD_OVERDUE_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
@@ -139,7 +158,7 @@ export async function getDailyReport(
     coldLeads,
   ] = await Promise.all([
     leadsQuery(),
-    leadsQuery().gte("created_at", todayStart),
+    leadsQuery().gte("created_at", dayStart).lt("created_at", dayEnd),
     leadsQuery().ilike("metadata->>status_funnel_awal", "hot"),
     leadsQuery().ilike("metadata->>status_funnel_awal", "warm"),
     leadsQuery().ilike("metadata->>status_funnel_awal", "cold"),
@@ -168,7 +187,8 @@ export async function getDailyReport(
     else if (status === "sold") listingStats.sold += 1;
     else if (status === "hold") listingStats.hold += 1;
     if (metadata.hidden === true) listingStats.hidden += 1;
-    if (new Date(row.created_at).getTime() >= new Date(todayStart).getTime()) listingStats.newToday += 1;
+    const createdAt = new Date(row.created_at).getTime();
+    if (createdAt >= new Date(dayStart).getTime() && createdAt < new Date(dayEnd).getTime()) listingStats.newToday += 1;
   }
 
   // Chat tidak punya kolom assigned_to sendiri -- di-scope lewat lead_id
@@ -203,11 +223,18 @@ export async function getDailyReport(
             .from("messages")
             .select("sender_type, conversation_id")
             .in("conversation_id", conversationIds)
-            .gte("created_at", todayStart)
+            .gte("created_at", dayStart)
+            .lt("created_at", dayEnd)
             .is("deleted_at", null);
           return { data: data ?? [] };
         })()
-      : supabase.schema("chat").from("messages").select("sender_type, conversation_id").gte("created_at", todayStart).is("deleted_at", null),
+      : supabase
+          .schema("chat")
+          .from("messages")
+          .select("sender_type, conversation_id")
+          .gte("created_at", dayStart)
+          .lt("created_at", dayEnd)
+          .is("deleted_at", null),
   ]);
 
   const messageRows = conversationScopedMessages.data ?? [];
@@ -215,11 +242,11 @@ export async function getDailyReport(
   const messagesInToday = messageRows.filter((m) => m.sender_type === "customer").length;
   const messagesOutToday = messageRows.length - messagesInToday;
 
-  const aiAgent = await getAiAgentUsage(supabase, todayStart, assignedTo);
+  const aiAgent = await getAiAgentUsage(supabase, dayStart, dayEnd, assignedTo);
 
   return {
     generatedAt: new Date().toISOString(),
-    reportDateWIB: todayDateWIB(),
+    reportDateWIB: dateWIB,
     isAggregate: !assignedTo,
     leads: {
       total: leadsTotal.count ?? 0,

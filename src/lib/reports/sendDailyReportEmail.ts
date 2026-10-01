@@ -190,7 +190,7 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   ${kpiTile("Total Lead", leads.total, crm(""), "#7A1F1F")}
-                  ${kpiTile("Lead Baru Hari Ini", leads.newToday, crm(`dateFrom=${reportDateWIB}&dateTo=${reportDateWIB}`))}
+                  ${kpiTile("Lead Baru Kemarin", leads.newToday, crm(`dateFrom=${reportDateWIB}&dateTo=${reportDateWIB}`))}
                   ${kpiTile("Listing Aktif", listings.total, properties(""))}
                   ${kpiTile("Percakapan WA", chat.conversationsTotal, dashboard)}
                 </tr>
@@ -218,7 +218,7 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
                  <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6;font-size:12px;">
                    <a href="${properties("showHidden=true")}" style="color:#374151;text-decoration:none;">Tersembunyi <strong>${fmt(listings.hidden)}</strong></a>
                    &nbsp;&middot;&nbsp;
-                   <a href="${properties("")}" style="color:#374151;text-decoration:none;">Listing baru hari ini <strong>${fmt(listings.newToday)}</strong></a>
+                   <a href="${properties("")}" style="color:#374151;text-decoration:none;">Listing baru kemarin <strong>${fmt(listings.newToday)}</strong></a>
                  </div>`
               )}
             </td></tr>
@@ -227,17 +227,17 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
               ${sectionCard(
                 "WhatsApp",
                 `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-                  ${kpiTile("Percakapan Aktif Hari Ini", chat.activeConversationsToday, dashboard)}
+                  ${kpiTile("Percakapan Aktif Kemarin", chat.activeConversationsToday, dashboard)}
                   ${kpiTile("Pesan Masuk", chat.messagesInToday, dashboard)}
                   ${kpiTile("Pesan Keluar", chat.messagesOutToday, dashboard)}
-                  ${kpiTile("Total Pesan Hari Ini", chat.messagesToday, dashboard)}
+                  ${kpiTile("Total Pesan Kemarin", chat.messagesToday, dashboard)}
                 </tr></table>`
               )}
             </td></tr>
 
             <tr><td>
               ${sectionCard(
-                "AI Agent Hari Ini",
+                "AI Agent Kemarin",
                 `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                   ${kpiTile("Pesan Diproses", aiAgent.runsToday, dashboard)}
                   ${kpiTile("Balasan Terkirim", aiAgent.repliesSentToday, dashboard)}

@@ -39,10 +39,12 @@ function extractUsage(raw: Json | null): { input: number; output: number } {
 }
 
 /**
- * Pemakaian AI Agent hari ini (WIB) -- dipakai Daily Report (personal, di-scope
- * ke assignedTo) dan Platform Report (agregat, assignedTo null). Sumber data
- * nyata pertama (bukan roadmap/ilustratif seperti aiAgentRoadmap.ts) sejak AI
- * Agent live-tested 30 Sep 2026.
+ * Pemakaian AI Agent untuk SATU HARI PENUH (WIB, batas [dayStartISO,
+ * dayEndISO) -- lihat getReportDayWindow() di getDailyReport.ts, biasanya
+ * "kemarin" relatif ke saat laporan dikirim) -- dipakai Daily Report
+ * (personal, di-scope ke assignedTo) dan Platform Report (agregat,
+ * assignedTo null). Sumber data nyata pertama (bukan roadmap/ilustratif
+ * seperti aiAgentRoadmap.ts) sejak AI Agent live-tested 30 Sep 2026.
  *
  * Token/biaya dari ai.agent_runs.llm_raw_response.usage (respons asli Claude
  * API). Butuh follow-up dari core.notifications (sudah per-recipient, jadi
@@ -52,14 +54,16 @@ function extractUsage(raw: Json | null): { input: number; output: number } {
  */
 export async function getAiAgentUsage(
   supabase: SupabaseClient<Database>,
-  todayStartISO: string,
+  dayStartISO: string,
+  dayEndISO: string,
   assignedTo: string | null
 ): Promise<AiAgentUsage> {
   const { data: runs } = await supabase
     .schema("ai")
     .from("agent_runs")
     .select("lead_id, status, reply_sent, llm_raw_response")
-    .gte("created_at", todayStartISO);
+    .gte("created_at", dayStartISO)
+    .lt("created_at", dayEndISO);
 
   let scopedRuns = (runs ?? []) as AgentRunRow[];
 
@@ -93,7 +97,8 @@ export async function getAiAgentUsage(
     .eq("sender_type", "agent")
     .eq("metadata->>message_type", "image")
     .eq("metadata->>ai_generated", "true")
-    .gte("created_at", todayStartISO);
+    .gte("created_at", dayStartISO)
+    .lt("created_at", dayEndISO);
 
   let photosSentToday = (photoMessages ?? []).length;
 
@@ -114,7 +119,8 @@ export async function getAiAgentUsage(
     .from("notifications")
     .select("id", { count: "exact", head: true })
     .eq("type", "ai_agent_needs_follow_up")
-    .gte("created_at", todayStartISO);
+    .gte("created_at", dayStartISO)
+    .lt("created_at", dayEndISO);
   if (assignedTo) followUpQuery = followUpQuery.eq("recipient_id", assignedTo);
   const { count: needsFollowUpToday } = await followUpQuery;
 

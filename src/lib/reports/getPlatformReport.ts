@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
-import { startOfTodayISO } from "@/lib/reports/getDailyReport";
+import { getReportDayWindow } from "@/lib/reports/getDailyReport";
 
 export interface PlatformReport {
   generatedAt: string;
@@ -193,6 +193,7 @@ function getIntegrationsStatus(vercel: PlatformReport["vercel"]): IntegrationSta
  */
 export async function getPlatformReport(supabase: SupabaseClient<Database>): Promise<PlatformReport> {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { startISO: dayStart, endISO: dayEnd } = getReportDayWindow();
 
   const [
     usersResult,
@@ -225,7 +226,7 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     getResendUsage(),
     getVercelStatus(),
     supabase.schema("auth_ext").from("google_contacts_access_requests").select("user_id").eq("status", "pending"),
-    getAiAgentUsage(supabase, startOfTodayISO(), null),
+    getAiAgentUsage(supabase, dayStart, dayEnd, null),
   ]);
 
   const stats = platformStats.data?.[0];
