@@ -42,6 +42,7 @@ export interface AgentDecision {
   needsFollowUp: boolean;
   followUpNote: string | null;
   sharePhotoUrls: string[];
+  confirmedName: string | null;
 }
 
 export interface InterpretLeadReplyResult {
@@ -77,13 +78,25 @@ ATURAN BALAS OTOMATIS:
 - JANGAN membuat janji/komitmen atas nama perusahaan (harga khusus, diskon, jadwal pasti).
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
 
+ATURAN SURVEY, NEGOSIASI HARGA, DAN LOKASI PERSIS (maps) -- JANGAN mengambil keputusan ini sendiri:
+- Kalau lead mengajukan/menanyakan JADWAL SURVEY spesifik (hari/jam tertentu, atau "kapan saya bisa survey"), JANGAN konfirmasi atau menyepakati waktu apa pun sendiri -- jarak lokasi dan lalu lintas yang tidak pasti bikin agen lapangan sulit kalau sudah terlanjur dijanjikan AI. Balas diplomatis bahwa agen lapangan akan menghubungi langsung untuk atur jadwal yang pas, dan set needsFollowUp: true dengan followUpNote yang jelas (mis. "Lead mau survey, minta diatur jadwal oleh agen lapangan").
+- Kalau lead mencoba NEGOSIASI HARGA/diskon/angka akhir, JANGAN menyepakati atau menyebut angka baru apa pun -- itu keputusan manusia. Balas diplomatis bahwa agen akan hubungi langsung untuk membahas ini, set needsFollowUp: true.
+- Kalau lead minta LOKASI PERSIS/pin Google Maps/titik koordinat, JANGAN mengarang atau memberi link apa pun walau Anda merasa tahu alamatnya -- cukup sebutkan alamat umum yang memang sudah ada di data listing (kalau ada), lalu balas bahwa agen lapangan akan kirim lokasi persis saat menghubungi. Set needsFollowUp: true.
+- Pola jawaban untuk ketiga hal di atas: SELALU arahkan ke "agen lapangan akan menghubungi langsung", JANGAN pernah mengiyakan/memastikan sendiri.
+
+ATURAN KONFIRMASI NAMA & SAPAAN:
+- Nama lead dianggap BELUM JELAS kalau: kosong, mengandung "(NN)", persis "Test Lead", atau cuma angka/nomor HP. Kalau nama lead saat ini JELAS (nama asli), JANGAN tanya nama lagi, langsung sapa dengan itu.
+- Kalau nama BELUM JELAS dan riwayat percakapan sudah ada minimal 3 pesan (gabungan lead+agen) TANPA pernah ada pertanyaan soal nama sebelumnya, selipkan pertanyaan sopan di replyText, mis. "Sebelumnya mohon maaf, boleh tahu ini dengan Bapak/Ibu siapa ya?" -- JANGAN tanya di pesan pertama/kedua (terkesan interogatif).
+- JANGAN asumsikan sapaan "Bapak"/"Ibu" sebelum lead sendiri menyebutkan atau mengonfirmasinya.
+- Kalau pesan BARU dari lead berisi jawaban atas pertanyaan nama (nama atau sapaan yang diinginkan, mis. "saya Pak Yohan" / "panggil Bu Siti aja"), isi confirmedName dengan nama itu PERSIS seperti disebutkan lead (termasuk sapaan kalau ada, mis. "Pak Yohan") supaya bisa disimpan ke data lead. Kalau tidak ada info nama baru di pesan ini, confirmedName: null.
+
 ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
 - followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
 - needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
-{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[]}`;
+{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[], "confirmedName": string|null}`;
 
 function formatRupiah(n: number): string {
   return `Rp${n.toLocaleString("id-ID")}`;
@@ -180,8 +193,16 @@ function isValidDecision(value: unknown): value is AgentDecision {
   const validFollowUpNote = v.followUpNote === null || v.followUpNote === undefined || typeof v.followUpNote === "string";
   const validSharePhotoUrls =
     v.sharePhotoUrls === undefined || (Array.isArray(v.sharePhotoUrls) && v.sharePhotoUrls.every((u) => typeof u === "string"));
+  const validConfirmedName = v.confirmedName === null || v.confirmedName === undefined || typeof v.confirmedName === "string";
   return (
-    validTemp && validReply && validReasoning && validConfidence && validNeedsFollowUp && validFollowUpNote && validSharePhotoUrls
+    validTemp &&
+    validReply &&
+    validReasoning &&
+    validConfidence &&
+    validNeedsFollowUp &&
+    validFollowUpNote &&
+    validSharePhotoUrls &&
+    validConfirmedName
   );
 }
 
@@ -254,8 +275,9 @@ export async function interpretLeadReply(
     return { decision: null, rawResponse: json, error: "Respons LLM tidak sesuai format yang diharapkan" };
   }
 
-  // followUpNote boleh diomit oleh LLM saat needsFollowUp false -- normalisasi ke null.
+  // followUpNote/confirmedName boleh diomit oleh LLM -- normalisasi ke null.
   if (parsed.followUpNote === undefined) parsed.followUpNote = null;
+  if (parsed.confirmedName === undefined) parsed.confirmedName = null;
   if (parsed.sharePhotoUrls === undefined) parsed.sharePhotoUrls = [];
 
   // Jangan percaya URL apa adanya dari LLM (walau sudah diinstruksikan copy-paste

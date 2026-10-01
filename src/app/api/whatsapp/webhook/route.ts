@@ -288,6 +288,7 @@ async function runAiAgent(
   await applyAgentDecision(supabase, {
     leadId,
     leadName: `${lead.first_name} ${lead.last_name}`.trim() || lead.phone,
+    currentFirstName: lead.first_name,
     leadPhone: lead.phone,
     assignedTo: lead.assigned_to,
     conversationId,

@@ -10,6 +10,7 @@ import { getAdminUserIds } from "@/lib/notifications/getAdminUserIds";
 export interface ApplyAgentDecisionInput {
   leadId: string;
   leadName: string;
+  currentFirstName: string;
   leadPhone: string;
   assignedTo: string | null;
   conversationId: string;
@@ -19,6 +20,16 @@ export interface ApplyAgentDecisionInput {
   decision: AgentDecision;
   inputSnapshot: Json;
   rawResponse: Json | null;
+}
+
+/** Nama dianggap placeholder (bukan nama asli) -- sama seperti kriteria di system prompt interpretLeadReply.ts, harus tetap sinkron. */
+function isPlaceholderName(name: string): boolean {
+  const trimmed = name.trim();
+  if (!trimmed) return true;
+  if (/\(NN\)/i.test(trimmed)) return true;
+  if (/^test lead$/i.test(trimmed)) return true;
+  if (/^[0-9+\s-]+$/.test(trimmed)) return true;
+  return false;
 }
 
 /**
@@ -44,6 +55,18 @@ export async function applyAgentDecision(
       .schema("customer")
       .from("leads")
       .update({ metadata: { ...baseMetadata, status_funnel_awal: decision.newTemperature } })
+      .eq("id", input.leadId);
+  }
+
+  // Simpan nama yang baru dikonfirmasi lead -- CUMA kalau nama saat ini
+  // masih placeholder (mis. "Test Lead", "(NN)"). Jangan pernah menimpa nama
+  // asli yang sudah ada -- confirmedName dari LLM dipercaya sebagai sumber
+  // baru, bukan sumber otoritatif kalau sudah ada data lebih baik.
+  if (decision.confirmedName && isPlaceholderName(input.currentFirstName)) {
+    await supabaseAdmin
+      .schema("customer")
+      .from("leads")
+      .update({ first_name: decision.confirmedName })
       .eq("id", input.leadId);
   }
 
