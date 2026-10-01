@@ -9,7 +9,6 @@ import {
   Building2,
   UserPlus,
   Upload,
-  BarChart3,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/shared/WhatsAppIcon";
 
@@ -96,28 +95,28 @@ export default async function DashboardPage() {
 
       <SectionCard title="Quick Actions" description="Frequently used operations">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Link href="/properties">
+          <Link href="/properties/new">
             <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
               <Upload className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              <span className="text-base font-semibold">Import Listing</span>
+              <span className="text-base font-semibold">Tambah Listing</span>
+            </Button>
+          </Link>
+          <Link href="/properties">
+            <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
+              <Building2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-base font-semibold">Lihat Listing</span>
             </Button>
           </Link>
           <Link href="/crm/new">
             <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
               <UserPlus className="h-5 w-5 text-brand" />
-              <span className="text-base font-semibold">Add Lead</span>
+              <span className="text-base font-semibold">Tambah Lead</span>
             </Button>
           </Link>
           <Link href="/crm">
             <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
               <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="text-base font-semibold">Open CRM</span>
-            </Button>
-          </Link>
-          <Link href="/sales">
-            <Button variant="outline" className="h-24 w-full flex flex-col items-center justify-center gap-2">
-              <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-base font-semibold">View Reports</span>
+              <span className="text-base font-semibold">Buka CRM</span>
             </Button>
           </Link>
         </div>

@@ -82,6 +82,66 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "dashboard",
+    title: "Membaca Dashboard",
+    description: "Arti tiap kartu statistik dan tombol di halaman utama.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Halaman <strong>Dashboard</strong> adalah halaman pertama yang muncul setelah login -- ringkasan
+          cepat kondisi lead, listing, dan percakapan WhatsApp milik Anda sendiri (admin melihat versi agregat
+          semua akun).
+        </GuideP>
+
+        <GuideHeading>Kartu Statistik</GuideHeading>
+        <GuideList
+          items={[
+            <><strong>Total Leads</strong> -- jumlah lead aktif yang di-assign ke Anda.</>,
+            <><strong>Active Chats</strong> -- jumlah percakapan WhatsApp yang sedang berjalan.</>,
+            <><strong>Properties</strong> -- jumlah listing properti milik Anda.</>,
+            <><strong>Today&apos;s New Leads</strong> -- lead baru yang masuk hari ini saja (reset tiap tengah malam).</>,
+          ]}
+        />
+
+        <GuideHeading>Lead Funnel</GuideHeading>
+        <GuideP>
+          Grafik batang yang menunjukkan distribusi lead Anda per status Temperature (Hot/Warm/Cold/Closing/
+          Batal) -- sekilas kelihatan mana yang butuh perhatian lebih dulu.
+        </GuideP>
+
+        <GuideHeading>Recent Leads & Recent Chats</GuideHeading>
+        <GuideP>
+          Dua kartu ini menampilkan lead dan percakapan WhatsApp paling baru. Klik salah satu chat di{" "}
+          <strong>Recent Chats</strong> untuk langsung buka thread percakapannya tanpa pindah halaman -- update
+          pesan baru muncul otomatis (real-time), tidak perlu refresh.
+        </GuideP>
+
+        <GuideHeading>Buyer Behavior Insight</GuideHeading>
+        <GuideP>
+          Panel ini meringkas pola perilaku calon pembeli dari data lead Anda (mis. area yang paling banyak
+          diminati, lead yang butuh follow-up) -- insight otomatis, bukan isian manual.
+        </GuideP>
+
+        <GuideHeading>Ringkasan Listing (Available/Booked/Sold/Hold)</GuideHeading>
+        <GuideP>
+          Menunjukkan berapa listing Anda yang masih tersedia, sudah di-booking, sudah terjual, atau sedang
+          ditahan (hold) -- status ini diatur manual di tiap halaman detail listing.
+        </GuideP>
+
+        <GuideHeading>Quick Actions</GuideHeading>
+        <GuideList
+          items={[
+            <><strong>Tambah Listing</strong> -- buka form tambah listing properti baru.</>,
+            <><strong>Lihat Listing</strong> -- buka daftar semua listing Anda.</>,
+            <><strong>Tambah Lead</strong> -- buka form tambah lead manual.</>,
+            <><strong>Buka CRM</strong> -- buka daftar semua lead Anda.</>,
+          ]}
+        />
+      </>
+    ),
+  },
+  {
     slug: "peran-dan-hak-akses",
     title: "Peran & Hak Akses (Role)",
     description: "Siapa bisa lihat data apa, dan bagaimana role ditentukan.",
