@@ -39,6 +39,7 @@ interface PropertyEditableFieldsProps {
   carport: number | null;
   certificateType: string | null;
   contactPhone: string | null;
+  mapsUrl: string | null;
   aiTags: string[];
 }
 
@@ -53,6 +54,7 @@ export function PropertyEditableFields({
   carport,
   certificateType,
   contactPhone,
+  mapsUrl,
   aiTags,
 }: PropertyEditableFieldsProps) {
   const router = useRouter();
@@ -68,6 +70,7 @@ export function PropertyEditableFields({
   const [formCarport, setFormCarport] = useState(carport?.toString() ?? "");
   const [formCertificateType, setFormCertificateType] = useState(certificateType ?? "");
   const [formContactPhone, setFormContactPhone] = useState(contactPhone ?? "");
+  const [formMapsUrl, setFormMapsUrl] = useState(mapsUrl ?? "");
   const [formAiTags, setFormAiTags] = useState(aiTags.join(", "));
 
   function handleCancel() {
@@ -79,6 +82,7 @@ export function PropertyEditableFields({
     setFormCarport(carport?.toString() ?? "");
     setFormCertificateType(certificateType ?? "");
     setFormContactPhone(contactPhone ?? "");
+    setFormMapsUrl(mapsUrl ?? "");
     setFormAiTags(aiTags.join(", "));
     setError(null);
     setIsEditing(false);
@@ -116,6 +120,7 @@ export function PropertyEditableFields({
           carport: formCarport ? Number(formCarport) : null,
           certificate_type: formCertificateType || null,
           contact_phone: formContactPhone.trim() || null,
+          maps_url: formMapsUrl.trim() || null,
           ai_tags: aiTagsList,
         },
       })
@@ -149,6 +154,10 @@ export function PropertyEditableFields({
           <DetailField label="Carport" value={carport} />
           <DetailField label="Sertifikat" value={certificateType} />
           <DetailField label="No. HP Kontak (di flyer)" value={contactPhone} />
+          <DetailField
+            label="Link Google Maps"
+            value={mapsUrl ? <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Buka Maps</a> : undefined}
+          />
           <DetailField label="Tag / Info AI" value={aiTags.length ? aiTags.join(", ") : undefined} />
         </div>
       </div>
@@ -255,6 +264,16 @@ export function PropertyEditableFields({
             value={formContactPhone}
             onChange={(e) => setFormContactPhone(e.target.value)}
             placeholder="mis. 0821-5041-5012"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-mapsUrl">Link Google Maps (opsional)</Label>
+          <Input
+            id="edit-mapsUrl"
+            value={formMapsUrl}
+            onChange={(e) => setFormMapsUrl(e.target.value)}
+            placeholder="mis. https://maps.app.goo.gl/..."
           />
         </div>
 
