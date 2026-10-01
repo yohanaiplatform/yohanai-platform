@@ -1,0 +1,396 @@
+// src/lib/panduan/sections.tsx
+
+import type { ReactNode } from "react";
+
+export type PanduanStatus = "ready" | "partial" | "coming_soon";
+
+export interface PanduanSection {
+  slug: string;
+  title: string;
+  description: string;
+  status: PanduanStatus;
+  /** Link YouTube -- isi kalau sudah ada rekaman, kosongkan dulu kalau belum (halaman detail otomatis sembunyikan blok video). */
+  videoUrl?: string;
+  Content: () => ReactNode;
+}
+
+function GuideHeading({ children }: { children: ReactNode }) {
+  return <h3 className="mt-6 text-sm font-semibold text-foreground first:mt-0">{children}</h3>;
+}
+
+function GuideP({ children }: { children: ReactNode }) {
+  return <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{children}</p>;
+}
+
+function GuideList({ items }: { items: ReactNode[] }) {
+  return (
+    <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
+      {items.map((item, i) => (
+        <li key={i}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function GuideNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+      {children}
+    </div>
+  );
+}
+
+export const PANDUAN_SECTIONS: PanduanSection[] = [
+  {
+    slug: "mulai-menggunakan-platform",
+    title: "Mulai Menggunakan Platform",
+    description: "Cara masuk ke platform, verifikasi email, dan login.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Yohan.AI bisa diakses lewat email/password atau Google. Begitu akun dibuat, sistem mengirim email
+          verifikasi (kecuali akun dibuat manual lewat Supabase Dashboard dengan opsi &quot;Auto Confirm
+          User&quot; dicentang -- langsung aktif tanpa verifikasi).
+        </GuideP>
+        <GuideHeading>Login</GuideHeading>
+        <GuideP>
+          Buka <code>yohanai.id</code>, masuk pakai email/password yang sudah terdaftar, atau tombol
+          &quot;Login dengan Google&quot; kalau akunnya terhubung ke Google.
+        </GuideP>
+        <GuideHeading>Lupa password</GuideHeading>
+        <GuideP>
+          Halaman login punya link &quot;Lupa Password&quot; -- masukkan email, link reset dikirim lewat email
+          (Resend).
+        </GuideP>
+        <GuideNote>
+          <strong>Pendaftaran mandiri sedang ditutup sementara.</strong> Platform masih dalam mode pemakaian
+          personal -- akun baru dibuat manual oleh admin (bukan daftar sendiri lewat form). Kalau butuh akun
+          baru, minta admin buatkan dulu lewat Supabase Dashboard, baru login pakai kredensial yang diberikan.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
+    slug: "peran-dan-hak-akses",
+    title: "Peran & Hak Akses (Role)",
+    description: "Siapa bisa lihat data apa, dan bagaimana role ditentukan.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Setiap akun punya satu <em>role</em> yang menentukan data apa yang bisa dilihat. Role yang tersedia di
+          sistem: <code>super_admin</code>, <code>admin</code>, <code>manager</code>, <code>agent</code>,{" "}
+          <code>marketing</code>, <code>customer_service</code>.
+        </GuideP>
+        <GuideHeading>Yang benar-benar membedakan akses hari ini</GuideHeading>
+        <GuideList
+          items={[
+            <>
+              <strong>Admin/Super Admin</strong> -- lihat & kelola SEMUA lead dan listing di seluruh platform,
+              tanpa batasan.
+            </>,
+            <>
+              <strong>Role lain (manager, agent, marketing, dst)</strong> -- cuma lihat lead/listing yang
+              di-<em>assign</em> ke akun itu sendiri. Saat ini semua role non-admin diperlakukan SAMA secara
+              teknis (belum ada pembeda akses antara manager dan agent) -- pembedaan lebih detail antar role
+              masih direncanakan, belum dibangun.
+            </>,
+          ]}
+        />
+        <GuideHeading>Cara role ditentukan</GuideHeading>
+        <GuideP>
+          Role tidak dipilih sendiri saat mendaftar -- diatur manual oleh admin lewat database setelah akun
+          dibuat. Kalau role terasa salah atau Anda butuh akses berbeda, hubungi admin.
+        </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "update-profil",
+    title: "Update Profil",
+    description: "Lengkapi data diri dan lihat progres kelengkapan profil.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Halaman <strong>Profil</strong> (ikon akun di kanan atas) menampilkan progress bar kelengkapan profil
+          dan form edit nama serta data pribadi lain.
+        </GuideP>
+        <GuideList
+          items={[
+            "Progress bar naik otomatis begitu field wajib terisi -- tidak perlu tombol \"simpan kelengkapan\" terpisah.",
+            "Perubahan tersimpan langsung ke database saat form di-submit.",
+          ]}
+        />
+      </>
+    ),
+  },
+  {
+    slug: "pengaturan",
+    title: "Pengaturan (Settings)",
+    description: "Integrasi akun pribadi yang bisa dihubungkan ke platform.",
+    status: "partial",
+    Content: () => (
+      <>
+        <GuideP>
+          Halaman <strong>Settings</strong> saat ini baru berisi satu fitur: menghubungkan akun{" "}
+          <strong>Google Contacts</strong> pribadi Anda.
+        </GuideP>
+        <GuideHeading>Kenapa hubungkan Google Contacts</GuideHeading>
+        <GuideP>
+          Begitu terhubung, lead yang Anda tambah manual lewat &quot;Add Lead&quot; di CRM otomatis tersimpan
+          juga sebagai kontak di Google Contacts/HP Anda sendiri -- jadi nomor lead langsung ada di kontak HP
+          tanpa input dua kali.
+        </GuideP>
+        <GuideHeading>Kalau gagal connect</GuideHeading>
+        <GuideP>
+          Google masih dalam mode &quot;Testing&quot; untuk integrasi ini -- kalau muncul error akses ditolak,
+          klik tombol &quot;Ajukan Akses&quot; di halaman yang sama. Admin akan dapat notifikasi dan menambahkan
+          email Anda sebagai test user secara manual.
+        </GuideP>
+        <GuideNote>
+          Fitur Settings lain (preferensi notifikasi, dll) masih akan ditambahkan -- halaman ini akan terus
+          berkembang.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
+    slug: "mengelola-lead",
+    title: "Mengelola Lead (CRM)",
+    description: "Tambah, cari, assign, dan chat dengan lead lewat WhatsApp.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Menu <strong>CRM</strong> menampilkan daftar lead (calon pembeli). Lead masuk otomatis dari WhatsApp
+          (begitu nomor baru chat ke sistem) atau ditambah manual lewat tombol &quot;Add Lead&quot;.
+        </GuideP>
+        <GuideHeading>Mencari & menyaring</GuideHeading>
+        <GuideP>
+          Kolom pencarian di atas daftar lead mencari nama, nomor HP, DAN istilah lokasi/minat yang pernah
+          dicatat (mis. ketik &quot;Serdam&quot; untuk nemu lead yang minatnya di area itu). Filter Temperature
+          (Hot/Warm/Cold/Closing/Batal) ada di samping.
+        </GuideP>
+        <GuideHeading>Buka Lead Detail</GuideHeading>
+        <GuideList
+          items={[
+            "Ubah Temperature dan siapa yang ditugaskan (assigned) ke lead itu.",
+            "Percakapan WhatsApp tampil live di bagian bawah -- bisa balas langsung dari situ, update real-time tanpa refresh halaman.",
+            "Catatan (notes) bisa ditambahkan untuk mencatat detail penting yang tidak masuk field standar.",
+          ]}
+        />
+        <GuideHeading>Export</GuideHeading>
+        <GuideP>
+          Tombol Export mengunduh hasil filter/pencarian yang sedang aktif sebagai CSV -- bukan seluruh data,
+          cuma yang cocok filter saat itu.
+        </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "mengelola-listing",
+    title: "Mengelola Listing Properti",
+    description: "Tambah listing baru, kelola foto, dan atur visibilitasnya.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Menu <strong>Properties</strong> menampilkan semua listing. Tombol &quot;+ Tambah Listing&quot; buka
+          form judul, harga, alamat, spesifikasi, dan field <strong>Tag / Info AI</strong> (lihat panduan
+          terpisah -- wajib diisi).
+        </GuideP>
+        <GuideHeading>Foto listing</GuideHeading>
+        <GuideList
+          items={[
+            "Upload lewat halaman detail listing, otomatis dikompres + diberi watermark logo.",
+            "Foto pertama di daftar = foto sampul, dipakai di grid list.",
+            <>
+              <strong>Hapus foto itu PERMANEN</strong> -- begitu dikonfirmasi, file-nya benar-benar hilang dari
+              penyimpanan (R2), tidak bisa dipulihkan lagi. Selalu ada konfirmasi dulu sebelum terhapus.
+            </>,
+          ]}
+        />
+        <GuideHeading>Sembunyikan vs Hapus</GuideHeading>
+        <GuideP>
+          &quot;Sembunyikan&quot; itu sementara -- listing hilang dari daftar publik tapi datanya tetap utuh,
+          bisa ditampilkan lagi kapan saja. &quot;Hapus&quot; itu beda: listingnya sendiri masih bisa dipulihkan
+          lewat database kalau salah hapus, TAPI semua fotonya langsung terhapus permanen dari penyimpanan saat
+          itu juga -- tidak ikut bisa dipulihkan.
+        </GuideP>
+        <GuideHeading>Data Pemilik & Komisi</GuideHeading>
+        <GuideP>
+          Bagian ini rahasia -- cuma admin dan agent yang ditugaskan ke listing itu yang bisa lihat, dan tidak
+          pernah ikut ke flyer/export promosi.
+        </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "tag-ai-dan-deskripsi",
+    title: "Tag / Info AI & Deskripsi untuk AI Agent",
+    description: "Supaya AI Agent bisa jawab pertanyaan lead dengan benar.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Dua field di listing ini yang paling menentukan apakah AI Agent bisa menjawab pertanyaan lead dengan
+          tepat lewat WhatsApp -- bukan sekadar field administratif biasa.
+        </GuideP>
+        <GuideHeading>Tag / Info AI (wajib diisi)</GuideHeading>
+        <GuideP>
+          Isi dengan istilah yang masyarakat BENERAN pakai sehari-hari, dipisah koma -- BUKAN alamat resmi.
+          Boleh istilah lokasi informal (&quot;Kotabaru&quot;, &quot;Kobar&quot;, &quot;dekat Untan&quot;,
+          &quot;Paris 2&quot;) MAUPUN kategori/ciri listing (&quot;rumah subsidi&quot;, &quot;rumah second&quot;).
+          Kalau lead tanya &quot;ada subsidi di Kobar?&quot; lewat WhatsApp, AI Agent mencocokkan pertanyaan itu
+          ke tag ini -- tanpa tag yang tepat, AI tidak akan nemu listingnya walau datanya ada.
+        </GuideP>
+        <GuideHeading>Deskripsi</GuideHeading>
+        <GuideP>
+          AI Agent membaca isi Deskripsi untuk jawab pertanyaan detail -- DP akad, harga KPR vs cash per
+          blok/tipe, promo, cicilan. Kalau detail itu cuma ditulis di Deskripsi (tidak ada field terpisah),
+          pastikan ditulis jelas di situ supaya AI bisa mengutipnya saat menjawab lead.
+        </GuideP>
+        <GuideNote>
+          Listing lama hasil migrasi (sebelum field ini ada) belum semuanya terisi Tag / Info AI -- kalau AI
+          Agent kelihatan &quot;tidak tahu&quot; soal listing tertentu, cek dulu apakah tag-nya sudah diisi.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
+    slug: "whatsapp-komunikasi",
+    title: "Menyambungkan WhatsApp (Komunikasi)",
+    description: "Cara kerja chat WhatsApp dan status koneksinya saat ini.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          WhatsApp terhubung lewat Kapso (penyedia resmi WhatsApp Cloud API Meta) -- pesan masuk otomatis
+          dicocokkan ke lead lewat nomor HP, lalu AI Agent (lihat panduan terpisah) membaca & membalas kalau
+          relevan.
+        </GuideP>
+        <GuideHeading>Balas manual</GuideHeading>
+        <GuideP>
+          Dari halaman Lead Detail, ketik balasan di kolom chat -- terkirim lewat nomor WhatsApp yang sama,
+          muncul langsung (real-time) di layar siapa pun yang sedang buka percakapan itu juga.
+        </GuideP>
+        <GuideNote>
+          <strong>Status saat ini: nomor sandbox Kapso</strong> (untuk tes/pengembangan) -- nomor WhatsApp
+          produksi Griya Indonesia Real Estate belum tersambung. Panduan ini akan diperbarui begitu nomor
+          produksi aktif.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
+    slug: "ai-agent-otomatis",
+    title: "AI Agent Otomatis",
+    description: "Cara kerja balasan WhatsApp otomatis, dan batasannya.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Begitu pesan WhatsApp masuk dari lead, AI Agent otomatis membaca konteks (riwayat chat, data lead,
+          listing yang relevan) lalu memutuskan: perlu balas apa, apakah status Temperature lead perlu berubah,
+          dan apakah perlu dikirim foto listing.
+        </GuideP>
+        <GuideHeading>Yang bisa dilakukan AI Agent</GuideHeading>
+        <GuideList
+          items={[
+            "Membalas pertanyaan umum (harga, lokasi, spesifikasi, DP/cicilan) pakai data listing yang benar-benar ada di sistem.",
+            "Mengirim foto listing asli lewat WhatsApp -- TAPI cuma kalau lead eksplisit minta foto/gambar/video (AI sengaja tidak menawarkan sendiri supaya tidak terkesan memaksa, sekalian hemat biaya).",
+            "Menampilkan indikator \"sedang mengetik...\" di WhatsApp lead selama memproses.",
+            "Mengubah status Temperature otomatis kalau ada sinyal jelas dari pesan lead (mis. \"saya sudah booking\" -> Closing).",
+          ]}
+        />
+        <GuideHeading>Yang TIDAK dilakukan AI Agent</GuideHeading>
+        <GuideList
+          items={[
+            "Tidak pernah mengarang detail yang tidak ada di sistem (harga, ketersediaan, dll) -- kalau tidak tahu, dia akui jujur dan catat buat ditindaklanjuti manual.",
+            "Tidak membuat janji/komitmen atas nama perusahaan (diskon khusus, jadwal pasti).",
+          ]}
+        />
+        <GuideHeading>Butuh Follow-up</GuideHeading>
+        <GuideP>
+          Kalau AI mentok karena data yang ditanya lead memang tidak ada di sistem, dia tetap balas sopan ke
+          lead DAN kirim notifikasi in-app ke agen yang ditugaskan (atau semua admin kalau lead belum
+          ditugaskan) -- supaya ada tindak lanjut manual, bukan hilang begitu saja.
+        </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "notifikasi",
+    title: "Notifikasi In-App",
+    description: "Ikon lonceng di kanan atas, kapan muncul notifikasi baru.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Ikon lonceng di pojok kanan atas menampilkan notifikasi yang relevan untuk akun Anda. Titik merah
+          muncul kalau ada yang belum dibaca.
+        </GuideP>
+        <GuideHeading>Yang memicu notifikasi saat ini</GuideHeading>
+        <GuideList
+          items={[
+            "AI Agent butuh follow-up manusia -- muncul ke agen yang ditugaskan ke lead itu (atau semua admin).",
+            "Permintaan akses Google Contacts dari user lain -- muncul ke admin, dengan tombol \"Setujui\" langsung di notifikasinya.",
+          ]}
+        />
+      </>
+    ),
+  },
+  {
+    slug: "laporan-harian",
+    title: "Laporan Harian & Platform",
+    description: "Email ringkasan aktivitas yang terkirim tiap pagi.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Setiap pagi jam <strong>07:00 WIB</strong>, sistem otomatis mengirim email ringkasan aktivitas{" "}
+          <strong>hari sebelumnya</strong> (00:00-23:59 WIB) ke email login Anda -- tidak perlu setting apa pun,
+          aktif secara default.
+        </GuideP>
+        <GuideHeading>Isi laporan personal</GuideHeading>
+        <GuideP>
+          Total lead & listing, lead baru kemarin, distribusi Temperature, listing yang butuh perhatian
+          (Follow-up Backlog, Lead Beku), aktivitas WhatsApp, dan pemakaian AI Agent -- semuanya di-scope ke
+          data milik Anda sendiri (admin dapat versi agregat semua data).
+        </GuideP>
+        <GuideHeading>Mematikan laporan</GuideHeading>
+        <GuideP>
+          Preferensi notifikasi (termasuk toggle laporan harian) ada di halaman terpisah, bisa dimatikan kapan
+          saja.
+        </GuideP>
+      </>
+    ),
+  },
+  {
+    slug: "berlangganan-ai-model",
+    title: "Berlangganan AI Model",
+    description: "Status fitur subscription AI untuk pengguna -- belum tersedia.",
+    status: "coming_soon",
+    Content: () => (
+      <>
+        <GuideNote>
+          <strong>Fitur ini belum dibangun.</strong> Belum ada sistem berlangganan/billing per pengguna di
+          platform ini.
+        </GuideNote>
+        <GuideP>
+          Saat ini AI Agent berjalan memakai satu API key Claude milik pemilik platform (bukan API key pribadi
+          tiap user) -- jadi semua user yang pakai AI Agent otomatis ikut memakai kapasitas itu bersama, tanpa
+          perlu daftar/bayar terpisah ke penyedia AI. Rencana ke depan: tiap user bisa punya pengaturan/kuota
+          sendiri, dengan pembayaran dikelola lewat platform (bukan user daftar langsung ke Anthropic) --
+          panduan ini akan diperbarui begitu fitur ini dibangun.
+        </GuideP>
+      </>
+    ),
+  },
+];
+
+export function getPanduanSection(slug: string): PanduanSection | undefined {
+  return PANDUAN_SECTIONS.find((s) => s.slug === slug);
+}

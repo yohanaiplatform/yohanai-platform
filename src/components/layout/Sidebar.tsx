@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Share2,
   Settings,
+  BookOpen,
   LogOut,
 } from "lucide-react";
 
@@ -31,6 +32,7 @@ const navigation = [
   { name: "Communication", href: "/communication", icon: MessageSquare },
   { name: "Social", href: "/social", icon: Share2 },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Panduan", href: "/panduan", icon: BookOpen },
 ];
 
 export function Sidebar({
