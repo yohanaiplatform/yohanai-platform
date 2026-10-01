@@ -21,7 +21,7 @@ AI tidak menggantikan agen, tetapi bertindak sebagai **co-pilot** yang membantu 
 | Production Ready | ❌ No |
 | Backend | 🟡 Foundation — `getDashboardInsights.ts` cuma agregasi data lead (bukan model AI), belum ada AI Processor/LLM sungguhan |
 | UI | 🟡 Sebagian nyata (`AIInsightPanel.tsx`), sebagian placeholder ditandai "Segera hadir" |
-| AI Engine | 🟡 In Progress — AI Agent otomatis (Claude API) sudah dibangun 29 Sep 2026 malam, interpretasi balasan WA + update Temperature + auto-reply, aktivasi nunggu `ANTHROPIC_API_KEY` + expose schema `ai`, lihat bagian "AI Agent Otomatis" di bawah |
+| AI Engine | 🟢 Aktif — AI Agent otomatis (Claude API) sudah dibangun 29 Sep 2026 malam, sudah live-tested 2x + perbaikan bug (30 Sep), dan dapat pembaruan deflect survey/nego/maps + konfirmasi nama (1 Okt 2026), lihat bagian "AI Agent Otomatis" di bawah |
 
 **Task 014 (AI Agent / Intelligent Dashboard) — sebagian jalan (27 September 2026), keputusan arsitektur AI/LLM masih terbuka.**
 
@@ -102,6 +102,16 @@ Sekalian direlabel: field **"Tag Lokasi (AI Info)"** → **"Tag / Info AI (Lokas
 **Indikator "mengetik..." WhatsApp** juga ditambahkan (`typing_indicator` via Kapso, dikonfirmasi dukungannya ke `docs.kapso.ai`) — begitu webhook terima pesan yang bakal diproses AI Agent, sistem kirim status "sedang mengetik" ke WhatsApp lead sebelum Claude API dipanggil, supaya terasa ada proses berjalan (bukan didiamkan). Otomatis hilang ~25 detik atau begitu balasan terkirim (batasan platform WhatsApp/Meta, bukan kode kita).
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS untuk seluruh perubahan di atas.
+
+## AI Agent — Deflect Survey/Nego/Maps, Konfirmasi Nama (1 Oktober 2026)
+
+Yohan kirim 2 screenshot percakapan WA sandbox: AI sempat langsung menjawab "Rencananya kira-kira hari apa dan jam berapa?" begitu lead bilang mau survey -- komitmen jadwal yang seharusnya diserahkan ke agen lapangan (jarak lokasi & lalu lintas yang tidak pasti bikin AI tidak boleh menjanjikan sendiri). Dua perbaikan di `src/lib/ai/interpretLeadReply.ts` (system prompt saja, tidak ada migration):
+
+**1. Deflect survey / nego harga / lokasi persis.** Tiga topik ini sekarang SELALU dijawab diplomatis bahwa agen lapangan akan menghubungi langsung -- AI tidak pernah menyepakati jadwal survey, tidak pernah menyebut angka nego baru, dan tidak pernah mengarang/memberi link Maps sendiri (alamat umum yang memang ada di data listing boleh disebut). Ketiganya otomatis set `needsFollowUp: true` supaya agen yang ditugaskan dapat notifikasi in-app untuk tindak lanjut manual. Field opsional baru `maps_url` di listing (lihat `docs/modules/property.mdx`) **belum** dikirim ke LLM/AI -- cuma dipakai manusia lewat tombol "Buka Maps" di halaman listing, bukan sumber yang AI baca untuk membalas lead.
+
+**2. Konfirmasi nama & sapaan sebelum AI asal menyapa "Bapak"/"Ibu".** Root cause bug kedua di screenshot: AI menyapa "Bapak" tanpa pernah dikonfirmasi, lead menegur balik. Sekarang: AI cuma tanya nama kalau nama lead di sistem masih placeholder (kosong/`(NN)`/"Test Lead"/cuma nomor) DAN percakapan sudah minimal 3 pesan (supaya tidak terkesan interogatif di awal), dan tidak pernah asumsi sapaan sebelum lead sendiri konfirmasi. Field baru `confirmedName` di `AgentDecision` -- begitu lead jawab nama/sapaannya, `applyAgentDecision.ts` otomatis update `customer.leads.first_name`, TAPI cuma kalau nama saat ini masih placeholder (helper `isPlaceholderName()`, kriteria sama persis dengan yang ditulis di system prompt, harus tetap sinkron manual kalau salah satu diubah) -- tidak pernah menimpa nama asli yang sudah ada.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested ke sandbox Kapso sesungguhnya** (perubahan prompt tidak bisa ditest tanpa kirim WA sungguhan) -- Yohan perlu test sendiri lewat WhatsApp untuk konfirmasi perilaku barunya sebelum dianggap final.
 
 ## Backlog "10 AI Agent" dari Arsip Pra-Claude (dicatat 29 September 2026, non-mengikat)
 

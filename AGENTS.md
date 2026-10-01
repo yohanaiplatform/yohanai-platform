@@ -54,12 +54,15 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Yohan pause development** — sementara update data lead & listing existing yang masih aktif secara manual dulu lewat UI, baru lanjut development lagi setelah itu. Beberapa permintaan kecil/perbaikan tetap masuk di sela-sela itu (lihat Task 029) — bukan berarti development benar-benar berhenti total, cuma tidak mulai inisiatif besar baru tanpa diminta ulang.
 
-**Kerjaan sekarang (lihat Task 030 di `docs/status.mdx` untuk checklist lengkap):**
+**AI Agent dapat perbaikan behavior dari live-test WA + field Link Google Maps listing ditambahkan** (1 Oktober 2026 malam, Task 030 di `docs/status.mdx`) — jangan bangun ulang, baca Task 030 dulu sebelum sentuh `src/lib/ai/interpretLeadReply.ts`. Dari 2 screenshot percakapan sandbox Kapso: (1) AI sekarang **selalu deflect** permintaan jadwal survey, nego harga, dan lokasi persis/pin Maps ke "agen lapangan akan menghubungi langsung" — tidak pernah lagi menyepakati jadwal/angka/lokasi sendiri, otomatis `needsFollowUp: true`. (2) AI **tidak lagi asumsi sapaan "Bapak"/"Ibu"** sebelum dikonfirmasi — nama placeholder (kosong/`(NN)`/"Test Lead"/nomor) memicu pertanyaan sopan setelah ≥3 pesan, jawaban lead otomatis tersimpan ke `customer.leads.first_name` lewat field baru `confirmedName` (tidak pernah menimpa nama asli). Field baru opsional `metadata.maps_url` di listing (tombol "Buka Maps" di halaman detail) — **sengaja belum dikirim ke AI/LLM**, murni referensi internal tim supaya deflect lokasi di atas tetap konsisten. **Belum live-tested ke sandbox sungguhan** — cuma diverifikasi tsc/eslint/build, Yohan perlu test sendiri lewat WhatsApp.
+
+**Kerjaan sekarang (lihat Task 031 di `docs/status.mdx` untuk checklist lengkap):**
+0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.
 2. Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso — AI Agent sudah live-tested 2x & total 6 bug besar sudah diperbaiki.
 3. Verifikasi biaya AI Agent asli (`response.usage` di `ai.agent_runs.llm_raw_response`) vs estimasi simulasi Task 025.
 4. Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif.
-5. Multi-tenant SaaS, instrumentasi tracking sisanya (visitor/download), dan item lain — lihat Task 030 lengkap.
+5. Multi-tenant SaaS, instrumentasi tracking sisanya (visitor/download), dan item lain — lihat Task 031 lengkap.
 
 **Struktur akun saat ini (per 1 Oktober 2026): 3 user.** `admin@yohanai.id` (role `admin`) — akun developer MURNI, sengaja 0 lead/listing "miliknya sendiri" tapi tetap lihat semua data lewat akses admin (RLS bypass `assigned_to`). `yohanbenyamin@gmail.com` (role `agent`, dibuat 1 Okt 2026) — akun pemakaian personal Yohan yang sebenarnya, pegang 1972 lead + 85 listing (seluruh data aktif, dipindah dari admin) — **jadikan acuan utama kalau nanti ada pembatasan akses baru buat role non-admin, karena ini akun yang benar-benar dipakai harian, bukan akun test kosong.** `ramlan.hadiansyah@gmail.com` (role `agent`) — 1 lead + 1 listing, kolaborator Griya Indonesia. Laporan harian personal tiap akun otomatis ke email login masing-masing (kecuali ada override di `DAILY_REPORT_EMAIL_OVERRIDES`); admin selalu dapat laporan AGREGAT (bukan di-scope ke assigned_to) karena `isAdmin` flag, bukan karena jumlah datanya.
 

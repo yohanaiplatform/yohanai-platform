@@ -244,7 +244,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live. **"Kaitkan ke Listing" ditambahkan di Lead Detail (1 Okt 2026)** untuk Laporan Pemasaran |
 | Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). **Laporan Pemasaran per listing live (1 Okt 2026)** — vendor report otomatis dari data lead, lihat `docs/modules/property.mdx`. Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto ✅ pindah penuh ke Cloudflare R2 (29 Sep 2026, 272/272 foto) |
 | Sales | ✅ v1 live (1 Okt 2026) — Follow-up Hot Lead (Hot/Warm terpisah) + Proses Closing (checklist PPJB→Berkas→BAST Kunci per metode pembayaran). Visi besar (Pipeline/Opportunity/Commission) di `docs/modules/sales.mdx` masih rencana, belum dikerjakan |
-| AI Intelligence | 🟢 AI Agent otomatis **aktif & live-tested** (sejak 29 Sep 2026 malam, 6+ bug diperbaiki lewat Task 026/027) — interpretasi balasan WA + update Temperature + auto-reply + kirim foto listing lewat Claude API, audit trail `ai.agent_runs`, knowledge base (`knowledge.entries`) untuk istilah lokasi & FAQ. 2 insight dashboard nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh masih placeholder |
+| AI Intelligence | 🟢 AI Agent otomatis **aktif & live-tested** (sejak 29 Sep 2026 malam, 6+ bug diperbaiki lewat Task 026/027) — interpretasi balasan WA + update Temperature + auto-reply + kirim foto listing lewat Claude API, audit trail `ai.agent_runs`, knowledge base (`knowledge.entries`) untuk istilah lokasi & FAQ. **Deflect survey/nego harga/lokasi persis ke agen lapangan + konfirmasi nama lead (1 Okt 2026, Task 030) — belum live-tested ke sandbox sungguhan.** 2 insight dashboard nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh masih placeholder |
 | Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) **sengaja ditunda 2x** — AI Agent dimajukan jadi prioritas duluan (29 Sep 2026 malam) |
 | Reporting | ✅ Daily Report (personal per user, dashboard 1 halaman berwarna, link interaktif) & Platform Report (developer, kesehatan infra + biaya + status integrasi) aktif via cron GitHub Actions harian. Instrumentasi token AI/crawler/visitor/download belum didesain |
 | Google Contacts Sync | ✅ Personal per user (29 Sep 2026) — lead manual (`/crm/new`) auto-sync ke Google Contacts & HP milik user yang connect. Lead dari Google Form (`/api/leads/intake`) sengaja tidak ikut sync (tidak ada pemilik user) |
@@ -628,11 +628,24 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8), build PASS. Ditest manual: isi Catatan Agent dengan teks panjang multi-baris, dikonfirmasi box tumbuh otomatis mengikuti isi, scrollbar hilang total.
 
-### Next Task
-
 Task 030
 
+**AI Agent — deflect survey/nego/maps + konfirmasi nama, field Link Google Maps listing (1 Oktober 2026).** Yohan kirim 2 screenshot percakapan WA sandbox: AI sempat langsung tanya "Rencananya kira-kira hari apa dan jam berapa?" begitu lead minat survey (komitmen jadwal yang harus diserahkan ke agen lapangan -- jarak & lalu lintas tidak bisa dipastikan AI), dan sempat menyapa "Bapak" tanpa pernah dikonfirmasi lead.
+
+- **Deflect survey/nego harga/lokasi persis** -- 3 topik ini sekarang SELALU dijawab diplomatis "agen lapangan akan menghubungi langsung", AI tidak pernah menyepakati jadwal/menyebut angka nego baru/memberi link Maps sendiri, dan otomatis `needsFollowUp: true` supaya agen dapat notifikasi in-app. Perubahan system prompt saja di `src/lib/ai/interpretLeadReply.ts`, tidak ada migration.
+- **Field baru `metadata.maps_url`** (opsional) di listing -- tombol "Buka Maps" di halaman detail. Sengaja **belum** dikirim ke LLM/AI Agent -- cuma referensi internal tim untuk sekarang, biar deflect lokasi di atas konsisten tanpa kecuali.
+- **Konfirmasi nama & sapaan** -- AI cuma tanya nama kalau nama lead di sistem masih placeholder (kosong/`(NN)`/"Test Lead"/cuma nomor) DAN percakapan sudah ≥3 pesan (tidak di awal, supaya tidak interogatif), tidak pernah asumsi "Bapak"/"Ibu" sebelum dikonfirmasi. Field baru `confirmedName` di `AgentDecision` -- begitu lead jawab, `applyAgentDecision.ts` auto-update `customer.leads.first_name` lewat helper `isPlaceholderName()`, tidak pernah menimpa nama asli yang sudah ada.
+- Panduan (`src/lib/panduan/sections.tsx`, section "AI Agent Otomatis" + "Mengelola Listing Properti") dan `docs/modules/ai.mdx`/`docs/modules/property.mdx` diperbarui mengikuti perubahan ini.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested ke sandbox Kapso sesungguhnya** -- perubahan system prompt tidak bisa dites tanpa kirim WA sungguhan, Yohan perlu test sendiri lewat WhatsApp sebelum dianggap final.
+
+### Next Task
+
+Task 031
+
 **Checklist buat sesi berikutnya:**
+
+0. **Live-test perubahan AI Agent Task 030** (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan -- belum pernah dites selain lewat kode/tsc/build.
 
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja) — AI Agent sudah live-tested 2x dan total 6 bug besar sudah diperbaiki, realistis jadi prioritas berikutnya kalau Yohan sudah puas.
@@ -649,7 +662,7 @@ Task 030
 
 # Last Updated
 
-1 Oktober 2026 (siang)
+1 Oktober 2026 (malam)
 
 ---
 

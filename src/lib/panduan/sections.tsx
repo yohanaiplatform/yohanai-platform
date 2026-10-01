@@ -412,6 +412,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Resolusi cukup besar (jangan screenshot dari aplikasi chat/medsos -- biasanya sudah terkompres rendah) supaya tetap tajam setelah ikut dikompres otomatis sistem.",
           ]}
         />
+        <GuideHeading>Link Google Maps (opsional)</GuideHeading>
+        <GuideP>
+          Di bagian Spesifikasi ada field <strong>&quot;Link Google Maps&quot;</strong> (1 Oktober 2026) -- opsional,
+          tidak wajib diisi, saat ini untuk referensi internal tim saja (tombol &quot;Buka Maps&quot; di halaman
+          listing). AI Agent <strong>belum</strong> membagikan link ini ke lead -- untuk permintaan lokasi
+          persis/pin Maps, AI selalu menjawab bahwa agen lapangan akan mengirim lokasinya langsung saat
+          menghubungi, supaya tidak ada link yang salah/mengarang dikirim otomatis.
+        </GuideP>
         <GuideHeading>Sembunyikan vs Hapus</GuideHeading>
         <GuideP>
           &quot;Sembunyikan&quot; itu sementara -- listing hilang dari daftar publik tapi datanya tetap utuh,
@@ -576,8 +584,22 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           items={[
             "Tidak pernah mengarang detail yang tidak ada di sistem (harga, ketersediaan, dll) -- kalau tidak tahu, dia akui jujur dan catat buat ditindaklanjuti manual.",
             "Tidak membuat janji/komitmen atas nama perusahaan (diskon khusus, jadwal pasti).",
+            <>
+              <strong>Tidak menyepakati jadwal survey, nego harga, atau bagikan lokasi/pin Maps persis sendiri</strong>{" "}
+              (1 Oktober 2026) -- untuk tiga hal ini AI selalu jawab bahwa agen lapangan akan menghubungi langsung,
+              supaya tidak ada janji yang sulit dipenuhi agen di lapangan (jarak & lalu lintas tidak bisa dipastikan
+              AI). Lead yang menunjukkan minat ini otomatis tercatat sebagai butuh follow-up.
+            </>,
           ]}
         />
+        <GuideHeading>Konfirmasi Nama & Sapaan</GuideHeading>
+        <GuideP>
+          Kalau nama lead di sistem belum jelas (kosong, atau masih nama sementara), AI akan menanyakan dengan
+          sopan siapa namanya -- tapi baru setelah beberapa pesan pertama (tidak langsung di awal, supaya tidak
+          terkesan interogatif), dan tidak pernah asal menyapa &quot;Bapak&quot;/&quot;Ibu&quot; sebelum
+          dikonfirmasi. Begitu lead menjawab, nama itu otomatis tersimpan ke data lead -- menggantikan nama
+          sementara, bukan menimpa nama asli yang sudah ada.
+        </GuideP>
         <GuideHeading>Butuh Follow-up</GuideHeading>
         <GuideP>
           Kalau AI mentok karena data yang ditanya lead memang tidak ada di sistem, dia tetap balas sopan ke

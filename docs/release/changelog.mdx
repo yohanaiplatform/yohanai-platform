@@ -51,6 +51,24 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (malam) — AI Agent: Deflect Survey/Nego/Maps, Konfirmasi Nama; Field Link Maps Listing
+
+### Added
+
+- **Field opsional "Link Google Maps" per listing** (`metadata.maps_url`) — referensi internal tim, tombol "Buka Maps" di halaman detail listing. Belum dikirim ke AI Agent/LLM
+- **`confirmedName` di keputusan AI Agent** — begitu lead konfirmasi nama/sapaannya, otomatis tersimpan ke `customer.leads.first_name` (cuma kalau nama saat ini masih placeholder, tidak pernah menimpa nama asli)
+
+### Changed
+
+- **AI Agent tidak lagi menyepakati jadwal survey, nego harga, atau membagikan lokasi persis/pin Maps sendiri** — ketiganya sekarang selalu dijawab diplomatis bahwa agen lapangan akan menghubungi langsung, mencegah AI membuat komitmen yang sulit dipenuhi di lapangan (jarak & lalu lintas tidak pasti). Otomatis memicu notifikasi follow-up ke agen yang ditugaskan
+- **AI Agent tidak lagi asumsi sapaan "Bapak"/"Ibu" sebelum dikonfirmasi** — kalau nama lead di sistem masih placeholder, AI menanyakan nama dengan sopan setelah beberapa pesan pertama (tidak di awal percakapan)
+
+### Note
+
+Perubahan di atas murni system prompt (`src/lib/ai/interpretLeadReply.ts`), tidak ada migration database. Belum live-tested ke WhatsApp sandbox Kapso sesungguhnya — hanya diverifikasi lewat TypeScript/ESLint/build.
+
+---
+
 ## 1 Oktober 2026 (sore, lanjutan 2) — Catatan Agent/Rekomendasi Auto-Resize di Laporan
 
 ### Fixed

@@ -23,6 +23,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
 | Data Pemilik & Nilai Komisi | ✅ Rahasia (28 Sep 2026) — `metadata.owner`/`metadata.commission`, admin+agent yang di-assign saja yang lihat, edit admin-only |
 | Video | ✅ YouTube ditanam sebagai player, link lain (mis. Google Drive) jadi tautan biasa |
 | Kontak (untuk flyer) | ✅ Field `contact_phone` opsional per listing |
+| Link Google Maps | ✅ `metadata.maps_url` opsional (1 Okt 2026) — referensi internal tim saja (tombol "Buka Maps" di halaman listing), **belum** dikirim ke AI Agent/LLM |
 | Export Promosi (Download JPG/PDF) | 🔴 **Dihentikan sementara (26 Sep 2026)** — ditolak Yohan setelah 2 iterasi desain, lihat catatan di bawah |
 | Manajemen Kategori (UI) | ✅ Halaman `/properties/categories` — tambah/edit/hapus (soft delete)/pulihkan, akses `authenticated_all` (sama seperti pola tabel lain) |
 | Pagination List | ✅ `/properties` — 24/48/96 per halaman (pola sama seperti Lead List di CRM) |
@@ -52,6 +53,7 @@ Fondasi Fase 1 — ✅ **Selesai (26 September 2026).**
   "certificate_type": "SHM" | "HGB" | "Girik" | "Lainnya" | null,
   "video_url": string | null,
   "contact_phone": string | null,
+  "maps_url": string | null,
   "photo_urls": string[],
   "ai_tags": string[],
   "hidden": boolean,
