@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
 import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
-import { applyAgentDecision, logAgentRunFailure } from '@/lib/ai/applyAgentDecision'
+import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
 import { findRelevantListings } from '@/lib/ai/relevantListings'
 import { sendTypingIndicator } from '@/lib/whatsapp/kapso'
@@ -245,6 +245,22 @@ async function runAiAgent(
 
   const history = (recentMessages ?? []).reverse().map((m) => ({ senderType: m.sender_type, content: m.content }))
 
+  // Ringkasan percakapan rolling (ditulis applyAgentDecision() tiap run) --
+  // dibaca sebagai konteks jangka panjang, berguna juga kalau riwayat chat
+  // di atas sudah panjang atau ada pesan WA lama yang hilang/terhapus.
+  const { data: summaryNote } = await supabase
+    .schema('customer')
+    .from('notes')
+    .select('note')
+    .eq('lead_id', leadId)
+    .eq('author_label', AI_SUMMARY_NOTE_AUTHOR_LABEL)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const previousSummary = summaryNote?.note ?? null
+
   const leadContext = {
     firstName: lead.first_name,
     lastName: lead.last_name,
@@ -269,9 +285,16 @@ async function runAiAgent(
   ]
   const listings = await findRelevantListings(supabase, listingSearchTerms)
 
-  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings } as unknown as Json
+  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary } as unknown as Json
 
-  const { decision, rawResponse, error } = await interpretLeadReply(leadContext, history, newMessage, knowledge, listings)
+  const { decision, rawResponse, error } = await interpretLeadReply(
+    leadContext,
+    history,
+    newMessage,
+    knowledge,
+    listings,
+    previousSummary
+  )
 
   if (error || !decision) {
     await logAgentRunFailure(supabase, {

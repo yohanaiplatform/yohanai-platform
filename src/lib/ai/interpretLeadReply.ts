@@ -43,6 +43,7 @@ export interface AgentDecision {
   followUpNote: string | null;
   sharePhotoUrls: string[];
   confirmedName: string | null;
+  conversationSummary: string | null;
 }
 
 export interface InterpretLeadReplyResult {
@@ -90,13 +91,18 @@ ATURAN KONFIRMASI NAMA & SAPAAN:
 - JANGAN asumsikan sapaan "Bapak"/"Ibu" sebelum lead sendiri menyebutkan atau mengonfirmasinya.
 - Kalau pesan BARU dari lead berisi jawaban atas pertanyaan nama (nama atau sapaan yang diinginkan, mis. "saya Pak Yohan" / "panggil Bu Siti aja"), isi confirmedName dengan nama itu PERSIS seperti disebutkan lead (termasuk sapaan kalau ada, mis. "Pak Yohan") supaya bisa disimpan ke data lead. Kalau tidak ada info nama baru di pesan ini, confirmedName: null.
 
+ATURAN RINGKASAN PERCAKAPAN (conversationSummary):
+- SELALU isi conversationSummary -- ringkasan singkat (maks 500 karakter) kondisi lead TERKINI, Bahasa Indonesia, mencakup (kalau relevan): nama/sapaan yang sudah dikonfirmasi, kebutuhan/budget/preferensi lokasi, listing yang sudah dibahas & sejauh mana (sudah dikirim foto/harga/dll), status survey/follow-up yang masih menggantung, dan hal penting lain yang perlu diingat untuk percakapan selanjutnya.
+- Kalau di bawah ada "Ringkasan percakapan sebelumnya", GABUNGKAN info itu dengan pesan BARU ini jadi satu ringkasan baru yang konsisten dan ter-update -- JANGAN cuma mengulang ringkasan lama kalau ada info baru, dan JANGAN buang info lama yang masih relevan hanya karena tidak disebut lagi di pesan ini.
+- Ringkasan ini jadi memori jangka panjang AI Agent (menggantikan baca ulang seluruh riwayat chat tiap kali, dan tetap berguna kalau pesan WhatsApp lama terhapus/hilang) -- tulis padat & faktual, BUKAN narasi panjang.
+
 ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
 - followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
 - needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
-{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[], "confirmedName": string|null}`;
+{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[], "confirmedName": string|null, "conversationSummary": string|null}`;
 
 function formatRupiah(n: number): string {
   return `Rp${n.toLocaleString("id-ID")}`;
@@ -128,7 +134,8 @@ function buildUserPrompt(
   history: AgentMessageHistoryItem[],
   newMessage: string,
   knowledge: AgentKnowledgeContext[],
-  listings: AgentListingContext[]
+  listings: AgentListingContext[],
+  previousSummary: string | null
 ): string {
   const historyText = history
     .map((m) => `${m.senderType === "customer" ? "Lead" : "Agen"}: ${m.content}`)
@@ -165,6 +172,9 @@ function buildUserPrompt(
 - Permintaan: ${lead.permintaan ?? "(belum diisi)"}
 - Komentar sebelumnya: ${lead.komentar ?? "(tidak ada)"}
 
+Ringkasan percakapan sebelumnya (kalau ada):
+${previousSummary ?? "(belum ada ringkasan sebelumnya)"}
+
 Riwayat percakapan terakhir (paling lama ke paling baru):
 ${historyText || "(belum ada riwayat)"}
 
@@ -194,6 +204,8 @@ function isValidDecision(value: unknown): value is AgentDecision {
   const validSharePhotoUrls =
     v.sharePhotoUrls === undefined || (Array.isArray(v.sharePhotoUrls) && v.sharePhotoUrls.every((u) => typeof u === "string"));
   const validConfirmedName = v.confirmedName === null || v.confirmedName === undefined || typeof v.confirmedName === "string";
+  const validConversationSummary =
+    v.conversationSummary === null || v.conversationSummary === undefined || typeof v.conversationSummary === "string";
   return (
     validTemp &&
     validReply &&
@@ -202,7 +214,8 @@ function isValidDecision(value: unknown): value is AgentDecision {
     validNeedsFollowUp &&
     validFollowUpNote &&
     validSharePhotoUrls &&
-    validConfirmedName
+    validConfirmedName &&
+    validConversationSummary
   );
 }
 
@@ -216,7 +229,8 @@ export async function interpretLeadReply(
   history: AgentMessageHistoryItem[],
   newMessage: string,
   knowledge: AgentKnowledgeContext[] = [],
-  listings: AgentListingContext[] = []
+  listings: AgentListingContext[] = [],
+  previousSummary: string | null = null
 ): Promise<InterpretLeadReplyResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -244,7 +258,7 @@ export async function interpretLeadReply(
         model,
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings) }],
+        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary) }],
         output_config: { effort },
       }),
     });
@@ -278,6 +292,7 @@ export async function interpretLeadReply(
   // followUpNote/confirmedName boleh diomit oleh LLM -- normalisasi ke null.
   if (parsed.followUpNote === undefined) parsed.followUpNote = null;
   if (parsed.confirmedName === undefined) parsed.confirmedName = null;
+  if (parsed.conversationSummary === undefined) parsed.conversationSummary = null;
   if (parsed.sharePhotoUrls === undefined) parsed.sharePhotoUrls = [];
 
   // Jangan percaya URL apa adanya dari LLM (walau sudah diinstruksikan copy-paste

@@ -22,6 +22,17 @@ export interface ApplyAgentDecisionInput {
   rawResponse: Json | null;
 }
 
+/**
+ * Marker author_label untuk note ringkasan percakapan otomatis AI Agent --
+ * dipakai applyAgentDecision() (tulis/refresh) DAN webhook/route.ts (baca
+ * sebagai previousSummary). Cuma SATU note dengan label ini yang aktif
+ * (deleted_at null) per lead di satu waktu -- soft-delete yang lama dulu
+ * sebelum insert yang baru, bukan UPDATE isi note (customer.notes sengaja
+ * append-only, lihat migration 038), supaya Timeline manual tidak
+ * berantakan tapi riwayat lama tetap ada di database kalau perlu ditelusuri.
+ */
+export const AI_SUMMARY_NOTE_AUTHOR_LABEL = "AI Agent (ringkasan otomatis)";
+
 /** Nama dianggap placeholder (bukan nama asli) -- sama seperti kriteria di system prompt interpretLeadReply.ts, harus tetap sinkron. */
 function isPlaceholderName(name: string): boolean {
   const trimmed = name.trim();
@@ -68,6 +79,29 @@ export async function applyAgentDecision(
       .from("leads")
       .update({ first_name: decision.confirmedName })
       .eq("id", input.leadId);
+  }
+
+  // Refresh ringkasan percakapan -- soft-delete note ringkasan lama (kalau
+  // ada) lalu insert yang baru, supaya cuma 1 yang aktif per lead ("rolling
+  // summary"), dipakai lagi sebagai previousSummary di run berikutnya.
+  if (decision.conversationSummary) {
+    await supabaseAdmin
+      .schema("customer")
+      .from("notes")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("lead_id", input.leadId)
+      .eq("author_label", AI_SUMMARY_NOTE_AUTHOR_LABEL)
+      .is("deleted_at", null);
+
+    await supabaseAdmin
+      .schema("customer")
+      .from("notes")
+      .insert({
+        lead_id: input.leadId,
+        note: decision.conversationSummary,
+        author_label: AI_SUMMARY_NOTE_AUTHOR_LABEL,
+        created_by: null,
+      });
   }
 
   let replySent = false;
