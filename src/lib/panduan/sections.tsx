@@ -319,33 +319,42 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideP>
           Semua lead Temperature <strong>Closing</strong> tampil sebagai daftar ringkas (nama, No. HP, progres
           singkat) supaya tidak makan tempat -- <strong>klik nama lead</strong> untuk buka detail lengkap kartu
-          itu: toggle &quot;Pembelian KPR&quot; dan status bar 3 langkah (lingkaran biru, ada efek hover supaya
-          jelas bisa diklik):
+          itu: dropdown &quot;Metode Pembayaran&quot; dan status bar 3 langkah (lingkaran biru, ada efek hover
+          supaya jelas bisa diklik):
+        </GuideP>
+        <GuideHeading>Metode Pembayaran</GuideHeading>
+        <GuideP>
+          Pilih dulu salah satu dari 4 metode: <strong>KPR Subsidi</strong>, <strong>KPR Non-Subsidi</strong>,{" "}
+          <strong>Cash</strong>, atau <strong>Cash Bertahap</strong>. Pilihan ini menentukan daftar dokumen yang
+          otomatis terisi di langkah &quot;Berkas Lengkap&quot; (KPR Subsidi paling lengkap termasuk Tapera
+          Mobile dan Surat Keterangan Belum Menikah; KPR Non-Subsidi sama tapi tanpa dua dokumen itu; Cash dan
+          Cash Bertahap cuma perlu 3 dokumen dasar) -- dan juga mengubah label langkah BAST Kunci (&quot;Akad
+          Notaris &amp; Bank&quot; untuk KPR, &quot;Akad Notaris&quot; saja untuk Cash/Cash Bertahap).
         </GuideP>
         <GuideList
           items={[
             <><strong>PPJB Ditandatangani</strong> -- klik lingkaran langkah 1 begitu PPJB (Perjanjian Pengikatan Jual Beli) sudah ditandatangani konsumen.</>,
             <>
               <strong>Berkas Lengkap</strong> -- klik lingkaran langkah 2 untuk buka detail checklist dokumen.
-              <strong> Begitu dibuka pertama kali, daftar dokumen KPR standar otomatis terisi</strong> (KTP, KTP
-              Pasangan, KK, Surat Nikah, NPWP, Slip Gaji, dst) -- tinggal centang yang sudah lengkap dan klik
-              &quot;Hapus&quot; untuk dokumen yang tidak relevan ke lead itu (mis. dokumen khusus Wiraswasta kalau
-              pemohonnya Karyawan). Centang juga &quot;Berkas sudah disubmit&quot;. Langkah ini baru dianggap
-              selesai (lingkaran jadi biru penuh) kalau berkas sudah disubmit DAN semua item yang tersisa di
-              checklist sudah tercentang.
+              <strong> Begitu dibuka pertama kali setelah Metode Pembayaran dipilih, daftar dokumen yang sesuai
+              otomatis terisi</strong> -- tinggal centang yang sudah lengkap dan klik &quot;Hapus&quot; untuk
+              dokumen yang ternyata tidak relevan ke lead itu (mis. dokumen khusus Wiraswasta kalau pemohonnya
+              Karyawan), atau tambah dokumen lain di luar daftar standar lewat kolom di bawahnya. Centang juga
+              &quot;Berkas sudah disubmit&quot;. Langkah ini baru dianggap selesai (lingkaran jadi biru penuh)
+              kalau berkas sudah disubmit DAN semua item yang tersisa di checklist sudah tercentang.
             </>,
             <>
-              <strong>BAST Kunci</strong> -- serah terima kunci, artinya sudah akad (di Notaris, dan di Bank juga
-              kalau pembeliannya KPR -- centang &quot;Pembelian KPR&quot; supaya labelnya menyesuaikan otomatis).
-              Langkah ini cuma bisa ditandai selesai setelah PPJB dan Berkas Lengkap beres duluan.
+              <strong>BAST Kunci</strong> -- serah terima kunci, artinya sudah akad. Langkah ini cuma bisa
+              ditandai selesai setelah PPJB dan Berkas Lengkap beres duluan.
             </>,
           ]}
         />
         <GuideNote>
           Checklist ini murni pencatatan progres di platform -- belum menghasilkan dokumen PPJB/BAST/Form KPR
           secara otomatis. Dokumennya sendiri masih dibuat lewat proses terpisah seperti biasa. Daftar syarat
-          dokumen KPR yang sama juga sudah diajarkan ke AI Agent, jadi kalau lead tanya &quot;syarat KPR apa
-          saja?&quot; lewat WhatsApp, AI bisa langsung jawab tanpa perlu eskalasi ke agen.
+          dokumen per metode pembayaran yang sama juga sudah diajarkan ke AI Agent, jadi kalau lead tanya
+          &quot;syarat KPR apa saja?&quot; (termasuk soal KPR Subsidi/Non-Subsidi/Cash) lewat WhatsApp, AI bisa
+          langsung jawab tanpa perlu eskalasi ke agen.
         </GuideNote>
       </>
     ),

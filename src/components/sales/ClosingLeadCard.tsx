@@ -11,11 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import {
-  DEFAULT_BERKAS_ITEMS,
+  BERKAS_ITEMS_BY_PAYMENT_METHOD,
+  PAYMENT_METHOD_OPTIONS,
   type ClosingChecklist,
   type ClosingChecklistItem,
+  type PaymentMethod,
 } from "@/lib/sales/getSalesData";
 
 interface ClosingLeadCardProps {
@@ -79,21 +88,23 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
     persist({ ...checklist, bast_kunci: !checklist.bast_kunci });
   }
 
-  function toggleKpr() {
+  function setPaymentMethod(method: PaymentMethod) {
     if (saving) return;
-    persist({ ...checklist, is_kpr: !checklist.is_kpr });
+    persist({ ...checklist, payment_method: method });
   }
 
-  /** Buka detail Berkas Lengkap -- kalau checklist-nya masih kosong, isi otomatis dari daftar dokumen KPR standar. */
+  /** Buka detail Berkas Lengkap -- kalau checklist-nya masih kosong DAN metode pembayaran sudah dipilih, isi otomatis sesuai dokumen metode itu. */
   function toggleBerkasOpen() {
     const next = !berkasOpen;
     setBerkasOpen(next);
-    if (next && checklist.berkas_items.length === 0) {
-      const seeded: ClosingChecklistItem[] = DEFAULT_BERKAS_ITEMS.map((label, i) => ({
-        id: `seed-${i}-${Date.now()}`,
-        label,
-        done: false,
-      }));
+    if (next && checklist.berkas_items.length === 0 && checklist.payment_method) {
+      const seeded: ClosingChecklistItem[] = BERKAS_ITEMS_BY_PAYMENT_METHOD[checklist.payment_method].map(
+        (label, i) => ({
+          id: `seed-${i}-${Date.now()}`,
+          label,
+          done: false,
+        })
+      );
       persist({ ...checklist, berkas_items: seeded });
     }
   }
@@ -125,12 +136,14 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
     persist({ ...checklist, berkas_items: checklist.berkas_items.filter((item) => item.id !== id) });
   }
 
+  const isKpr = checklist.payment_method === "kpr_subsidi" || checklist.payment_method === "kpr_non_subsidi";
+
   const steps = [
     { done: checklist.ppjb_signed, label: "PPJB Ditandatangani", onClick: togglePpjb, disabled: saving },
     { done: berkasReady, label: "Berkas Lengkap", onClick: toggleBerkasOpen, disabled: false },
     {
       done: checklist.bast_kunci,
-      label: checklist.is_kpr ? "BAST Kunci (Akad Notaris & Bank)" : "BAST Kunci (Akad Notaris)",
+      label: isKpr ? "BAST Kunci (Akad Notaris & Bank)" : "BAST Kunci (Akad Notaris)",
       onClick: toggleBastKunci,
       disabled: saving || !canMarkBastKunci,
     },
@@ -174,13 +187,28 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
 
       {cardOpen && (
         <>
-          <div className="mt-4 flex items-center justify-end">
-            <div className="flex items-center gap-1.5">
-              <Checkbox id={`kpr-${leadId}`} checked={checklist.is_kpr} onCheckedChange={toggleKpr} disabled={saving} />
-              <Label htmlFor={`kpr-${leadId}`} className="text-xs text-muted-foreground">
-                Pembelian KPR
-              </Label>
-            </div>
+          <div className="mt-4 flex items-center justify-end gap-2">
+            <Label htmlFor={`payment-${leadId}`} className="text-xs text-muted-foreground">
+              Metode Pembayaran
+            </Label>
+            <Select
+              value={checklist.payment_method ?? ""}
+              onValueChange={(v) => v && setPaymentMethod(v as PaymentMethod)}
+              disabled={saving}
+            >
+              <SelectTrigger id={`payment-${leadId}`} className="h-8 w-[160px] text-xs">
+                <SelectValue placeholder="Pilih metode">
+                  {PAYMENT_METHOD_OPTIONS.find((opt) => opt.value === checklist.payment_method)?.label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="mt-3 flex items-center">
@@ -215,6 +243,13 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
 
           {berkasOpen && (
             <div className="mt-4 space-y-3 rounded-md border border-border bg-muted/30 p-3">
+              {!checklist.payment_method && checklist.berkas_items.length === 0 && (
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  Pilih Metode Pembayaran di atas dulu supaya checklist dokumen standarnya bisa terisi otomatis
+                  -- atau tambah dokumen manual langsung di bawah.
+                </p>
+              )}
+
               <div className="flex items-center gap-2">
                 <Checkbox
                   id={`berkas-${leadId}`}

@@ -87,22 +87,30 @@ export interface ClosingChecklist {
   berkas_submitted: boolean;
   /** "Kekurangan" dokumen -- daftar bebas, agen tambah/hapus sendiri sesuai kasus per lead. */
   berkas_items: ClosingChecklistItem[];
-  is_kpr: boolean;
+  /** null = belum dipilih -- checklist Berkas Lengkap tidak diisi otomatis sampai ini dipilih. */
+  payment_method: PaymentMethod | null;
   bast_kunci: boolean;
 }
 
-/**
- * Daftar dokumen standar pengajuan KPR/KPA -- sumber: form resmi "Layanan
- * KPR/KPA" Griya Indonesia Real Estate. Diisi otomatis begitu agen pertama
- * kali buka detail Berkas Lengkap satu lead (list kosong) -- agen tinggal
- * centang yang relevan dan hapus yang tidak perlu untuk lead itu (3 item
- * terakhir ditandai sesuai jenis pekerjaan pemohon, biasanya cuma salah
- * satu yang relevan per lead).
- */
-export const DEFAULT_BERKAS_ITEMS: string[] = [
+export type PaymentMethod = "kpr_subsidi" | "kpr_non_subsidi" | "cash" | "cash_bertahap";
+
+export const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
+  { value: "kpr_subsidi", label: "KPR Subsidi" },
+  { value: "kpr_non_subsidi", label: "KPR Non-Subsidi" },
+  { value: "cash", label: "Cash" },
+  { value: "cash_bertahap", label: "Cash Bertahap" },
+];
+
+function isPaymentMethod(value: unknown): value is PaymentMethod {
+  return value === "kpr_subsidi" || value === "kpr_non_subsidi" || value === "cash" || value === "cash_bertahap";
+}
+
+/** KPR Subsidi punya dokumen paling lengkap -- Non-Subsidi, Cash, dan Cash Bertahap adalah pengurangan dari sini. */
+const KPR_SUBSIDI_ITEMS: string[] = [
   "Down Payment (DP)",
   "Fotokopi KTP Pemohon",
-  "Fotokopi KTP Suami/Istri atau Surat Keterangan Belum Menikah",
+  "Fotokopi KTP Suami/Istri (bagi yang sudah menikah)",
+  "Surat Keterangan Belum Menikah dari Desa/Lurah (bagi yang belum menikah)",
   "Fotokopi Kartu Keluarga",
   "Fotokopi Akta Nikah / Akta Cerai / Akta Pisah Harta",
   "Fotokopi NPWP / SPT PPh21",
@@ -111,16 +119,45 @@ export const DEFAULT_BERKAS_ITEMS: string[] = [
   "Foto Tempat Kerja",
   "Sket Lokasi Tempat Kerja",
   "Materai 6000 Sebanyak 12 Lembar",
+  "Registrasi Tapera Mobile",
   "Slip Gaji & Surat Keterangan Kerja Asli (Karyawan)",
   "Fotokopi Surat Izin Praktek/Surat Pengangkatan (Profesional)",
   "Fotokopi Laporan Keuangan Usaha, SIUP, TDP/Akta Perusahaan (Wiraswasta)",
 ];
 
+/** Sama seperti KPR Subsidi, minus Tapera Mobile dan Surat Keterangan Belum Menikah. */
+const KPR_NON_SUBSIDI_ITEMS: string[] = KPR_SUBSIDI_ITEMS.filter(
+  (item) => item !== "Registrasi Tapera Mobile" && item !== "Surat Keterangan Belum Menikah dari Desa/Lurah (bagi yang belum menikah)"
+);
+
+/** Cash dan Cash Bertahap sama-sama cuma butuh 3 dokumen dasar. */
+const CASH_ITEMS: string[] = [
+  "Fotokopi KTP Suami/Istri (Menikah)",
+  "Fotokopi Kartu Keluarga",
+  "Fotokopi NPWP / SPT PPh21",
+];
+
+/**
+ * Daftar dokumen per metode pembayaran -- sumber: form resmi "Layanan
+ * KPR/KPA" Griya Indonesia Real Estate (untuk 2 varian KPR) + aturan
+ * internal Yohan (untuk Cash/Cash Bertahap). Dipakai buat mengisi
+ * otomatis checklist Berkas Lengkap begitu agen pertama kali membuka
+ * detailnya untuk satu lead (list kosong) sesuai metode pembayaran yang
+ * sudah dipilih -- agen tinggal centang yang relevan dan hapus yang tidak
+ * perlu dari situ.
+ */
+export const BERKAS_ITEMS_BY_PAYMENT_METHOD: Record<PaymentMethod, string[]> = {
+  kpr_subsidi: KPR_SUBSIDI_ITEMS,
+  kpr_non_subsidi: KPR_NON_SUBSIDI_ITEMS,
+  cash: CASH_ITEMS,
+  cash_bertahap: CASH_ITEMS,
+};
+
 export const EMPTY_CLOSING_CHECKLIST: ClosingChecklist = {
   ppjb_signed: false,
   berkas_submitted: false,
   berkas_items: [],
-  is_kpr: false,
+  payment_method: null,
   bast_kunci: false,
 };
 
@@ -148,7 +185,7 @@ export function getClosingChecklist(metadata: Json): ClosingChecklist {
         label: typeof item.label === "string" ? item.label : "",
         done: item.done === true,
       })),
-    is_kpr: r.is_kpr === true,
+    payment_method: isPaymentMethod(r.payment_method) ? r.payment_method : null,
     bast_kunci: r.bast_kunci === true,
   };
 }

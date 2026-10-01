@@ -51,6 +51,19 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 1 Oktober 2026 (siang, lanjutan 2) — Checklist Dokumen Dipecah per Metode Pembayaran
+
+### Changed
+
+- **Checkbox "Pembelian KPR" diganti dropdown "Metode Pembayaran"** (4 pilihan: KPR Subsidi, KPR Non-Subsidi, Cash, Cash Bertahap) — masing-masing punya daftar dokumen checklist sendiri (16/14/3/3 dokumen) yang terisi otomatis di langkah "Berkas Lengkap" sesuai metode yang dipilih
+- **Knowledge entry AI Agent diperluas** (migration 052) — syarat KPR sekarang dijelaskan per metode pembayaran, bukan 1 daftar generik
+
+### Fixed
+
+- Dropdown Metode Pembayaran sempat menampilkan raw value (`cash_bertahap`) alih-alih label (`Cash Bertahap`) — jebakan `Select`/`SelectValue` yang sama seperti kasus lama di dropdown "Ditugaskan ke" CRM, diperbaiki dengan cara yang sama
+
+---
+
 ## 1 Oktober 2026 (siang, lanjutan) — UX Checklist Closing Diperbaiki, Knowledge Base Syarat KPR
 
 ### Changed
