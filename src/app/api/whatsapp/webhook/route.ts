@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
 import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
+import { generateUniqueLeadSlug } from '@/lib/crm/slugify'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
@@ -100,6 +101,66 @@ function verifySignature(
   )
 }
 
+/**
+ * Buat lead baru otomatis kalau pesan WA masuk dari nomor yang belum pernah
+ * terdaftar -- ditemukan 2 Oktober 2026 begitu nomor produksi live: AI Agent
+ * cuma jalan kalau nomor pengirim sudah match lead yang ADA, jadi lead baru
+ * dari iklan/baliho yang chat duluan (belum pernah masuk CRM) didiamkan
+ * total. Source "WhatsApp" (sudah ada di customer.lead_sources) dipakai
+ * supaya kelihatan asalnya dari sini, bukan Google Form/Input Manual.
+ *
+ * assigned_to WAJIB diisi (RLS leads_owner_or_admin) -- diambil dari
+ * WHATSAPP_DEFAULT_ASSIGNEE_USER_ID (bukan di-hardcode langsung di kode,
+ * supaya gampang diganti kalau pemilik nomor produksi berubah nanti).
+ * Kalau env var ini belum diisi, sengaja TIDAK membuat lead (balik ke
+ * perilaku lama -- pesan tetap tersimpan sebagai conversation tanpa lead,
+ * AI tidak jalan) daripada membuat lead tanpa assigned_to yang cuma
+ * kelihatan oleh admin.
+ */
+async function autoCreateLeadFromWhatsApp(
+  supabase: ReturnType<typeof createAdminClient>,
+  phone: string,
+  contactName: string | null
+): Promise<string | null> {
+  const assignedTo = process.env.WHATSAPP_DEFAULT_ASSIGNEE_USER_ID
+  if (!assignedTo) return null
+
+  const [{ data: source }, slug] = await Promise.all([
+    supabase.schema('customer').from('lead_sources').select('id').eq('name', 'WhatsApp').maybeSingle(),
+    generateUniqueLeadSlug(supabase, contactName ?? phone, ''),
+  ])
+
+  const { data: inserted, error } = await supabase
+    .schema('customer')
+    .from('leads')
+    .insert({
+      lead_source_id: source?.id ?? null,
+      first_name: contactName ?? phone,
+      last_name: '',
+      slug,
+      phone,
+      status: 'new',
+      assigned_to: assignedTo,
+      metadata: {
+        origin: 'whatsapp_inbound',
+        sumber_informasi: null,
+        kategori: null,
+        permintaan: null,
+        komentar: null,
+        minat_unit_lokasi: null,
+        sudah_survey: null,
+        status_funnel_awal: null,
+        follow_up_terakhir: null,
+        submitted_at: new Date().toISOString(),
+      },
+    })
+    .select('id')
+    .single()
+
+  if (error || !inserted) return null
+  return inserted.id
+}
+
 async function handleMessageReceived(
   supabase: ReturnType<typeof createAdminClient>,
   payload: KapsoMessageReceivedPayload
@@ -138,18 +199,16 @@ async function handleMessageReceived(
     .order('created_at', { ascending: false })
     .limit(1)
 
-  const leadId = leads?.[0]?.id ?? null
+  let leadId = leads?.[0]?.id ?? null
 
   let conversationId: string | null = null
 
-  if (leadId) {
-    conversationId = await findOrCreateLeadConversation(
-      supabase,
-      leadId,
-      payload.conversation?.contact_name ?? phone
-    )
-  } else {
-    const { data: conversations } = await supabase
+  // Thread tanpa lead dari percakapan SEBELUMNYA di nomor yang sama (mis.
+  // pesan pertama sebelum lead-nya dibuat otomatis) -- diadopsi begitu
+  // lead-nya ada, supaya riwayatnya tidak kepisah jadi 2 thread.
+  let orphanConversationId: string | null = null
+  if (!leadId) {
+    const { data: orphanConversations } = await supabase
       .schema('chat')
       .from('conversations')
       .select('id')
@@ -157,7 +216,20 @@ async function handleMessageReceived(
       .contains('metadata', { phone })
       .order('updated_at', { ascending: false })
       .limit(1)
-    conversationId = conversations?.[0]?.id ?? null
+    orphanConversationId = orphanConversations?.[0]?.id ?? null
+
+    leadId = await autoCreateLeadFromWhatsApp(supabase, phone, payload.conversation?.contact_name ?? null)
+
+    if (leadId && orphanConversationId) {
+      await supabase.schema('chat').from('conversations').update({ lead_id: leadId }).eq('id', orphanConversationId)
+    }
+  }
+
+  if (leadId) {
+    conversationId = orphanConversationId
+      ?? (await findOrCreateLeadConversation(supabase, leadId, payload.conversation?.contact_name ?? phone))
+  } else {
+    conversationId = orphanConversationId
   }
 
   if (!conversationId) {
