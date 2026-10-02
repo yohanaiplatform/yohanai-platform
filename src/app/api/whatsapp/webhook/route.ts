@@ -91,21 +91,45 @@ function isBatch(body: KapsoWebhookBody): body is KapsoWebhookBatchBody {
   return (body as KapsoWebhookBatchBody).batch === true
 }
 
+/**
+ * Kapso auto-generate webhook secret BERBEDA tiap nomor (dikonfirmasi Yohan
+ * 2 Oktober 2026, tidak bisa diisi custom) -- begitu ada nomor kedua, 1
+ * secret global saja tidak cukup lagi. Cocokkan terhadap SEMUA secret yang
+ * mungkin (env var global + tiap webhook_secret per nomor di
+ * chat.whatsapp_numbers), terima kalau salah satu match -- jumlah nomor
+ * realistis kecil (segelintir), jadi O(n) ini murah.
+ */
 function verifySignature(
   rawBody: string,
   signature: string | null,
-  secret: string
+  secrets: string[]
 ): boolean {
-  if (!signature) return false
+  if (!signature || secrets.length === 0) return false
 
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
-  const expectedBuf = Buffer.from(expected, 'utf8')
   const signatureBuf = Buffer.from(signature, 'utf8')
 
-  return (
-    expectedBuf.length === signatureBuf.length &&
-    crypto.timingSafeEqual(expectedBuf, signatureBuf)
-  )
+  return secrets.some((secret) => {
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex')
+    const expectedBuf = Buffer.from(expected, 'utf8')
+    return expectedBuf.length === signatureBuf.length && crypto.timingSafeEqual(expectedBuf, signatureBuf)
+  })
+}
+
+async function getCandidateWebhookSecrets(supabase: ReturnType<typeof createAdminClient>): Promise<string[]> {
+  const secrets: string[] = []
+  if (process.env.KAPSO_WEBHOOK_SECRET) secrets.push(process.env.KAPSO_WEBHOOK_SECRET)
+
+  const { data } = await supabase
+    .schema('chat')
+    .from('whatsapp_numbers')
+    .select('webhook_secret')
+    .not('webhook_secret', 'is', null)
+
+  for (const row of data ?? []) {
+    if (row.webhook_secret) secrets.push(row.webhook_secret)
+  }
+
+  return secrets
 }
 
 /**
@@ -412,15 +436,17 @@ async function runAiAgent(
 }
 
 export async function POST(request: Request) {
-  const secret = process.env.KAPSO_WEBHOOK_SECRET
-  if (!secret) {
-    return NextResponse.json({ error: 'Webhook belum dikonfigurasi' }, { status: 500 })
-  }
-
   const rawBody = await request.text()
   const signature = request.headers.get('x-webhook-signature')
 
-  if (!verifySignature(rawBody, signature, secret)) {
+  const supabase = createAdminClient()
+  const candidateSecrets = await getCandidateWebhookSecrets(supabase)
+
+  if (candidateSecrets.length === 0) {
+    return NextResponse.json({ error: 'Webhook belum dikonfigurasi' }, { status: 500 })
+  }
+
+  if (!verifySignature(rawBody, signature, candidateSecrets)) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
@@ -438,7 +464,6 @@ export async function POST(request: Request) {
 
   const payloads = isBatch(body) ? body.data : [body]
 
-  const supabase = createAdminClient()
   for (const payload of payloads) {
     await handleMessageReceived(supabase, payload)
   }

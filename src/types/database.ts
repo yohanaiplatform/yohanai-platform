@@ -360,6 +360,7 @@ export type Database = {
           phone_number_id: string
           label: string | null
           assigned_to: string
+          webhook_secret: string | null
           created_at: string
           updated_at: string
           created_by: string | null
@@ -369,6 +370,7 @@ export type Database = {
           phone_number_id: string
           label?: string | null
           assigned_to: string
+          webhook_secret?: string | null
           created_at?: string
           updated_at?: string
           created_by?: string | null
@@ -378,9 +380,40 @@ export type Database = {
           phone_number_id?: string
           label?: string | null
           assigned_to?: string
+          webhook_secret?: string | null
           created_at?: string
           updated_at?: string
           created_by?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_number_requests: {
+        Row: {
+          id: string
+          user_id: string
+          phone_number: string
+          status: string
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          phone_number: string
+          status?: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          phone_number?: string
+          status?: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
         }
         Relationships: []
       }
