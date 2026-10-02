@@ -90,7 +90,8 @@ Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah list
 - **Hapus Listing** (28 Sep 2026) — tombol "Hapus" di sebelah Edit, soft delete (`deleted_at`), konfirmasi `window.confirm`, redirect ke `/properties` setelah berhasil. Belum ada UI pulihkan listing terhapus (beda dari kategori) -- kalau perlu, langsung lewat database.
 - **Sembunyikan/Tampilkan Listing** (28 Sep 2026, `PropertyVisibilityToggle.tsx`) — lihat "Sembunyikan/Tampilkan Listing" di bawah untuk detail lengkap kenapa ini beda dari Hapus.
 - Galeri foto dengan tombol tambah/hapus (foto pertama = sampul), **klik foto buka ukuran penuh di tab baru, tombol Download terpisah** (28 Sep 2026 -- sebelumnya thumbnail tidak bisa diklik sama sekali). Foto baru otomatis diberi **watermark logo Yohan.AI** di tengah (lihat "Watermark Foto" di bawah).
-- Video embed (YouTube) kalau ada.
+- Video embed (YouTube) kalau ada; **bisa diedit/ditambah/dihapus** (2 Okt 2026, `PropertyVideoEditable.tsx`, `metadata.video_url`).
+- **Edit Data Pemilik & Komisi** (`PropertyConfidentialFields.tsx`) — sebelumnya admin-only; sejak 2 Okt 2026 siapa pun yang bisa melihat listing (admin / agent yang di-assign, dijaga RLS `listings_owner_or_admin`) boleh edit.
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
 - "Ditugaskan ke" — dropdown ganti penanggung jawab (`PropertyAssignSelect.tsx`, admin/super_admin saja; non-admin cuma lihat teks statis "Saya"), pola identik `LeadAssignSelect.tsx` di CRM.
 - Breadcrumb tampil judul listing (bukan slug mentah), lewat `SetBreadcrumbLabel` — pola yang sama seperti CRM.

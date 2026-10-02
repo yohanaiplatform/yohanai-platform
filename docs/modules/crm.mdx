@@ -357,6 +357,10 @@ CRM membantu agen untuk:
 
 **Auto-scroll (28 September 2026)** — `ChatMessageList.tsx` (dipakai bareng Lead Detail & Recent Chats) sebelumnya tidak pernah scroll otomatis ke pesan terbaru saat ada pesan baru masuk lewat Realtime, beda dari WhatsApp di HP. Diperbaiki dengan ref ke elemen terakhir + `scrollIntoView` tiap jumlah pesan berubah.
 
+**Template follow-up (2 Oktober 2026)** — tombol "Kirim Template Follow-up" + dropdown pilihan template di `LeadWhatsApp.tsx`, `POST /api/whatsapp/send-template`, `sendWhatsAppTemplate()` di `kapso.ts`. Daftar template yang boleh dikirim ada di `src/lib/whatsapp/followUpTemplates.ts` (daftar putih; tambah baris setelah template Approved di Kapso/Meta): `yohan_griya` dan `follow_up_kapur_mas_t2`, keduanya `id` tanpa variabel. Pola otorisasi & pemilihan nomor pengirim sama seperti `/api/whatsapp/send`; pesan tersimpan di riwayat chat sebagai `[Template follow-up terkirim: <nama>]`. Template Marketing berbayar per pesan di luar jendela gratis (iklan Click-to-WhatsApp: jendela 72 jam, belum diverifikasi ke Meta). Pengiriman otomatis/nurturing BELUM ada, rencana di `docs/status.mdx`.
+
+**Perbaikan webhook (2 Oktober 2026)** — (1) nomor sistem Meta `447710173736` ("Facebook Business") sebelumnya jadi lead palsu lewat auto-create; sekarang diabaikan (`META_SYSTEM_PHONE` di `webhook/route.ts`). (2) Balasan tombol quick-reply template bertipe `button`/`interactive`, bukan `text`, sehingga AI Agent sempat dilewati; sekarang diproses, dengan aturan prompt baru: "Sudah dapat rumah" → terima kasih + saran referral + Temperature `Batal`, "Belum dapat rumah" → tanya area + tawarkan listing, "Hubungi Pak Yohan" → needsFollowUp.
+
 ---
 
 ## Tambah Lead Manual

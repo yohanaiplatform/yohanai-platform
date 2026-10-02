@@ -457,7 +457,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideHeading>Data Pemilik & Komisi</GuideHeading>
         <GuideP>
           Bagian ini rahasia -- cuma admin dan agent yang ditugaskan ke listing itu yang bisa lihat, dan tidak
-          pernah ikut ke flyer/export promosi.
+          pernah ikut ke flyer/export promosi. Keduanya juga yang bisa mengubah nama pemilik, nomor HP, dan
+          nilai komisi lewat tombol Edit.
+        </GuideP>
+        <GuideHeading>Video listing</GuideHeading>
+        <GuideP>
+          Di bagian Video ada tombol <strong>Edit</strong> (atau <strong>Tambah Video</strong> kalau belum ada)
+          untuk mengisi link YouTube atau Google Drive. Kosongkan kolomnya untuk menghapus video.
         </GuideP>
       </>
     ),
@@ -575,6 +581,15 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideP>
           Dari halaman Lead Detail, ketik balasan di kolom chat -- terkirim lewat nomor WhatsApp yang sama,
           muncul langsung (real-time) di layar siapa pun yang sedang buka percakapan itu juga.
+        </GuideP>
+        <GuideHeading>Template follow-up untuk lead yang sudah lama diam</GuideHeading>
+        <GuideP>
+          WhatsApp hanya mengizinkan pesan bebas dalam 24 jam setelah lead terakhir membalas. Untuk lead yang
+          sudah lebih lama diam, di bawah kolom chat ada pilihan <strong>template follow-up</strong> dan tombol{" "}
+          <strong>&quot;Kirim Template Follow-up&quot;</strong>. Pesan template terkirim setelah konfirmasi, dan
+          lead bisa membalas lewat tombol (mis. &quot;Sudah dapat rumah&quot; / &quot;Belum dapat rumah&quot;) --
+          balasan itu ikut diproses otomatis. Template baru hanya bisa dipakai setelah disetujui, dan pesan
+          template bisa dikenai biaya per pesan.
         </GuideP>
         <GuideNote>
           <strong>Status saat ini: nomor WhatsApp produksi sudah aktif</strong> (sejak 2 Oktober 2026) -- bukan
