@@ -31,6 +31,10 @@ export const LOCK_NOTICE_PATH = '/under-development'
  * - /api/reports/daily: dipanggil GitHub Actions cron (.github/workflows/
  *   daily-report.yml), tidak pernah punya sesi login. Diamankan sendiri
  *   lewat secret header (DAILY_REPORT_SECRET), bukan lewat gate ini.
+ * - /api/ai/flush-follow-ups: dipanggil GitHub Actions cron (.github/
+ *   workflows/flush-follow-ups.yml), tidak pernah punya sesi login.
+ *   Diamankan sendiri lewat secret header (AI_FOLLOW_UP_FLUSH_SECRET),
+ *   bukan lewat gate ini.
  */
 const PUBLIC_PATHS = [
   LOCK_NOTICE_PATH,
@@ -44,6 +48,7 @@ const PUBLIC_PATHS = [
   '/api/leads/intake',
   '/api/whatsapp/webhook',
   '/api/reports/daily',
+  '/api/ai/flush-follow-ups',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */
