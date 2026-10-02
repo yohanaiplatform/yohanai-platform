@@ -38,7 +38,7 @@ Supabase hanya mengekspos `public` dan `graphql_public` ke Data API secara defau
 
 ### profiles
 
-Profil pengguna: nama, kontak, alamat, `business_role_id`, tautan media sosial, dan `role_details` JSONB. Terhubung satu-satu ke `auth.users`.
+Profil pengguna: nama, kontak, alamat, `business_role_id`, tautan media sosial, `brand_name` (migration `053`), dan `role_details` JSONB. Terhubung satu-satu ke `auth.users`. Kolom `notification_whatsapp_number` (migration `059`, 2 Oktober 2026) -- nomor WA pribadi untuk terima ringkasan notifikasi follow-up AI Agent, SENGAJA terpisah dari nomor WA bisnis di `chat.whatsapp_numbers` yang dipakai AI Agent balas lead.
 
 ### notification_preferences
 
@@ -133,6 +133,10 @@ Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kaps
 
 **Nyata, dipakai** — satu-satunya tabel `ai` yang sudah ada isinya (migration `049`, 29 September 2026 malam). Audit trail AI Agent otomatis (`POST /api/whatsapp/webhook` → `interpretLeadReply()` → `applyAgentDecision()`): snapshot konteks yang dikirim ke LLM (`input_snapshot` JSONB), respons mentah (`llm_raw_response` JSONB), `previous_temperature`/`decided_temperature`, `reply_text`/`reply_sent`/`reply_message_id`, `confidence`, `status` (`success`/`skipped`/`error`). Cuma diakses `service_role` (dipanggil dari webhook, bukan sesi login) — belum ada RLS policy karena belum ada UI baca langsung. Schema `ai` sudah di-expose di Supabase Settings → Data API (dikonfirmasi ulang 1 Oktober 2026), AI Agent aktif dan live-tested berkali-kali sejak 29 September 2026 malam -- lihat jebakan terkait di `AGENTS.md` kalau nanti ada schema baru lain yang perlu di-expose.
 
+### follow_up_queue
+
+**Nyata, dipakai** (migration `059`, 2 Oktober 2026 malam). Antrian follow-up AI Agent -- `needsFollowUp` dari `applyAgentDecision()` insert ke sini dulu (bukan langsung bikin `core.notifications`), supaya percakapan yang berkali-kali mentok dalam 1 sesi chat tidak bikin notifikasi terpisah banjir. `GET /api/ai/flush-follow-ups` (dipanggil cron tiap 5 menit) gabungkan semua baris `flushed_at IS NULL` per `lead_id` jadi SATU notifikasi, tapi cuma untuk lead yang percakapannya sudah sepi (tidak ada pesan baru) >=5 menit -- lead yang masih aktif chat ditunda ke run berikutnya. Cuma diakses `service_role`, tidak ada RLS policy (pola sama seperti `agent_runs`).
+
 ### models, prompts, interactions
 
 Aspirasional, belum dibangun — konfigurasi model AI, prompt, dan riwayat interaksi generik (beda dari `agent_runs` yang spesifik untuk AI Agent WhatsApp).
@@ -209,7 +213,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`058` secara berurutan (per 2 Oktober 2026 sore). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`059` secara berurutan (per 2 Oktober 2026 malam). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -244,6 +248,7 @@ Folder `supabase/migrations/` berisi `001`–`058` secara berurutan (per 2 Oktob
 | `056` | Tabel `chat.whatsapp_numbers` (`phone_number_id -> assigned_to`) — dasar dukungan banyak nomor WhatsApp sekaligus |
 | `057` | Perbaiki RLS `056` — SELECT admin-only ternyata juga blokir user baca barisnya sendiri, dipecah jadi SELECT (admin atau pemilik baris) vs INSERT/UPDATE/DELETE (admin-only) |
 | `058` | Tabel `chat.whatsapp_number_requests` (alur ajukan nomor WA untuk non-admin) + kolom `webhook_secret` di `chat.whatsapp_numbers` — Kapso auto-generate secret berbeda tiap nomor |
+| `059` | Tabel `ai.follow_up_queue` (rangkum notifikasi follow-up AI Agent, debounce 5 menit) + kolom `notification_whatsapp_number` di `auth_ext.profiles` |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -253,6 +258,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-2 Oktober 2026 (sore)
+2 Oktober 2026 (malam)
 
 Sprint 011 — Platform Hold

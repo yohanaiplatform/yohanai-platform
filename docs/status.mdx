@@ -724,9 +724,26 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+Task 036
+
+**Lanjutan sama hari -- rangkum notifikasi follow-up AI Agent, jangan kirim per-pesan.** Yohan screenshot nyata: >10 notifikasi terpisah "AI Agent butuh follow-up" untuk 1 lead (Ramlan Hadiansyah) dalam <1 jam -- percakapan yang berkali-kali mentok bikin notifikasi banjir. Diminta: tampung dulu, gabung jadi 1 notifikasi (format markdown ringan) setelah percakapan sepi >=5 menit, link notifikasi langsung ke Lead Detail, DAN sekalian kirim ke WhatsApp pribadi agent (field baru di Profile, SENGAJA beda nomor dari nomor WA bisnis -- Yohan sendiri yang catat potensi kebingungan ini duluan).
+
+- **Migration `059`**: tabel `ai.follow_up_queue` (tampung dulu, belum notifikasi) + kolom `auth_ext.profiles.notification_whatsapp_number`.
+- **`applyAgentDecision.ts`**: `needsFollowUp` sekarang insert ke antrian itu, bukan langsung `createNotification()`.
+- **`GET /api/ai/flush-follow-ups`** (baru, secret header pola sama seperti `/api/reports/daily`) -- dipanggil cron tiap 5 menit (`.github/workflows/flush-follow-ups.yml`, jadwal `3-58/5 * * * *` biar tidak tepat kelipatan 5 bulat). Per lead: cek pesan terakhir di percakapannya -- kalau belum sepi 5 menit, DITUNDA ke run berikutnya (bukan dipaksa flush setengah jalan). Kalau sudah sepi, semua note yang masih pending digabung jadi 1 notifikasi + (kalau nomor WA notifikasi diisi) 1 pesan WhatsApp ke agent yang di-assign (atau semua admin kalau belum di-assign).
+- **`formatFollowUpSummary()`** (baru) -- 1 format teks (`*bold*`, bullet `- `) dipakai BARENG buat body notifikasi in-app maupun pesan WA, supaya tidak perlu 2 versi terpisah. `NotificationMenu.tsx` dapat renderer ringan (`renderLightFormatting()`) buat tampilkan format itu, bukan markdown library baru.
+- **`EditProfileForm.tsx`**: field baru "Nomor WhatsApp untuk Notifikasi Follow-up", dinormalisasi lewat `normalizePhone()` yang sama seperti nomor lead.
+- **Panduan diupdate SESUAI aturan vendor-scrub yang baru ditegaskan** (lihat memory `update-docs-command`) -- jelaskan perilakunya ("digabung jadi 1 notifikasi", "nomor WA berbeda dari nomor bisnis") tanpa menyebut GitHub Actions/cron/nama tabel apa pun.
+
+**Env var baru yang MASIH PERLU diisi manual oleh Yohan** (di 2 tempat -- GitHub repo secret DAN Vercel, pola sama seperti `DAILY_REPORT_SECRET`): `AI_FOLLOW_UP_FLUSH_SECRET`. Tanpa ini, cron flush tidak bisa otentikasi ke endpoint-nya.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested end-to-end** (butuh `AI_FOLLOW_UP_FLUSH_SECRET` diisi dulu + lead sungguhan yang AI-nya mentok berkali-kali) -- baru diverifikasi lewat code review.
+
+---
+
 ### Next Task
 
-Task 036
+Task 037
 
 **Checklist buat sesi berikutnya:**
 
@@ -741,6 +758,9 @@ Task 036
 
 0f. **Minta Yohan upgrade plan Kapso** (masih free tier, cuma 1 nomor) begitu memang mau sambungkan nomor kedua (mis. Ramlan) -- tanpa ini alur "Ajukan Nomor WhatsApp" (Task 035) tidak bisa benar-benar di-approve sampai akhir.
 0g. **Test alur "Ajukan Nomor WhatsApp" end-to-end** sekali plan Kapso sudah di-upgrade -- belum pernah dites nyata sama sekali.
+
+0h. **Isi `AI_FOLLOW_UP_FLUSH_SECRET`** di GitHub repo secret DAN Vercel env var (nilai sama persis di kedua tempat) -- tanpa ini, rangkuman notifikasi follow-up (Task 036) tidak akan pernah terkirim (cron gagal otentikasi terus-menerus).
+0i. **Live-test rangkuman notifikasi follow-up** sekali secret di atas sudah diisi -- pakai lead yang sengaja dibuat AI mentok beberapa kali, pastikan jadi 1 notifikasi gabungan (bukan banyak), dan kalau nomor WA notifikasi di Profile sudah diisi, pastikan pesan WA-nya juga masuk.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **PANTAU AI Agent di nomor produksi** -- baru tersambung 2 Oktober 2026 pagi, belum ada siklus percakapan customer sungguhan yang diamati penuh dari awal sampai akhir. Cek Lead Detail/notifikasi follow-up beberapa hari ke depan, siapa tahu masih ada pola yang cuma muncul di volume/variasi customer asli (beda dari testing sendiri di sandbox).
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
@@ -758,7 +778,7 @@ Task 036
 
 # Last Updated
 
-2 Oktober 2026 (sore, lanjutan)
+2 Oktober 2026 (malam)
 
 ---
 

@@ -206,6 +206,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             </>,
             <><strong>Foto Profil</strong> -- isi dengan link URL foto (bukan upload langsung).</>,
             <><strong>Facebook</strong> dan <strong>Instagram</strong> -- link profil media sosial Anda, opsional tapi membantu lead percaya Anda agen sungguhan.</>,
+            <>
+              <strong>Nomor WhatsApp untuk Notifikasi Follow-up</strong> -- isi kalau Anda mau ringkasan follow-up
+              dari AI Agent (lihat panduan AI Agent Otomatis) ikut dikirim ke WhatsApp pribadi Anda, bukan cuma
+              notifikasi di dalam aplikasi. <strong>Harus nomor yang berbeda</strong> dari nomor WhatsApp bisnis
+              yang dipakai untuk membalas lead.
+            </>,
           ]}
         />
 
@@ -626,8 +632,15 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideHeading>Butuh Follow-up</GuideHeading>
         <GuideP>
           Kalau AI mentok karena data yang ditanya lead memang tidak ada di sistem, dia tetap balas sopan ke
-          lead DAN kirim notifikasi in-app ke agen yang ditugaskan (atau semua admin kalau lead belum
-          ditugaskan) -- supaya ada tindak lanjut manual, bukan hilang begitu saja.
+          lead DAN mencatat itu sebagai hal yang perlu ditindaklanjuti manual -- supaya tidak hilang begitu
+          saja, agen yang ditugaskan (atau semua admin kalau lead belum ditugaskan) akan dikasih tahu.
+        </GuideP>
+        <GuideP>
+          <strong>Notifikasinya dirangkum, bukan satu-satu.</strong> Kalau dalam 1 sesi chat yang sama AI
+          beberapa kali mentok, semua itu digabung jadi SATU notifikasi setelah lead berhenti chat sebentar --
+          supaya tidak banjir notifikasi terpisah untuk percakapan yang sama. Notifikasinya bisa diklik langsung
+          ke halaman lead itu, dan kalau Anda sudah isi nomor WhatsApp untuk notifikasi di halaman Profil, ikut
+          dikirim ke sana juga.
         </GuideP>
         <GuideHeading>Ringkasan Percakapan Otomatis</GuideHeading>
         <GuideP>
