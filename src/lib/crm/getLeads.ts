@@ -8,6 +8,7 @@ export const LEAD_PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
 
 export interface LeadListItem {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   email: string | null;
@@ -57,7 +58,7 @@ function buildFilteredLeadsQuery(
     .schema("customer")
     .from("leads")
     .select(
-      "id, first_name, last_name, email, phone, status, assigned_to, created_at, metadata, lead_source_id",
+      "id, slug, first_name, last_name, email, phone, status, assigned_to, created_at, metadata, lead_source_id",
       { count: "exact" }
     )
     .is("deleted_at", null);
@@ -137,6 +138,7 @@ export async function getLeads(
   return {
     data: leadsRes.data.map((lead) => ({
       id: lead.id,
+      slug: lead.slug,
       first_name: lead.first_name,
       last_name: lead.last_name,
       email: lead.email,

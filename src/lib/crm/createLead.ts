@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { normalizePhone } from "@/lib/crm/normalizePhone";
+import { generateUniqueLeadSlug } from "@/lib/crm/slugify";
 
 export interface CreateLeadInput {
   nama: string;
@@ -21,6 +22,7 @@ export interface CreateLeadInput {
 
 export interface CreateLeadResult {
   leadId: string | null;
+  slug: string | null;
   error: string | null;
 }
 
@@ -33,9 +35,10 @@ export async function createLead(
   supabase: SupabaseClient<Database>,
   input: CreateLeadInput
 ): Promise<CreateLeadResult> {
-  const [{ data: source }, { data: userData }] = await Promise.all([
+  const [{ data: source }, { data: userData }, slug] = await Promise.all([
     supabase.schema("customer").from("lead_sources").select("id").eq("name", "Input Manual").maybeSingle(),
     supabase.auth.getUser(),
+    generateUniqueLeadSlug(supabase, input.nama.trim(), ""),
   ]);
 
   const { data: inserted, error } = await supabase
@@ -45,6 +48,7 @@ export async function createLead(
       lead_source_id: source?.id ?? null,
       first_name: input.nama.trim(),
       last_name: "",
+      slug,
       phone: normalizePhone(input.phone),
       email: input.email?.trim() || null,
       status: "new",
@@ -63,12 +67,12 @@ export async function createLead(
         submitted_at: new Date().toISOString(),
       },
     })
-    .select("id")
+    .select("id, slug")
     .single();
 
   if (error || !inserted) {
-    return { leadId: null, error: error?.message ?? "Insert gagal" };
+    return { leadId: null, slug: null, error: error?.message ?? "Insert gagal" };
   }
 
-  return { leadId: inserted.id, error: null };
+  return { leadId: inserted.id, slug: inserted.slug, error: null };
 }

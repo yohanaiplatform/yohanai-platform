@@ -1,20 +1,21 @@
-// src/app/(dashboard)/crm/[id]/page.tsx
+// src/app/(dashboard)/crm/[slug]/page.tsx
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { SectionCard } from "@/components/ui/section-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LeadStatusSelect } from "@/components/crm/LeadStatusSelect";
 import { LeadAssignSelect } from "@/components/crm/LeadAssignSelect";
 import { LeadDetailField } from "@/components/crm/LeadDetailField";
+import { LeadIdentityEditable } from "@/components/crm/LeadIdentityEditable";
 import { LeadEditableFields } from "@/components/crm/LeadEditableFields";
 import { LeadNotes } from "@/components/crm/LeadNotes";
 import { LeadWhatsApp } from "@/components/crm/LeadWhatsApp";
 import { LeadListingLink } from "@/components/crm/LeadListingLink";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
-import { getLeadById } from "@/lib/crm/getLeadById";
+import { getLeadBySlug } from "@/lib/crm/getLeadBySlug";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
 import { getLeadNotes } from "@/lib/crm/getLeadNotes";
 import { getLeadConversation } from "@/lib/crm/getLeadConversation";
@@ -22,15 +23,8 @@ import { getListingsForSelect } from "@/lib/property/getListings";
 import { createClient } from "@/lib/supabase/server";
 import { getCrmDictionary } from "@/lib/i18n/getLocale";
 
-// Cek bentuk UUID dulu sebelum query -- id acak/rusak di URL akan bikin
-// Postgres balas error "invalid input syntax for type uuid", yang tanpa
-// pengecekan ini akan salah ditampilkan sebagai error database, padahal
-// seharusnya cukup 404.
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 interface LeadDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 function formatDateTime(value: string) {
@@ -57,14 +51,11 @@ function formatMetadataDate(value: string | null): string | null {
 }
 
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
-  const { id } = await params;
-  if (!UUID_PATTERN.test(id)) {
-    notFound();
-  }
+  const { slug } = await params;
 
   const supabase = await createClient();
   const t = await getCrmDictionary();
-  const { data: lead, error } = await getLeadById(supabase, id);
+  const { data: lead, error } = await getLeadBySlug(supabase, slug);
 
   const backLink = (
     <Link
@@ -92,8 +83,15 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
     notFound();
   }
 
-  const { data: notes } = await getLeadNotes(supabase, id);
-  const { conversationId, data: chatMessages } = await getLeadConversation(supabase, id);
+  // Link lama (notifikasi, dsb) yang masih menunjuk /crm/<uuid> dari sebelum
+  // slug ada tetap jalan lewat fallback id di getLeadBySlug() -- begitu
+  // ketemu, kanonikalkan URL-nya ke slug supaya address bar selalu rapi.
+  if (slug !== lead.slug) {
+    redirect(`/crm/${lead.slug}`);
+  }
+
+  const { data: notes } = await getLeadNotes(supabase, lead.id);
+  const { conversationId, data: chatMessages } = await getLeadConversation(supabase, lead.id);
   const listingsForSelect = await getListingsForSelect(supabase);
 
   const nama = `${lead.first_name} ${lead.last_name}`.trim() || t.list.table.noName;
@@ -114,7 +112,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
   return (
     <div className="space-y-6 p-6">
-      <SetBreadcrumbLabel segment={lead.id} label={nama} />
+      <SetBreadcrumbLabel segment={lead.slug} label={nama} />
       {backLink}
 
       <SectionCard
@@ -122,31 +120,40 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
         description={`${t.detail.leadInPrefix} ${formatDateTime(lead.created_at)}`}
         action={<WhatsAppButton phone={lead.phone} nama={nama} />}
       >
-        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
-          <LeadDetailField label={t.detail.status} value={<LeadStatusSelect leadId={lead.id} status={lead.status} t={t} />} />
-          <LeadDetailField
-            label={t.detail.assignedTo}
-            value={<LeadAssignSelect leadId={lead.id} assignedTo={lead.assigned_to} t={t} />}
+        <div className="space-y-5">
+          <LeadIdentityEditable
+            leadId={lead.id}
+            firstName={lead.first_name}
+            lastName={lead.last_name}
+            email={lead.email}
+            phone={lead.phone}
           />
-          <LeadDetailField label={t.detail.phone} value={lead.phone} />
-          <LeadDetailField label={t.detail.email} value={lead.email} />
-          <LeadDetailField label={t.detail.lastFollowUp} value={followUpTerakhir} />
-          <LeadDetailField label={t.detail.submittedDate} value={submittedAt} />
-          <LeadDetailField
-            label={t.detail.lastUpdated}
-            value={formatDateTime(lead.updated_at)}
-          />
-          <LeadDetailField
-            label="Kaitkan ke Listing"
-            value={
-              <LeadListingLink
-                leadId={lead.id}
-                metadata={lead.metadata}
-                manualListingId={manualListingId}
-                listings={listingsForSelect}
-              />
-            }
-          />
+          <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+            <LeadDetailField label={t.detail.status} value={<LeadStatusSelect leadId={lead.id} status={lead.status} t={t} />} />
+            <LeadDetailField
+              label={t.detail.assignedTo}
+              value={<LeadAssignSelect leadId={lead.id} assignedTo={lead.assigned_to} t={t} />}
+            />
+            <LeadDetailField label={t.detail.phone} value={lead.phone} />
+            <LeadDetailField label={t.detail.email} value={lead.email} />
+            <LeadDetailField label={t.detail.lastFollowUp} value={followUpTerakhir} />
+            <LeadDetailField label={t.detail.submittedDate} value={submittedAt} />
+            <LeadDetailField
+              label={t.detail.lastUpdated}
+              value={formatDateTime(lead.updated_at)}
+            />
+            <LeadDetailField
+              label="Kaitkan ke Listing"
+              value={
+                <LeadListingLink
+                  leadId={lead.id}
+                  metadata={lead.metadata}
+                  manualListingId={manualListingId}
+                  listings={listingsForSelect}
+                />
+              }
+            />
+          </div>
         </div>
       </SectionCard>
 

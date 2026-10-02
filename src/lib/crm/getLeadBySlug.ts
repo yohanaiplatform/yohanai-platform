@@ -1,10 +1,11 @@
-// src/lib/crm/getLeadById.ts
+// src/lib/crm/getLeadBySlug.ts
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 
 export interface LeadDetail {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   email: string | null;
@@ -17,24 +18,32 @@ export interface LeadDetail {
   lead_source_name: string | null;
 }
 
-export interface GetLeadByIdResult {
+export interface GetLeadBySlugResult {
   data: LeadDetail | null;
   error: boolean;
 }
 
-export async function getLeadById(
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Cari lead lewat slug URL-nya (mis. "bang-yohan") -- kalau tidak ketemu DAN
+ * nilainya berbentuk UUID, coba lagi lewat id (link lama/notifikasi yang
+ * masih menunjuk /crm/<uuid> dari sebelum slug ada tetap jalan). Pemanggil
+ * (page.tsx) bertanggung jawab redirect ke URL slug yang benar kalau lead
+ * ketemu lewat jalur UUID ini, supaya address bar akhirnya selalu rapi.
+ */
+export async function getLeadBySlug(
   supabase: SupabaseClient<Database>,
-  id: string
-): Promise<GetLeadByIdResult> {
-  const { data: lead, error } = await supabase
-    .schema("customer")
-    .from("leads")
-    .select(
-      "id, first_name, last_name, email, phone, status, assigned_to, created_at, updated_at, metadata, lead_source_id"
-    )
-    .eq("id", id)
-    .is("deleted_at", null)
-    .maybeSingle();
+  slugOrId: string
+): Promise<GetLeadBySlugResult> {
+  const columns =
+    "id, slug, first_name, last_name, email, phone, status, assigned_to, created_at, updated_at, metadata, lead_source_id";
+
+  let query = supabase.schema("customer").from("leads").select(columns).is("deleted_at", null);
+  query = UUID_PATTERN.test(slugOrId) ? query.eq("id", slugOrId) : query.eq("slug", slugOrId);
+
+  const { data: lead, error } = await query.maybeSingle();
 
   if (error) {
     return { data: null, error: true };
@@ -57,6 +66,7 @@ export async function getLeadById(
   return {
     data: {
       id: lead.id,
+      slug: lead.slug,
       first_name: lead.first_name,
       last_name: lead.last_name,
       email: lead.email,

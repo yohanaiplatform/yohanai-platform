@@ -114,6 +114,7 @@ export function SalesSectionPicker({
                 <ClosingLeadCard
                   key={lead.id}
                   leadId={lead.id}
+                  leadSlug={lead.slug}
                   nama={`${lead.first_name} ${lead.last_name}`.trim() || "Lead"}
                   phone={lead.phone}
                   metadata={lead.metadata}

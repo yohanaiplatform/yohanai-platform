@@ -29,13 +29,14 @@ import {
 
 interface ClosingLeadCardProps {
   leadId: string;
+  leadSlug: string;
   nama: string;
   phone: string | null;
   metadata: Json;
   checklist: ClosingChecklist;
 }
 
-export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: initialChecklist }: ClosingLeadCardProps) {
+export function ClosingLeadCard({ leadId, leadSlug, nama, phone, metadata, checklist: initialChecklist }: ClosingLeadCardProps) {
   const [checklist, setChecklist] = useState(initialChecklist);
   const [saving, setSaving] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
@@ -192,7 +193,7 @@ export function ClosingLeadCard({ leadId, nama, phone, metadata, checklist: init
             </span>
           </button>
           <Link
-            href={`/crm/${leadId}`}
+            href={`/crm/${leadSlug}`}
             title="Buka Lead Detail"
             className="text-muted-foreground hover:text-foreground"
           >

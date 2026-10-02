@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
+import { generateUniqueLeadSlug } from '@/lib/crm/slugify'
 
 /**
  * Pintu masuk lead dari Google Form legacy (Apps Script -> UrlFetchApp.fetch).
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
     .maybeSingle()
 
   const createdAt = parseSubmittedAt(body.submittedAt)
+  const slug = await generateUniqueLeadSlug(supabase, (body.nama as string).trim(), '')
 
   const { data: inserted, error: insertError } = await supabase
     .schema('customer')
@@ -103,6 +105,7 @@ export async function POST(request: Request) {
       lead_source_id: source?.id ?? null,
       first_name: (body.nama as string).trim(),
       last_name: '',
+      slug,
       phone: normalizePhone(body.phone as string),
       status: 'new',
       ...(createdAt ? { created_at: createdAt } : {}),

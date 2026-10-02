@@ -92,7 +92,7 @@ export function AddLeadForm({ t }: AddLeadFormProps) {
     setError(null);
 
     const supabase = createClient();
-    const { leadId, error: createError } = await createLead(supabase, {
+    const { leadId, slug, error: createError } = await createLead(supabase, {
       nama,
       phone,
       email,
@@ -118,7 +118,7 @@ export function AddLeadForm({ t }: AddLeadFormProps) {
     // GOOGLE_CONTACTS_REFRESH_TOKEN belum dikonfigurasi.
     fetch(`/api/leads/${leadId}/sync-contact`, { method: "POST" }).catch(() => {});
 
-    router.push(`/crm/${leadId}`);
+    router.push(`/crm/${slug ?? leadId}`);
   }
 
   const isAdmin = (assignableUsers?.length ?? 0) > 0;

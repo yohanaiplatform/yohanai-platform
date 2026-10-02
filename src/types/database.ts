@@ -799,6 +799,7 @@ export type Database = {
           lead_source_id: string | null
           metadata: Json
           phone: string | null
+          slug: string
           status: string
           updated_at: string
           updated_by: string | null
@@ -815,6 +816,7 @@ export type Database = {
           lead_source_id?: string | null
           metadata?: Json
           phone?: string | null
+          slug: string
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -831,6 +833,7 @@ export type Database = {
           lead_source_id?: string | null
           metadata?: Json
           phone?: string | null
+          slug?: string
           status?: string
           updated_at?: string
           updated_by?: string | null

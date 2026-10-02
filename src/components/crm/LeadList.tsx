@@ -63,7 +63,7 @@ export function LeadList({ data, error, t }: LeadListProps) {
               >
                 <td className="px-3 py-3 font-medium">
                   <Link
-                    href={`/crm/${lead.id}`}
+                    href={`/crm/${lead.slug}`}
                     className="hover:underline underline-offset-2"
                   >
                     {nama}

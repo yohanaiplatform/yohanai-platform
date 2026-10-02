@@ -8,6 +8,7 @@ const FOLLOW_UP_OVERDUE_HOURS = 48;
 
 interface LeadRow {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   phone: string | null;
@@ -47,7 +48,7 @@ export async function getHotFollowUpLeads(
   const { data, error } = await supabase
     .schema("customer")
     .from("leads")
-    .select("id, first_name, last_name, phone, metadata, created_at")
+    .select("id, slug, first_name, last_name, phone, metadata, created_at")
     .or(
       "metadata->>status_funnel_awal.ilike.hot,metadata->>status_funnel_awal.ilike.warm"
     )
@@ -213,7 +214,7 @@ export async function getClosingLeads(
   const { data, error } = await supabase
     .schema("customer")
     .from("leads")
-    .select("id, first_name, last_name, phone, metadata, created_at")
+    .select("id, slug, first_name, last_name, phone, metadata, created_at")
     .ilike("metadata->>status_funnel_awal", "closing")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });

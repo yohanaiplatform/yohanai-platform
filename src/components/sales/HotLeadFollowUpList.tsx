@@ -51,7 +51,7 @@ export function HotLeadFollowUpList({ temperature, data, totalCount, error }: Ho
             className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0"
           >
             <div>
-              <Link href={`/crm/${lead.id}`} className="font-medium hover:underline">
+              <Link href={`/crm/${lead.slug}`} className="font-medium hover:underline">
                 {nama}
               </Link>
               <p className="mt-1 text-xs text-muted-foreground">
