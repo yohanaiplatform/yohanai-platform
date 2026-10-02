@@ -148,7 +148,7 @@ export function LeadWhatsApp({
           placeholder={t.detail.whatsappPlaceholder}
           rows={2}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button type="submit" size="sm" disabled={sending || !text.trim()}>
             {sending ? t.detail.whatsappSending : t.detail.whatsappSend}
           </Button>
@@ -156,7 +156,7 @@ export function LeadWhatsApp({
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
             disabled={sending}
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            className="h-8 min-w-0 max-w-full flex-1 rounded-md border border-input bg-background px-2 text-sm sm:flex-none"
             aria-label="Pilih template follow-up"
           >
             {FOLLOW_UP_TEMPLATES.map((tpl) => (
@@ -165,7 +165,14 @@ export function LeadWhatsApp({
               </option>
             ))}
           </select>
-          <Button type="button" size="sm" variant="outline" disabled={sending} onClick={handleSendTemplate}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            disabled={sending}
+            onClick={handleSendTemplate}
+          >
             Kirim Template Follow-up
           </Button>
           {error &&<p className="text-sm text-destructive">{error}</p>}
