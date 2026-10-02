@@ -70,13 +70,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         </GuideP>
         <GuideHeading>Lupa password</GuideHeading>
         <GuideP>
-          Halaman login punya link &quot;Lupa Password&quot; -- masukkan email, link reset dikirim lewat email
-          (Resend).
+          Halaman login punya link &quot;Lupa Password&quot; -- masukkan email, link reset dikirim lewat email.
         </GuideP>
         <GuideNote>
           <strong>Pendaftaran mandiri sedang ditutup sementara.</strong> Platform masih dalam mode pemakaian
           personal -- akun baru dibuat manual oleh admin (bukan daftar sendiri lewat form). Kalau butuh akun
-          baru, minta admin buatkan dulu lewat Supabase Dashboard, baru login pakai kredensial yang diberikan.
+          baru, minta admin buatkan dulu, baru login pakai kredensial yang diberikan.
         </GuideNote>
       </>
     ),
@@ -245,8 +244,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     Content: () => (
       <>
         <GuideP>
-          Halaman <strong>Settings</strong> saat ini baru berisi satu fitur: menghubungkan akun{" "}
-          <strong>Google Contacts</strong> pribadi Anda.
+          Halaman <strong>Settings</strong> berisi integrasi akun pribadi (Google Contacts) dan, khusus untuk
+          komunikasi WhatsApp, pengaturan nomor yang Anda pakai.
         </GuideP>
         <GuideHeading>Kenapa hubungkan Google Contacts</GuideHeading>
         <GuideP>
@@ -563,9 +562,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     Content: () => (
       <>
         <GuideP>
-          WhatsApp terhubung lewat Kapso (penyedia resmi WhatsApp Cloud API Meta) -- pesan masuk otomatis
-          dicocokkan ke lead lewat nomor HP, lalu AI Agent (lihat panduan terpisah) membaca & membalas kalau
-          relevan.
+          Pesan WhatsApp yang masuk otomatis dicocokkan ke lead lewat nomor HP, lalu AI Agent (lihat panduan
+          terpisah) membaca & membalas kalau relevan.
         </GuideP>
         <GuideHeading>Balas manual</GuideHeading>
         <GuideP>
@@ -658,6 +656,7 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           items={[
             "AI Agent butuh follow-up manusia -- muncul ke agen yang ditugaskan ke lead itu (atau semua admin).",
             "Permintaan akses Google Contacts dari user lain -- muncul ke admin, dengan tombol \"Setujui\" langsung di notifikasinya.",
+            "Permintaan nomor WhatsApp baru dari user lain, dan kabar nomor Anda sudah aktif setelah diajukan -- lihat panduan Pengaturan.",
           ]}
         />
       </>
@@ -701,11 +700,11 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           platform ini.
         </GuideNote>
         <GuideP>
-          Saat ini AI Agent berjalan memakai satu API key Claude milik pemilik platform (bukan API key pribadi
-          tiap user) -- jadi semua user yang pakai AI Agent otomatis ikut memakai kapasitas itu bersama, tanpa
-          perlu daftar/bayar terpisah ke penyedia AI. Rencana ke depan: tiap user bisa punya pengaturan/kuota
-          sendiri, dengan pembayaran dikelola lewat platform (bukan user daftar langsung ke Anthropic) --
-          panduan ini akan diperbarui begitu fitur ini dibangun.
+          Saat ini AI Agent berjalan memakai kapasitas milik pemilik platform (bukan akun/API key pribadi tiap
+          user) -- jadi semua user yang pakai AI Agent otomatis ikut memakai kapasitas itu bersama, tanpa perlu
+          daftar/bayar terpisah ke pihak manapun. Rencana ke depan: tiap user bisa punya pengaturan/kuota
+          sendiri, dengan pembayaran dikelola lewat platform -- panduan ini akan diperbarui begitu fitur ini
+          dibangun.
         </GuideP>
       </>
     ),
