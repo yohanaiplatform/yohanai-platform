@@ -322,7 +322,9 @@ async function handleMessageReceived(
 
   // Pesan media/non-teks tidak dikirim ke AI Agent -- content-nya cuma
   // placeholder ("[image]" dst), bukan sesuatu yang bisa diinterpretasi.
-  const isTextMessage = payload.message.type === 'text' && Boolean(payload.message.text?.body ?? payload.message.kapso?.content)
+  // Balasan tombol quick-reply template (mis. "Sudah dapat rumah") datang
+  // bertipe 'button'/'interactive', tapi isinya teks biasa -- harus diproses AI.
+  const isTextMessage = ['text', 'button', 'interactive'].includes(payload.message.type) && Boolean(payload.message.text?.body ?? payload.message.kapso?.content)
 
   if (leadId && isTextMessage && process.env.ANTHROPIC_API_KEY) {
     // Best-effort -- indikator "mengetik" cuma UX, jangan sampai gagal
