@@ -683,15 +683,28 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+Task 033
+
+**Bug ditemukan & diperbaiki sama hari -- AI Agent diam total untuk lead baru yang belum pernah terdaftar di CRM.** Yohan minta Ramlan test kirim WA ke nomor produksi baru -- tidak ada balasan sama sekali lewat 3 menit (muncul di Recent Chats sebagai "Not linked to a lead -- view only"). Root cause: `runAiAgent()` di webhook cuma dipanggil kalau nomor pengirim sudah match `customer.leads` yang ADA -- lead organik dari iklan/baliho yang chat duluan (realistis untuk nomor produksi, beda dari sandbox yang semua nomornya sudah pre-registered lewat testing) didiamkan total.
+
+- **`autoCreateLeadFromWhatsApp()`** (baru) -- begitu nomor tidak match lead manapun, otomatis buat lead baru: source "WhatsApp" (sudah ada di `customer.lead_sources`, belum pernah dipakai sebelumnya), nama dari profil WhatsApp pengirim (fallback ke nomor HP -- AI Agent sendiri nanti akan tanya nama lewat alur konfirmasi nama yang sudah ada, Task 030). Thread percakapan lama (kalau sempat ada sebelum lead dibuat) diadopsi ke lead baru, bukan dibiarkan 2 thread terpisah.
+- **`assigned_to` WAJIB dari env var baru `WHATSAPP_DEFAULT_ASSIGNEE_USER_ID`** -- sengaja TIDAK di-hardcode di kode (lihat memory `multi-tenant-forward-compat`), dan sengaja TIDAK membuat lead sama sekali kalau env var ini belum diisi (lebih aman daripada membuat lead tanpa pemilik yang cuma kelihatan admin). Ditanya ke Yohan nilainya: `yohanbenyamin@gmail.com` (akun pemakaian aktif utama, bukan Ramlan) -- **env var ini masih perlu diisi manual di Vercel oleh Yohan**, belum aktif sampai itu dilakukan.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested end-to-end** (butuh env var di atas diisi dulu + Ramlan kirim WA ulang) -- logikanya diverifikasi lewat code review manual terhadap alur `handleMessageReceived()`, bukan uji nyata.
+
+---
+
 ### Next Task
 
-Task 033
+Task 034
 
 **Checklist buat sesi berikutnya:**
 
 0. **Live-test perubahan AI Agent Task 030** (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan -- belum pernah dites selain lewat kode/tsc/build.
 
 0b. **Verifikasi di production**: bug fix Lead Detail (toChatMessage server/client), URL slug lead baru, dan tombol Edit Nama/Kontak -- semua sudah dites di dev server lokal (database sama), belum dites di domain production yohanai.id sungguhan.
+
+0c. **Isi `WHATSAPP_DEFAULT_ASSIGNEE_USER_ID` di Vercel** (`fba8a248-d30c-4ec3-99ee-02b11bf74d6a`, akun `yohanbenyamin@gmail.com`) lalu redeploy -- tanpa ini, fitur auto-buat-lead dari WA masuk (Task 033) tetap nonaktif diam-diam. Setelah itu minta Ramlan test kirim WA lagi untuk verifikasi end-to-end.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **PANTAU AI Agent di nomor produksi** -- baru tersambung 2 Oktober 2026 pagi, belum ada siklus percakapan customer sungguhan yang diamati penuh dari awal sampai akhir. Cek Lead Detail/notifikasi follow-up beberapa hari ke depan, siapa tahu masih ada pola yang cuma muncul di volume/variasi customer asli (beda dari testing sendiri di sandbox).
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
@@ -700,7 +713,7 @@ Task 033
 6. **Instrumentasi tracking Daily/Platform Report yang masih nol**: AI crawler (lihat poin 1), visitor listing/foto, download foto/video.
 7. **Alur dokumen tanda tangan lead closing** — sudah diriset penuh, belum diintegrasikan, simpan dulu sebagai referensi (`docs/modules/crm.mdx`).
 8. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih, semua fitur baru tetap dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`). **Akun `yohanbenyamin@gmail.com` (role `agent`, data aktif sungguhan) sekarang jadi acuan utama kalau ada pembatasan akses baru buat role non-admin** — bukan akun test kosong.
-8b. **Konfirmasi ke Yohan**: Platform/Developer Report terkirim ke `cvdevthan@gmail.com` (override `PLATFORM_REPORT_RECIPIENT`) -- pastikan itu memang inbox yang dipantau, bukan `admin@yohanai.id`.
+~~8b. Konfirmasi Platform/Developer Report ke `cvdevthan@gmail.com`~~ -- **sudah dikonfirmasi Yohan benar (2 Okt 2026), tidak perlu tindak lanjut.**
 8c. **Pastikan jadwal cron Daily Report baru (`12 0 * * *`) benar-benar jalan tepat waktu besok** -- perbaikan 2 Okt 2026 belum pernah diverifikasi 1 siklus penuh.
 9. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja.
 10. **Backlog "10 AI Agent"** dari arsip pra-Claude — referensi non-mengikat di `docs/modules/ai.mdx`.
@@ -709,7 +722,7 @@ Task 033
 
 # Last Updated
 
-2 Oktober 2026 (pagi)
+2 Oktober 2026 (siang)
 
 ---
 

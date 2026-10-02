@@ -581,6 +581,10 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideHeading>Yang bisa dilakukan AI Agent</GuideHeading>
         <GuideList
           items={[
+            <>
+              <strong>Membalas lead BARU yang belum pernah terdaftar</strong> (mis. dari iklan/baliho yang chat
+              duluan) -- otomatis dicatat sebagai lead baru di CRM, bukan cuma didiamkan.
+            </>,
             "Membalas pertanyaan umum (harga, lokasi, spesifikasi, DP/cicilan) pakai data listing yang benar-benar ada di sistem.",
             "Mengirim foto listing asli lewat WhatsApp -- TAPI cuma kalau lead eksplisit minta foto/gambar/video (AI sengaja tidak menawarkan sendiri supaya tidak terkesan memaksa, sekalian hemat biaya).",
             "Menampilkan indikator \"sedang mengetik...\" di WhatsApp lead selama memproses.",
