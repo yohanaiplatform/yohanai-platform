@@ -197,6 +197,8 @@ async function autoCreateLeadFromWhatsApp(
   return inserted.id
 }
 
+const META_SYSTEM_PHONE = '447710173736'
+
 async function handleMessageReceived(
   supabase: ReturnType<typeof createAdminClient>,
   payload: KapsoMessageReceivedPayload
@@ -211,6 +213,12 @@ async function handleMessageReceived(
   if (!rawPhone) return
 
   const phone = normalizePhone(rawPhone)
+
+  // Akun resmi "Facebook Business" (notifikasi sistem Meta, mis. "WhatsApp
+  // account connected to your Facebook Page") -- bukan lead, jangan dibuatkan
+  // lead dan jangan sampai dibalas AI Agent.
+  if (phone === META_SYSTEM_PHONE) return
+
   const waMessageId = payload.message.id
   const phoneNumberId = payload.phone_number_id ?? payload.conversation?.phone_number_id ?? null
   const content =
