@@ -54,9 +54,16 @@ export async function getDailyReportRecipients(
   const prefByUserId = new Map((prefs ?? []).map((p) => [p.user_id, p.daily_report_email]));
 
   const recipients: DailyReportRecipient[] = [];
+  // Dedupe by user id -- ketemu kasus nyata 2 Oktober 2026: listUsers()
+  // sempat balikin user yang sama 2x dalam satu panggilan (bukan akun
+  // ganda di auth.users, dikonfirmasi lewat query langsung), bikin 1 user
+  // dapat Daily Report dobel di inbox-nya.
+  const seenUserIds = new Set<string>();
 
   for (const user of usersPage.users) {
     if (!user.email) continue;
+    if (seenUserIds.has(user.id)) continue;
+    seenUserIds.add(user.id);
 
     // Belum pernah simpan preferensi sama sekali -> default aktif (pola
     // sama seperti DEFAULT_PREFS di NotificationPreferencesForm.tsx).

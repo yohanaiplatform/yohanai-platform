@@ -48,10 +48,22 @@ export async function GET(request: Request) {
   const platformReport = await getPlatformReport(supabase);
   const { error: platformError } = await sendPlatformReportEmail(platformReport);
 
-  return NextResponse.json({
-    success: failed.length === 0 && !platformError,
-    sent: results.length - failed.length,
-    failed,
-    platformReport: platformError ? { success: false, error: platformError } : { success: true },
-  });
+  const success = failed.length === 0 && !platformError;
+
+  // Status non-200 kalau ada yang gagal -- sebelumnya selalu 200 apa pun
+  // isinya, jadi GitHub Actions (cek HTTP_CODE -ne 200) tidak pernah
+  // menangkap kegagalan pengiriman sebagian/semua email, walau field
+  // "success" di body sudah benar false. Ketemu 2 Oktober 2026 saat
+  // investigasi laporan yang "katanya sukses" di Action tapi perlu
+  // dipastikan ulang -- bukan kasus yang terjadi kali ini, tapi celahnya
+  // sudah ada sejak awal endpoint ini dibuat.
+  return NextResponse.json(
+    {
+      success,
+      sent: results.length - failed.length,
+      failed,
+      platformReport: platformError ? { success: false, error: platformError } : { success: true },
+    },
+    { status: success ? 200 : 207 }
+  );
 }
