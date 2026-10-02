@@ -2,7 +2,7 @@
 
 // src/components/property/PropertyConfidentialFields.tsx
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Json } from "@/types/database";
@@ -56,12 +56,8 @@ function formatCommission(commission: CommissionData | null): string | null {
  * metadata.commission WAJIB di-strip eksplisit sebelum dikirim ke client,
  * jangan spread metadata mentah.
  *
- * Visibilitas: RLS listings_owner_or_admin (migration 043) sudah cukup --
- * kalau listing ini kelihatan sama sekali, penontonnya pasti admin atau
- * agent yang di-assign (satu-satunya audiens yang disetujui Yohan lihat
- * data ini). Yang butuh dibatasi tambahan cuma EDIT-nya: admin-only,
- * dideteksi lewat core.list_assignable_users() (pola sama seperti
- * AddListingForm.tsx/PropertyAssignSelect.tsx -- array kosong = bukan admin).
+ * Visibilitas & edit: RLS listings_owner_or_admin (migration 043) sudah cukup --
+ * yang bisa lihat/ubah listing ini cuma admin atau agent yang di-assign.
  */
 export function PropertyConfidentialFields({
   listingId,
@@ -70,7 +66,6 @@ export function PropertyConfidentialFields({
   commission,
 }: PropertyConfidentialFieldsProps) {
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,20 +76,6 @@ export function PropertyConfidentialFields({
     commission?.type ?? "percentage"
   );
   const [formCommissionValue, setFormCommissionValue] = useState(commission?.value?.toString() ?? "");
-
-  useEffect(() => {
-    let active = true;
-
-    (async () => {
-      const supabase = createClient();
-      const { data } = await supabase.schema("core").rpc("list_assignable_users");
-      if (active) setIsAdmin((data ?? []).length > 0);
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   function handleCancel() {
     setFormOwnerName(owner?.name ?? "");
@@ -142,22 +123,14 @@ export function PropertyConfidentialFields({
     router.refresh();
   }
 
-  // Belum tahu role -- jangan tampilkan apa pun dulu (hindari kedipan form edit
-  // sekilas sebelum ketahuan bukan admin).
-  if (isAdmin === null) {
-    return <p className="text-sm text-muted-foreground">Memuat...</p>;
-  }
-
-  if (!isAdmin || !isEditing) {
+  if (!isEditing) {
     return (
       <div className="space-y-4">
-        {isAdmin && (
-          <div className="flex justify-end">
-            <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-              Edit
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-end">
+          <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+            Edit
+          </Button>
+        </div>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           <DetailField label="Nama Pemilik" value={owner?.name} />
           <DetailField label="No. HP Pemilik" value={owner?.phone} />

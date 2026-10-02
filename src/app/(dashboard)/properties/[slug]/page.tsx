@@ -11,7 +11,7 @@ import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFi
 import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
-import { PropertyVideoEmbed } from "@/components/property/PropertyVideoEmbed";
+import { PropertyVideoEditable } from "@/components/property/PropertyVideoEditable";
 import { PropertyExportButtons } from "@/components/property/PropertyExportButtons";
 import { Button } from "@/components/ui/button";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
@@ -140,11 +140,9 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
         <PropertyPhotoManager listingId={listing.id} metadata={listing.metadata} photoUrls={photoUrls} />
       </SectionCard>
 
-      {videoUrl && (
-        <SectionCard title="Video">
-          <PropertyVideoEmbed url={videoUrl} />
-        </SectionCard>
-      )}
+      <SectionCard title="Video">
+        <PropertyVideoEditable listingId={listing.id} metadata={listing.metadata} videoUrl={videoUrl ?? null} />
+      </SectionCard>
 
       <SectionCard title="Spesifikasi">
         <PropertyEditableFields
