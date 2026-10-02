@@ -4,42 +4,15 @@
 
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { toChatMessage, type ChatMessage } from "@/lib/chat/toChatMessage";
 
-export interface ChatMessage {
-  id: string;
-  sender_type: string;
-  content: string;
-  created_at: string;
-  /** true kalau pesan aslinya media (foto/video/dokumen) DARI LEAD -- konten mentahnya (link storage Kapso) sengaja tidak ditampilkan. */
-  has_media?: boolean;
-  /** "image" kalau ini pesan foto YANG DIKIRIM AI Agent (content = URL R2 publik, aman ditampilkan langsung). */
-  message_type?: string;
-}
+// Re-export supaya import lama (`from "@/components/shared/ChatMessageList"`)
+// di RecentChatThread.tsx/LeadWhatsApp.tsx tetap jalan tanpa ubah apa pun --
+// definisi aslinya sekarang di src/lib/chat/toChatMessage.ts (file server-safe,
+// TANPA "use client") supaya bisa juga dipanggil dari getLeadConversation.ts.
+export { toChatMessage, type ChatMessage };
 
 const MEDIA_NOTICE = "📎 Lampiran (foto/video/dokumen) -- buka WhatsApp untuk melihat.";
-
-/** Konversi baris chat.messages mentah (metadata JSONB) jadi ChatMessage siap-render. */
-export function toChatMessage(row: {
-  id: string;
-  sender_type: string;
-  content: string;
-  created_at: string;
-  metadata?: unknown;
-}): ChatMessage {
-  const metadata =
-    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-      ? (row.metadata as Record<string, unknown>)
-      : {};
-
-  return {
-    id: row.id,
-    sender_type: row.sender_type,
-    content: row.content,
-    created_at: row.created_at,
-    has_media: Boolean(metadata.has_media),
-    message_type: typeof metadata.message_type === "string" ? metadata.message_type : undefined,
-  };
-}
 
 interface ChatMessageListProps {
   messages: ChatMessage[];

@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
+import { toChatMessage, type ChatMessage } from "@/lib/chat/toChatMessage";
 
 export interface GetLeadConversationResult {
   conversationId: string | null;
