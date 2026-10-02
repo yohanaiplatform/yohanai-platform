@@ -51,6 +51,20 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 2 Oktober 2026 (pagi) — Nomor WhatsApp Produksi Live + Perbaikan Sistem Laporan
+
+### Added
+
+- **Nomor WhatsApp produksi Griya Indonesia resmi tersambung ke Kapso** — bukan sandbox lagi. AI Agent otomatis aktif ke nomor ini, membalas pesan dari customer sungguhan
+
+### Fixed
+
+- Jadwal cron Daily/Platform Report (`0 0 * * *`) konsisten telat berjam-jam setiap hari karena dijadwalkan tepat di awal jam (waktu antrian terpadat GitHub Actions) — digeser ke `12 0 * * *`
+- `getDailyReportRecipients()` bisa mengirim laporan dobel ke penerima yang sama dalam satu kali kirim — ditambal dedupe
+- `POST /api/reports/daily` sekarang membalas HTTP 207 (bukan selalu 200) kalau ada pengiriman yang gagal, supaya kegagalan tidak luput dari monitoring GitHub Actions
+
+---
+
 ## 2 Oktober 2026 (dini hari) — Lead Detail: Slug URL + Edit Nama/Kontak
 
 ### Added

@@ -245,7 +245,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). **Laporan Pemasaran per listing live (1 Okt 2026)** — vendor report otomatis dari data lead, lihat `docs/modules/property.mdx`. Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto ✅ pindah penuh ke Cloudflare R2 (29 Sep 2026, 272/272 foto) |
 | Sales | ✅ v1 live (1 Okt 2026) — Follow-up Hot Lead (Hot/Warm terpisah) + Proses Closing (checklist PPJB→Berkas→BAST Kunci per metode pembayaran). Visi besar (Pipeline/Opportunity/Commission) di `docs/modules/sales.mdx` masih rencana, belum dikerjakan |
 | AI Intelligence | 🟢 AI Agent otomatis **aktif & live-tested** (sejak 29 Sep 2026 malam, 6+ bug diperbaiki lewat Task 026/027) — interpretasi balasan WA + update Temperature + auto-reply + kirim foto listing lewat Claude API, audit trail `ai.agent_runs`, knowledge base (`knowledge.entries`) untuk istilah lokasi & FAQ. **Deflect survey/nego harga/lokasi persis ke agen lapangan + konfirmasi nama lead (1 Okt 2026, Task 030) — belum live-tested ke sandbox sungguhan.** 2 insight dashboard nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh masih placeholder |
-| Communication Automation | 🟡 In Progress — Kapso dipilih (bukan WAHA/Fonnte), integrasi kirim/terima WhatsApp + live chat sudah jalan di **sandbox** (auto-scroll pesan baru diperbaiki 28 Sep 2026). Nomor produksi (Griya Indonesia) **sengaja ditunda 2x** — AI Agent dimajukan jadi prioritas duluan (29 Sep 2026 malam) |
+| Communication Automation | ✅ Kapso dipilih (bukan WAHA/Fonnte) — **nomor produksi Griya Indonesia resmi tersambung (2 Oktober 2026 pagi)**, bukan sandbox lagi. AI Agent otomatis aktif penuh ke nomor ini juga (balasan WA ke lead sungguhan). Live chat + auto-scroll sudah jalan sejak 28 Sep 2026 |
 | Reporting | ✅ Daily Report (personal per user, dashboard 1 halaman berwarna, link interaktif) & Platform Report (developer, kesehatan infra + biaya + status integrasi) aktif via cron GitHub Actions harian. Instrumentasi token AI/crawler/visitor/download belum didesain |
 | Google Contacts Sync | ✅ Personal per user (29 Sep 2026) — lead manual (`/crm/new`) auto-sync ke Google Contacts & HP milik user yang connect. Lead dari Google Form (`/api/leads/intake`) sengaja tidak ikut sync (tidak ada pemilik user) |
 
@@ -667,9 +667,25 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+Task 032
+
+**Nomor WhatsApp produksi Griya Indonesia resmi tersambung ke Kapso (2 Oktober 2026 pagi) -- bukan sandbox lagi.** Yohan ganti nomor di Kapso, daftarkan webhook ke `https://yohanai.id/api/whatsapp/webhook` (event `whatsapp.message.received` + buffering 5 detik/maks 50 pesan -- fitur debounce Kapso buat gabung pesan beruntun dari lead jadi 1 panggilan webhook, kode kita sudah siap lewat `isBatch()`/`body.data[]`), lalu update `KAPSO_PHONE_NUMBER_ID` dan `KAPSO_WEBHOOK_SECRET` di Vercel (secret baru, beda dari sandbox) dan redeploy. **Task 015 yang sejak 27 September 2026 berkali-kali ditunda akhirnya selesai.** Konsekuensi penting: AI Agent yang sudah live-tested & 6+ bug diperbaiki di sandbox (Task 026/027) SEKARANG otomatis aktif ke nomor produksi juga -- balasan WA ke lead sungguhan, bukan cuma testing lagi.
+
+**Lanjutan sama hari -- investigasi "tidak dapat Daily/Platform Report" + 3 bug ditemukan & diperbaiki.** Yohan laporkan tidak terima laporan hari ini. Investigasi:
+
+- **Cron GitHub Actions (`0 0 * * *`) konsisten telat ~3-3,5 jam tiap hari** (29 Sep-1 Okt, semua berhasil tapi telat), dan tanggal 2 Okt tidak jalan otomatis sama sekali sampai ditrigger manual -- GitHub secara resmi mendokumentasikan jadwal cron tepat di awal jam sebagai waktu beban tertinggi/paling sering telat-atau-dilewati. Digeser ke `12 0 * * *` (00:12 UTC).
+- **Laporan hari-hari sebelumnya ternyata SUDAH terkirim & "delivered" (dicek langsung lewat Resend)** -- bukan gagal kirim, kemungkinan besar nyangkut folder Spam karena domain pengirim (`send.yohanai.id`) masih relatif baru.
+- **Bug ditemukan: `getDailyReportRecipients()` sempat kirim ke 1 user yang sama 2x dalam satu run** (`yohanbenyamin@gmail.com` dapat Daily Report dobel saat trigger manual) -- `listUsers()` balikin user itu dobel dalam satu panggilan (dikonfirmasi BUKAN akun ganda di `auth.users` lewat query langsung). Ditambal dedupe by user id.
+- **Bug ditemukan: `POST /api/reports/daily` selalu balas HTTP 200 apa pun isinya** -- kalau SEMUA pengiriman email gagal, GitHub Actions tetap mencatat "success" karena cuma cek `HTTP_CODE -ne 200`. Sekarang balas `207` kalau ada kegagalan (field `success`/`failed` di body sendiri sudah benar dari awal, cuma status code-nya yang menyesatkan).
+- **Catatan tersendiri yang baru ketahuan**: laporan Developer/Platform Report ternyata dikirim ke `cvdevthan@gmail.com` (lewat `PLATFORM_REPORT_RECIPIENT`/override), bukan `admin@yohanai.id` -- perlu dikonfirmasi ke Yohan apakah itu inbox yang memang dia pantau.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. Trigger manual dipastikan sukses (`sent:3`, `failed:[]`, `platformReport.success:true`) dan diverifikasi delivery-nya langsung lewat Resend API (status "delivered" untuk ketiga penerima).
+
+---
+
 ### Next Task
 
-Task 032
+Task 033
 
 **Checklist buat sesi berikutnya:**
 
@@ -677,13 +693,15 @@ Task 032
 
 0b. **Verifikasi di production**: bug fix Lead Detail (toChatMessage server/client), URL slug lead baru, dan tombol Edit Nama/Kontak -- semua sudah dites di dev server lokal (database sama), belum dites di domain production yohanai.id sungguhan.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
-2. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja) — AI Agent sudah live-tested 2x dan total 6 bug besar sudah diperbaiki, realistis jadi prioritas berikutnya kalau Yohan sudah puas.
+2. **PANTAU AI Agent di nomor produksi** -- baru tersambung 2 Oktober 2026 pagi, belum ada siklus percakapan customer sungguhan yang diamati penuh dari awal sampai akhir. Cek Lead Detail/notifikasi follow-up beberapa hari ke depan, siapa tahu masih ada pola yang cuma muncul di volume/variasi customer asli (beda dari testing sendiri di sandbox).
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
 4. **Isi `ai_tags`/Deskripsi untuk 91 listing migrasi lama** — field tag baru wajib untuk listing baru/diedit ulang, belum retroaktif; AI Agent cuma bisa jawab detail (DP, harga per blok) untuk listing yang Deskripsi-nya sudah lengkap. **Yohan sedang kerjakan manual sesi ini** (update lead & listing aktif) sebelum lanjut development lagi.
 5. **Tambah entri `knowledge.entries` lain** kalau ada area/istilah lokal lain yang sering dipakai lead tapi belum di-cover ("Area Kotabaru" baru 1 entri contoh).
 6. **Instrumentasi tracking Daily/Platform Report yang masih nol**: AI crawler (lihat poin 1), visitor listing/foto, download foto/video.
 7. **Alur dokumen tanda tangan lead closing** — sudah diriset penuh, belum diintegrasikan, simpan dulu sebagai referensi (`docs/modules/crm.mdx`).
 8. **Multi-tenant SaaS** (Model A vs Model B) — masih belum dipilih, semua fitur baru tetap dibangun dengan kesadaran ini (lihat memory `multi-tenant-forward-compat`). **Akun `yohanbenyamin@gmail.com` (role `agent`, data aktif sungguhan) sekarang jadi acuan utama kalau ada pembatasan akses baru buat role non-admin** — bukan akun test kosong.
+8b. **Konfirmasi ke Yohan**: Platform/Developer Report terkirim ke `cvdevthan@gmail.com` (override `PLATFORM_REPORT_RECIPIENT`) -- pastikan itu memang inbox yang dipantau, bukan `admin@yohanai.id`.
+8c. **Pastikan jadwal cron Daily Report baru (`12 0 * * *`) benar-benar jalan tepat waktu besok** -- perbaikan 2 Okt 2026 belum pernah diverifikasi 1 siklus penuh.
 9. **`DAILY_REPORT_RECIPIENT`** (env var lama, tidak dipakai lagi) — boleh dihapus dari Vercel kapan saja.
 10. **Backlog "10 AI Agent"** dari arsip pra-Claude — referensi non-mengikat di `docs/modules/ai.mdx`.
 
@@ -691,7 +709,7 @@ Task 032
 
 # Last Updated
 
-2 Oktober 2026 (dini hari)
+2 Oktober 2026 (pagi)
 
 ---
 
