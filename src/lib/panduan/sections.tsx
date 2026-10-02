@@ -260,6 +260,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           klik tombol &quot;Ajukan Akses&quot; di halaman yang sama. Admin akan dapat notifikasi dan menambahkan
           email Anda sebagai test user secara manual.
         </GuideP>
+        <GuideHeading>Nomor WhatsApp & Pemilik (khusus admin)</GuideHeading>
+        <GuideP>
+          Admin bisa daftarkan nomor WhatsApp bisnis (satu atau lebih) dan tentukan siapa pemiliknya -- lead
+          baru yang chat ke nomor itu otomatis jadi milik orang yang ditentukan, dan balasan AI/manual terkirim
+          dari nomor yang sesuai. Bagian ini tidak tampil untuk non-admin.
+        </GuideP>
         <GuideNote>
           Fitur Settings lain masih akan ditambahkan -- termasuk rencana <strong>watermark foto milik
           sendiri</strong> (saat ini watermark logo Yohan.AI terpasang otomatis di semua foto listing yang
@@ -559,9 +565,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           muncul langsung (real-time) di layar siapa pun yang sedang buka percakapan itu juga.
         </GuideP>
         <GuideNote>
-          <strong>Status saat ini: nomor sandbox Kapso</strong> (untuk tes/pengembangan) -- nomor WhatsApp
-          produksi Griya Indonesia Real Estate belum tersambung. Panduan ini akan diperbarui begitu nomor
-          produksi aktif.
+          <strong>Status saat ini: nomor WhatsApp produksi sudah aktif</strong> (sejak 2 Oktober 2026) -- bukan
+          nomor uji coba lagi, balasan AI Agent terkirim ke lead/customer sungguhan.
         </GuideNote>
       </>
     ),

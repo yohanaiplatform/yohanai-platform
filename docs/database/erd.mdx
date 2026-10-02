@@ -73,6 +73,10 @@ customer.lead_sources
                           └────────► ai.agent_runs (lead_id, sejak 049) ◄──── chat.conversations (conversation_id)
                                                                         ◄──── chat.messages (trigger_message_id, reply_message_id)
 
+chat.whatsapp_numbers (NYATA, sejak 056 -- phone_number_id -> assigned_to)
+        │
+        └────────► auth.users (assigned_to) -- pemilik default lead baru dari nomor itu
+
 workflow.definitions
         │
         ├────────► workflow.steps
@@ -102,6 +106,6 @@ reporting.dashboards
 
 # Last Updated
 
-2 Oktober 2026
+2 Oktober 2026 (sore)
 
 Sprint 011 — Platform Hold

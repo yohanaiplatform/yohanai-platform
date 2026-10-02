@@ -117,7 +117,11 @@ Kategori (9 baris, mis. Rumah/Tanah/Ruko; soft delete lewat `deleted_at`, dikelo
 
 ### conversations, messages
 
-Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kapso, sandbox): pesan masuk dari webhook dan balasan keluar dari Lead Detail sama-sama masuk ke sini. Kedua tabel sudah ditambahkan ke publication `supabase_realtime` (migration `040`) sehingga UI (Lead Detail, Recent Chats dashboard) bisa live-update lewat Supabase Realtime tanpa refresh.
+Percakapan dan pesan per lead — sekarang juga dipakai integrasi WhatsApp (Kapso, **nomor produksi aktif sejak 2 Oktober 2026**, bukan sandbox lagi): pesan masuk dari webhook dan balasan keluar dari Lead Detail sama-sama masuk ke sini. Kedua tabel sudah ditambahkan ke publication `supabase_realtime` (migration `040`) sehingga UI (Lead Detail, Recent Chats dashboard) bisa live-update lewat Supabase Realtime tanpa refresh. `conversations.metadata.phone_number_id` (2 Oktober 2026) menyimpan nomor WA KITA yang dipakai lead ini chat -- dasar penentuan nomor pengirim balasan yang benar begitu platform dukung lebih dari 1 nomor (lihat `whatsapp_numbers` di bawah).
+
+### whatsapp_numbers
+
+**Nyata, dipakai** (migration `056`-`057`, 2 Oktober 2026 sore). Pemetaan nomor WhatsApp (`phone_number_id` dari Kapso) ke pemilik default (`assigned_to`) -- dasar fitur auto-buat-lead dari WA masuk (`autoCreateLeadFromWhatsApp()` di webhook) dan fallback penentuan nomor pengirim balasan kalau lead belum pernah punya percakapan sebelumnya. Dikelola lewat UI admin di `/settings` (`WhatsAppNumbersManager.tsx`), bukan env var -- persiapan supaya tiap agent yang sambungkan nomor WA sendiri (mis. Ramlan) tinggal didaftarkan tanpa ubah kode/redeploy. RLS: SELECT boleh admin (lihat semua) atau user lihat barisnya sendiri (`assigned_to = auth.uid()`, perlu dibaca sesi agent sendiri untuk fallback nomor pengirim); INSERT/UPDATE/DELETE admin-only.
 
 ## ai
 
@@ -201,7 +205,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`055` secara berurutan (per 2 Oktober 2026 dini hari). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`057` secara berurutan (per 2 Oktober 2026 sore). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -233,6 +237,8 @@ Folder `supabase/migrations/` berisi `001`–`055` secara berurutan (per 2 Oktob
 | `053` | Kolom `brand_name` di `auth_ext.profiles` — header Laporan Pemasaran per user, bukan hardcode nama bisnis |
 | `054` | `GRANT SELECT/INSERT/UPDATE` `customer.notes` ke `service_role` — dibutuhkan AI Agent buat tulis ringkasan percakapan otomatis |
 | `055` | Kolom `slug` (unik, NOT NULL) di `customer.leads` — URL Lead Detail jadi manusiawi, backfill 1973 lead collision-safe lewat window function |
+| `056` | Tabel `chat.whatsapp_numbers` (`phone_number_id -> assigned_to`) — dasar dukungan banyak nomor WhatsApp sekaligus |
+| `057` | Perbaiki RLS `056` — SELECT admin-only ternyata juga blokir user baca barisnya sendiri, dipecah jadi SELECT (admin atau pemilik baris) vs INSERT/UPDATE/DELETE (admin-only) |
 
 Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada di database sejak Agustus 2026 karena dijalankan langsung lewat Supabase SQL Editor tanpa pernah tercatat sebagai migration. Pada 23 September 2026 seluruhnya ditarik ulang dari struktur database hidup, ditulis idempotent, lalu diterapkan — sehingga repository kembali bisa dipakai membangun database dari nol.
 
@@ -242,6 +248,6 @@ Migration `022`–`026` adalah **rekonstruksi**: objeknya sudah lebih dulu ada d
 
 # Last Updated
 
-2 Oktober 2026
+2 Oktober 2026 (sore)
 
 Sprint 011 — Platform Hold

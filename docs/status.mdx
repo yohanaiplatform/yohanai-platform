@@ -694,9 +694,26 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+Task 034
+
+**Lanjutan sama hari -- dukungan banyak nomor WhatsApp sekaligus (persiapan SaaS).** Yohan tanya langsung: kalau Ramlan atau user lain nanti sambungkan nomor WA sendiri, apakah bakal kena masalah yang sama seperti Task 033? Jawabannya ya, dan lebih dalam dari dugaan -- dicek ke dokumentasi Kapso dulu sebelum jawab.
+
+- **Temuan**: payload webhook Kapso ternyata sudah menyertakan `phone_number_id` di top level (dikonfirmasi docs.kapso.ai) -- jadi secara teknis bisa dibedakan pesan masuk dari nomor mana. TAPI ditemukan gap kedua yang lebih serius: `KAPSO_PHONE_NUMBER_ID` (env var tunggal) juga dipakai untuk KIRIM balasan keluar (`sendWhatsAppText`/`sendWhatsAppImage`/`sendTypingIndicator`) -- kalau nomor kedua ditambahkan, balasan AI Agent maupun manual tetap akan terkirim dari 1 nomor yang sama, bukan nomor yang sedang di-chat lead (WhatsApp Business API mengharuskan balasan dari nomor yang sama).
+- **Migration `056`**: tabel baru `chat.whatsapp_numbers` (`phone_number_id -> assigned_to`), seed nomor produksi yang sudah aktif. **Migration `057`** (ditemukan saat verifikasi RLS): policy awal admin-only untuk SEMUA operasi ternyata juga memblokir SELECT dari sesi agent biasa sendiri -- padahal perlu dibaca sendiri untuk fallback nomor pengirim. Diperbaiki jadi SELECT (admin ATAU baris miliknya sendiri) vs INSERT/UPDATE/DELETE (admin-only).
+- **`webhook/route.ts`**: `autoCreateLeadFromWhatsApp()` (Task 033) sekarang lookup pemilik dari tabel ini berdasarkan `phone_number_id`, bukan env var. Conversation baru juga menyimpan `phone_number_id` ke `metadata` sekali saat dibuat -- jadi acuan nomor pengirim yang benar untuk balasan berikutnya di thread itu.
+- **`kapso.ts`**: 3 fungsi kirim (`sendWhatsAppText`/`sendWhatsAppImage`/`sendTypingIndicator`) sekarang terima `phoneNumberId` opsional per panggilan -- fallback ke env var `KAPSO_PHONE_NUMBER_ID` kalau tidak dikasih (aman untuk kode lama yang belum diupdate).
+- **`send/route.ts`** (balasan manual dari Lead Detail): ambil `phone_number_id` dari percakapan yang sudah ada; kalau lead belum pernah punya percakapan sama sekali (agent kirim pesan pertama duluan), fallback ke nomor terdaftar milik agent yang di-assign (`getPhoneNumberIdForUser()`).
+- **UI admin baru** `WhatsAppNumbersManager.tsx` di `/settings` (admin-only, pola deteksi sama seperti `PropertyConfidentialFields.tsx`) -- daftarkan/ubah/hapus pemetaan nomor dari UI, tanpa ubah kode/env var/redeploy lagi tiap ada agent baru connect nomor sendiri.
+- **`WHATSAPP_DEFAULT_ASSIGNEE_USER_ID` (env var dari Task 033) sekarang OBSOLETE** -- tidak dibaca kode manapun lagi, boleh dihapus dari Vercel kapan saja (tidak urgent).
+- **Catatan belum terselesaikan**: `KAPSO_WEBHOOK_SECRET` kemungkinan besar JUGA perlu sama persis di semua nomor (bukan per-nomor) supaya `verifySignature()` yang masih 1 secret global tetap bisa verifikasi webhook dari nomor manapun -- belum dicek apakah Kapso mengizinkan isi secret custom saat bikin webhook baru (bukan cuma generate otomatis). **Saat Ramlan/nomor kedua benar-benar mau disambungkan, cek dulu ini sebelum daftarkan webhooknya.**
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. RLS migration `057` diverifikasi lewat simulasi JWT langsung: admin lihat semua baris, `yohanbenyamin@gmail.com` lihat barisnya sendiri, Ramlan (belum ada baris) lihat 0 -- sesuai harapan. **Belum live-tested end-to-end dengan nomor kedua sungguhan** (belum ada nomor kedua aktif) -- baru diverifikasi lewat code review + simulasi RLS.
+
+---
+
 ### Next Task
 
-Task 034
+Task 035
 
 **Checklist buat sesi berikutnya:**
 
@@ -704,7 +721,10 @@ Task 034
 
 0b. **Verifikasi di production**: bug fix Lead Detail (toChatMessage server/client), URL slug lead baru, dan tombol Edit Nama/Kontak -- semua sudah dites di dev server lokal (database sama), belum dites di domain production yohanai.id sungguhan.
 
-0c. **Isi `WHATSAPP_DEFAULT_ASSIGNEE_USER_ID` di Vercel** (`fba8a248-d30c-4ec3-99ee-02b11bf74d6a`, akun `yohanbenyamin@gmail.com`) lalu redeploy -- tanpa ini, fitur auto-buat-lead dari WA masuk (Task 033) tetap nonaktif diam-diam. Setelah itu minta Ramlan test kirim WA lagi untuk verifikasi end-to-end.
+~~0c. Isi `WHATSAPP_DEFAULT_ASSIGNEE_USER_ID` di Vercel~~ -- **sudah selesai lalu DIGANTIKAN tabel `chat.whatsapp_numbers` (Task 034), env var ini sekarang obsolete, boleh dihapus kapan saja.**
+
+0d. **Minta Ramlan test kirim WA lagi** ke nomor produksi untuk verifikasi end-to-end fitur auto-buat-lead (Task 033) + penentuan nomor pengirim (Task 034) -- belum pernah dites nyata sama sekali, baru lewat code review + simulasi RLS.
+0e. **Cek apakah Kapso bisa diisi `KAPSO_WEBHOOK_SECRET` custom (bukan auto-generate) saat bikin webhook nomor baru** -- WAJIB dicek SEBELUM nomor kedua (mis. punya Ramlan) benar-benar didaftarkan, supaya `verifySignature()` yang masih 1 secret global tetap valid untuk semua nomor.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **PANTAU AI Agent di nomor produksi** -- baru tersambung 2 Oktober 2026 pagi, belum ada siklus percakapan customer sungguhan yang diamati penuh dari awal sampai akhir. Cek Lead Detail/notifikasi follow-up beberapa hari ke depan, siapa tahu masih ada pola yang cuma muncul di volume/variasi customer asli (beda dari testing sendiri di sandbox).
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
@@ -722,7 +742,7 @@ Task 034
 
 # Last Updated
 
-2 Oktober 2026 (siang)
+2 Oktober 2026 (sore)
 
 ---
 
