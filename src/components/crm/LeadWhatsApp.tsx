@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessageList, toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
+import { FOLLOW_UP_TEMPLATES, DEFAULT_FOLLOW_UP_TEMPLATE } from "@/lib/whatsapp/followUpTemplates";
 import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadWhatsAppProps {
@@ -28,6 +29,7 @@ export function LeadWhatsApp({
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [templateName, setTemplateName] = useState<string>(DEFAULT_FOLLOW_UP_TEMPLATE);
 
   function appendMessage(message: ChatMessage) {
     setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
@@ -111,7 +113,7 @@ export function LeadWhatsApp({
   }
 
   async function handleSendTemplate() {
-    if (!window.confirm("Kirim template follow-up ke lead ini? Pesan template berbayar per pesan (Meta).")) return;
+    if (!window.confirm(`Kirim template "${templateName}" ke lead ini? Template berbayar per pesan (Meta), kecuali masih di jendela gratis iklan.`)) return;
 
     setSending(true);
     setError(null);
@@ -119,7 +121,7 @@ export function LeadWhatsApp({
     const res = await fetch("/api/whatsapp/send-template", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leadId }),
+      body: JSON.stringify({ leadId, templateName }),
     });
 
     setSending(false);
@@ -150,6 +152,19 @@ export function LeadWhatsApp({
           <Button type="submit" size="sm" disabled={sending || !text.trim()}>
             {sending ? t.detail.whatsappSending : t.detail.whatsappSend}
           </Button>
+          <select
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            disabled={sending}
+            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            aria-label="Pilih template follow-up"
+          >
+            {FOLLOW_UP_TEMPLATES.map((tpl) => (
+              <option key={tpl.name} value={tpl.name}>
+                {tpl.label}
+              </option>
+            ))}
+          </select>
           <Button type="button" size="sm" variant="outline" disabled={sending} onClick={handleSendTemplate}>
             Kirim Template Follow-up
           </Button>

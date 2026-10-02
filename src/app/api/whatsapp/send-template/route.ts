@@ -6,7 +6,7 @@ import { sendWhatsAppTemplate } from "@/lib/whatsapp/kapso";
 import { findOrCreateLeadConversation } from "@/lib/chat/conversations";
 import { getPhoneNumberIdForUser } from "@/lib/whatsapp/whatsappNumbers";
 
-const FOLLOW_UP_TEMPLATE = { name: "yohan_griya", language: "id" };
+import { FOLLOW_UP_TEMPLATES, DEFAULT_FOLLOW_UP_TEMPLATE } from "@/lib/whatsapp/followUpTemplates";
 
 /**
  * Kirim template follow-up (yohan_griya) ke lead dari Lead Detail -- untuk
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { leadId?: string };
+  let body: { leadId?: string; templateName?: string };
   try {
     body = await request.json();
   } catch {
@@ -34,6 +34,12 @@ export async function POST(request: Request) {
 
   if (!body.leadId) {
     return NextResponse.json({ error: "leadId wajib diisi" }, { status: 400 });
+  }
+
+  // Hanya template di daftar putih -- jangan percaya nama template dari client.
+  const FOLLOW_UP_TEMPLATE = FOLLOW_UP_TEMPLATES.find((tpl) => tpl.name === (body.templateName ?? DEFAULT_FOLLOW_UP_TEMPLATE));
+  if (!FOLLOW_UP_TEMPLATE) {
+    return NextResponse.json({ error: "Template tidak dikenal" }, { status: 400 });
   }
 
   const { data: lead, error: leadError } = await supabase
