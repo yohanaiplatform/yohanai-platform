@@ -4,8 +4,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 import { sendWhatsAppText, sendWhatsAppImage } from "@/lib/whatsapp/kapso";
 import type { AgentDecision } from "@/lib/ai/interpretLeadReply";
-import { createNotification } from "@/lib/notifications/createNotification";
-import { getAdminUserIds } from "@/lib/notifications/getAdminUserIds";
 
 export interface ApplyAgentDecisionInput {
   leadId: string;
@@ -177,23 +175,20 @@ export async function applyAgentDecision(
   // notifikasi buat agen supaya ditindaklanjuti manual, bukan cuma dijawab
   // "akan dicek" ke lead lalu hilang tanpa jejak. Notify agent yang
   // di-assign; kalau lead belum di-assign siapa pun, notify semua admin.
+  // Ditampung dulu, BUKAN langsung notifikasi -- percakapan yang berkali-kali
+  // mentok dalam 1 sesi chat dulu bikin bubble notifikasi menumpuk (ketemu
+  // Yohan: >10 notifikasi terpisah untuk 1 lead dalam <1 jam). Job terjadwal
+  // (POST /api/ai/flush-follow-ups, lihat migration 059) gabungkan semua note
+  // yang masih pending jadi SATU notifikasi setelah percakapan sepi >=5 menit.
   if (decision.needsFollowUp) {
-    const recipientIds = input.assignedTo
-      ? [input.assignedTo]
-      : (await getAdminUserIds(supabaseAdmin)).map((a) => a.userId);
-
-    await Promise.all(
-      recipientIds.map((recipientId) =>
-        createNotification(supabaseAdmin, {
-          recipientId,
-          type: "ai_agent_needs_follow_up",
-          title: `AI Agent butuh follow-up: ${input.leadName}`,
-          body: decision.followUpNote ?? "Lead menanyakan hal yang tidak bisa dijawab AI Agent dari data yang ada.",
-          link: `/crm/${input.leadId}`,
-          metadata: { leadId: input.leadId, agentRunReasoning: decision.reasoning },
-        })
-      )
-    );
+    await supabaseAdmin
+      .schema("ai")
+      .from("follow_up_queue")
+      .insert({
+        lead_id: input.leadId,
+        conversation_id: input.conversationId,
+        note: decision.followUpNote ?? "Lead menanyakan hal yang tidak bisa dijawab AI Agent dari data yang ada.",
+      });
   }
 }
 

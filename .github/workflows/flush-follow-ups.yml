@@ -1,0 +1,27 @@
+name: Flush AI Follow-up Queue
+
+on:
+  schedule:
+    # Tiap 5 menit, mulai dari menit ke-3 (bukan kelipatan 5 bulat) biar
+    # sedikit menghindari waktu antrian terpadat GitHub Actions (lihat
+    # jebakan di AGENTS.md soal daily-report.yml yang sempat telat
+    # berjam-jam) -- walau untuk cadence sesering ini dampaknya kecil,
+    # karena run yang telat/terlewat tetap aman diproses run berikutnya.
+    - cron: "3-58/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  flush:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Flush follow-up queue
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            "https://yohanai.id/api/ai/flush-follow-ups" \
+            -H "x-flush-secret: ${{ secrets.AI_FOLLOW_UP_FLUSH_SECRET }}")
+          echo "HTTP Status: $HTTP_CODE"
+          cat /tmp/response.json
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Flush follow-up queue failed with status $HTTP_CODE"
+            exit 1
+          fi

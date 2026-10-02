@@ -68,6 +68,33 @@ export type Database = {
         }
         Relationships: []
       }
+      follow_up_queue: {
+        Row: {
+          id: string
+          lead_id: string
+          conversation_id: string | null
+          note: string
+          created_at: string
+          flushed_at: string | null
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          conversation_id?: string | null
+          note: string
+          created_at?: string
+          flushed_at?: string | null
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          conversation_id?: string | null
+          note?: string
+          created_at?: string
+          flushed_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -189,6 +216,7 @@ export type Database = {
           instagram_url: string | null
           last_name: string | null
           linkedin_url: string | null
+          notification_whatsapp_number: string | null
           role_details: Json
           role_id: string | null
           tiktok_url: string | null
@@ -213,6 +241,7 @@ export type Database = {
           instagram_url?: string | null
           last_name?: string | null
           linkedin_url?: string | null
+          notification_whatsapp_number?: string | null
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null
@@ -237,6 +266,7 @@ export type Database = {
           instagram_url?: string | null
           last_name?: string | null
           linkedin_url?: string | null
+          notification_whatsapp_number?: string | null
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null

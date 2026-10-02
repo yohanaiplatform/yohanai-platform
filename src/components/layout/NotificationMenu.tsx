@@ -25,6 +25,40 @@ interface NotificationRow {
   created_at: string;
 }
 
+/**
+ * Render ringan buat body notifikasi follow-up gabungan (lihat
+ * followUpFormatting.ts) -- cuma dukung subset kecil yang sama dengan
+ * WhatsApp (*bold*, baris "- " jadi bullet, baris kosong jadi jarak),
+ * bukan markdown penuh. Sengaja tanpa library markdown baru -- cakupannya
+ * kecil, cukup ditulis manual.
+ */
+function renderLightFormatting(text: string) {
+  const lines = text.split("\n");
+
+  return (
+    <>
+      {lines.map((line, i) => {
+        if (line.trim() === "") return <br key={i} />;
+
+        const isBullet = line.startsWith("- ");
+        const content = isBullet ? line.slice(2) : line;
+        const parts = content.split(/\*([^*]+)\*/g);
+
+        const rendered = parts.map((part, j) =>
+          j % 2 === 1 ? <strong key={j}>{part}</strong> : <span key={j}>{part}</span>
+        );
+
+        return (
+          <span key={i} className="block">
+            {isBullet ? "• " : ""}
+            {rendered}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diffMs / 60000);
@@ -131,7 +165,11 @@ export function NotificationMenu() {
               }}
             >
               <span className={`font-medium ${n.read_at ? "" : "text-foreground"}`}>{n.title}</span>
-              {n.body && <span className="text-xs text-muted-foreground">{n.body}</span>}
+              {n.body && (
+                <span className="text-xs text-muted-foreground">
+                  {n.type === "ai_agent_needs_follow_up" ? renderLightFormatting(n.body) : n.body}
+                </span>
+              )}
               <span className="text-xs text-muted-foreground">{timeAgo(n.created_at)}</span>
               {n.type === "google_contacts_access_request" &&
                 (resolvedIds.has(n.id) ? (

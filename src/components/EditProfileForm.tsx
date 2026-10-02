@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { normalizePhone } from "@/lib/crm/normalizePhone";
 import { WilayahSelector, type WilayahValue } from "@/components/WilayahSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,6 +106,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [notificationWhatsappNumber, setNotificationWhatsappNumber] = useState("");
   const [roleDetails, setRoleDetails] = useState<Record<string, string>>({});
 
   // -------------------------------------------------------------
@@ -128,7 +130,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
           .schema("auth_ext")
           .from("profiles")
           .select(
-            "business_role_id, first_name, address_line, wilayah_desa_id, avatar_url, facebook_url, instagram_url, brand_name, role_details"
+            "business_role_id, first_name, address_line, wilayah_desa_id, avatar_url, facebook_url, instagram_url, brand_name, notification_whatsapp_number, role_details"
           )
           .eq("user_id", userId)
           .single(),
@@ -151,6 +153,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
         setFacebookUrl(profile.facebook_url ?? "");
         setInstagramUrl(profile.instagram_url ?? "");
         setBrandName(profile.brand_name ?? "");
+        setNotificationWhatsappNumber(profile.notification_whatsapp_number ?? "");
         setRoleDetails((profile.role_details as unknown as Record<string, string>) ?? {});
       }
 
@@ -260,6 +263,7 @@ export function EditProfileForm({ userId }: { userId: string }) {
         facebook_url: facebookUrl || null,
         instagram_url: instagramUrl || null,
         brand_name: brandName || null,
+        notification_whatsapp_number: notificationWhatsappNumber.trim() ? normalizePhone(notificationWhatsappNumber) : null,
         role_details: roleDetails,
       })
       .eq("user_id", userId);
@@ -387,6 +391,21 @@ export function EditProfileForm({ userId }: { userId: string }) {
           />
           <p className="text-xs text-muted-foreground">
             Ditampilkan di header Laporan Pemasaran yang Anda generate -- kosongkan untuk pakai nama lengkap Anda.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="notification-whatsapp">Nomor WhatsApp untuk Notifikasi Follow-up</Label>
+          <Input
+            id="notification-whatsapp"
+            value={notificationWhatsappNumber}
+            onChange={(e) => setNotificationWhatsappNumber(e.target.value)}
+            placeholder="mis. 0812-3456-7890"
+          />
+          <p className="text-xs text-muted-foreground">
+            Ringkasan follow-up dari AI Agent dikirim ke nomor ini lewat WhatsApp (selain notifikasi di dalam
+            aplikasi). <strong>Harus nomor yang BERBEDA</strong> dari nomor WhatsApp bisnis yang dipakai untuk
+            membalas lead -- kosongkan kalau tidak perlu notifikasi lewat WhatsApp.
           </p>
         </div>
 
