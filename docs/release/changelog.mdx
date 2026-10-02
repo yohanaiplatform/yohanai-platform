@@ -51,6 +51,14 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 2 Oktober 2026 (dini hari) — Fix: Lead Detail 500 untuk Lead dengan Percakapan WhatsApp
+
+### Fixed
+
+- `/crm/[id]` (Lead Detail) gagal total ("server error") untuk lead manapun yang punya percakapan WhatsApp aktif -- bug sejak 26 September 2026, baru ketahuan sekarang. Penyebab: kode server memanggil fungsi `toChatMessage()` yang diekspor dari file `"use client"`, yang di Next.js App Router tidak boleh dipanggil langsung dari server. Dipindah ke modul server-safe terpisah.
+
+---
+
 ## 1 Oktober 2026 (malam, lanjutan) — AI Agent: Ringkasan Percakapan Otomatis per Lead
 
 ### Added

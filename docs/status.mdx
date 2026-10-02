@@ -648,6 +648,14 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. GRANT diverifikasi lewat query langsung, note awal diverifikasi tersimpan & terbaca. **Belum live-tested ke sandbox sungguhan.**
 
+**Bug ditemukan & diperbaiki malam itu juga -- /crm/[id] (Lead Detail) 500 untuk SEMUA lead yang punya percakapan WhatsApp aktif, sudah ada sejak 26 September 2026.** Yohan laporkan lewat screenshot setelah coba buka lead "Test Lead" dari pencarian nomor HP -- halaman balas "A server error occurred". Root cause ketemu lewat Vercel Logs (vercel.com/.../logs, bukan Observability yang Hobby-plan-nya cuma agregat tanpa stack trace): `Attempted to call toChatMessage() from the server but toChatMessage is on the client`.
+
+- **Penyebab**: `src/lib/crm/getLeadConversation.ts` (kode SERVER, dipanggil dari `/crm/[id]/page.tsx`) mengimpor & memanggil `toChatMessage()` dari `ChatMessageList.tsx` -- file yang punya `"use client"` di baris pertama. Next.js App Router menganggap SEMUA export dari file `"use client"` sebagai referensi client-only, termasuk fungsi polos (non-komponen) seperti `toChatMessage` -- memanggilnya langsung dari kode server melempar error runtime ini. Tidak ketahuan dari `tsc`/`npm run build` karena ini aturan bundler/RSC, bukan error tipe. Diperkenalkan commit `eed7e56` (26 Sep 2026) saat `toChatMessage` dipindah ke file bersama -- sudah live production **6 hari** tanpa ketahuan, karena leads tanpa percakapan WA tidak memanggil fungsi ini sama sekali (early-return), jadi cuma leads dengan WA aktif yang kena.
+- **Perbaikan**: `toChatMessage()` + tipe `ChatMessage` dipindah ke file baru `src/lib/chat/toChatMessage.ts` (TANPA `"use client"`, server-safe), dipanggil langsung dari `getLeadConversation.ts`. `ChatMessageList.tsx` sekarang cuma re-export keduanya (supaya import lama di `RecentChatThread.tsx`/`LeadWhatsApp.tsx`, keduanya client component, tetap jalan tanpa ubah apa pun).
+- **Dampak sebelum fix**: kemungkinan besar Lead Detail tidak pernah berhasil dibuka untuk lead manapun yang sudah punya thread WhatsApp sejak 26 Sep -- termasuk lead-lead yang dipakai live-test AI Agent (Task 026/027). Yohan kemungkinan selama ini mengandalkan widget "Recent Chats" di Dashboard (jalur kode BERBEDA, client-side, tidak kena bug ini) untuk memantau percakapan, bukan halaman Lead Detail penuh.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Yohan perlu konfirmasi di production setelah deploy** -- saya tidak bisa login ke yohanai.id untuk reproduksi langsung (hanya test-value login yang diizinkan di localhost, bukan akun asli di domain production).
+
 ### Next Task
 
 Task 031
