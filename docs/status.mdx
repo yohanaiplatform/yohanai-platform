@@ -711,9 +711,22 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+Task 035
+
+**Lanjutan sama hari -- alur "Ajukan Nomor WhatsApp" untuk user non-admin.** Yohan cek UI Task 034 dari 2 sisi (akun admin & akun user biasa) -- ternyata Kapso-nya sendiri masih free tier, cuma izinkan 1 nomor WA aktif, jadi non-admin TIDAK BISA daftarkan nomor sendiri langsung (beda dari asumsi awal Task 034 yang mengira semua user bisa isi form yang sama). Yohan minta dibuatkan alur permintaan: non-admin isi nomor WA (format biasa, bukan Kapso phone_number_id yang belum ada) -> status "Menunggu Verifikasi" -> admin dapat notifikasi + EMAIL -> admin selesaikan setup manual di Kapso (mungkin sekalian upgrade plan) -> admin isi Phone Number ID asli di app -> user dapat notifikasi nomornya aktif.
+
+- **Dibangun persis meniru pola "Ajukan Akses" Google Contacts yang sudah ada** (migration `048`, Task 023) -- tabel baru `chat.whatsapp_number_requests`, 2 endpoint baru (`POST /api/whatsapp-numbers/request` dan `/approve`), notifikasi in-app DITAMBAH email (Resend) ke admin -- Google Contacts punya pola yang sama tapi cuma notifikasi in-app, tidak pernah ada email, karena Yohan eksplisit minta email di fitur ini.
+- **`WhatsAppNumbersManager.tsx` sekarang beda tampilan per role**: non-admin lihat status nomornya sendiri (aktif/menunggu/form ajukan), admin lihat semua nomor terdaftar + daftar permintaan masuk dengan form approve inline (isi Phone Number ID + opsional Webhook Secret).
+- **Temuan tambahan dari jawaban Yohan**: "Secret Webhook: otomatis dibuat Kapso" -- mengonfirmasi kekhawatiran Task 034 (checklist `0e`): Kapso TIDAK bisa diisi secret custom, tiap nomor dapat secret BEDA otomatis. **Diperbaiki sekalian** -- `verifySignature()` di `webhook/route.ts` sekarang cocokkan terhadap SEMUA secret yang mungkin (env var global `KAPSO_WEBHOOK_SECRET` + tiap `webhook_secret` per nomor di `chat.whatsapp_numbers`), diterima kalau salah satu match -- bukan 1 secret tunggal lagi. Kolom `webhook_secret` baru (migration `058`) diisi admin saat approve kalau nomor itu memang dapat secret berbeda.
+- **Soal otomatisasi penuh yang diminta Yohan dipikirkan untuk nanti**: kemungkinan besar TIDAK bisa sepenuhnya otomatis -- WhatsApp Business API (Meta) mengharuskan verifikasi OTP ke nomor fisik sebagai bagian onboarding nomor baru, itu langkah manual yang dikontrol Meta sendiri, bukan sesuatu yang bisa dilewati lewat API Kapso. Alur saat ini (ajukan -> notifikasi+email -> admin setup manual -> approve) sudah jalur paling ringkas yang realistis -- catat di sini supaya tidak dicoba dibangun ulang tanpa alasan baru.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Belum live-tested end-to-end** (belum ada user non-admin yang benar-benar mengajukan nomor) -- baru diverifikasi lewat code review, mengikuti pola Google Contacts yang sudah terbukti jalan di production.
+
+---
+
 ### Next Task
 
-Task 035
+Task 036
 
 **Checklist buat sesi berikutnya:**
 
@@ -724,7 +737,10 @@ Task 035
 ~~0c. Isi `WHATSAPP_DEFAULT_ASSIGNEE_USER_ID` di Vercel~~ -- **sudah selesai lalu DIGANTIKAN tabel `chat.whatsapp_numbers` (Task 034), env var ini sekarang obsolete, boleh dihapus kapan saja.**
 
 0d. **Minta Ramlan test kirim WA lagi** ke nomor produksi untuk verifikasi end-to-end fitur auto-buat-lead (Task 033) + penentuan nomor pengirim (Task 034) -- belum pernah dites nyata sama sekali, baru lewat code review + simulasi RLS.
-0e. **Cek apakah Kapso bisa diisi `KAPSO_WEBHOOK_SECRET` custom (bukan auto-generate) saat bikin webhook nomor baru** -- WAJIB dicek SEBELUM nomor kedua (mis. punya Ramlan) benar-benar didaftarkan, supaya `verifySignature()` yang masih 1 secret global tetap valid untuk semua nomor.
+~~0e. Cek apakah Kapso bisa diisi `KAPSO_WEBHOOK_SECRET` custom~~ -- **sudah dijawab Yohan: TIDAK BISA, auto-generate per nomor. `verifySignature()` sudah diperbaiki untuk cocokkan banyak secret sekaligus (Task 035).**
+
+0f. **Minta Yohan upgrade plan Kapso** (masih free tier, cuma 1 nomor) begitu memang mau sambungkan nomor kedua (mis. Ramlan) -- tanpa ini alur "Ajukan Nomor WhatsApp" (Task 035) tidak bisa benar-benar di-approve sampai akhir.
+0g. **Test alur "Ajukan Nomor WhatsApp" end-to-end** sekali plan Kapso sudah di-upgrade -- belum pernah dites nyata sama sekali.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **PANTAU AI Agent di nomor produksi** -- baru tersambung 2 Oktober 2026 pagi, belum ada siklus percakapan customer sungguhan yang diamati penuh dari awal sampai akhir. Cek Lead Detail/notifikasi follow-up beberapa hari ke depan, siapa tahu masih ada pola yang cuma muncul di volume/variasi customer asli (beda dari testing sendiri di sandbox).
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
@@ -742,7 +758,7 @@ Task 035
 
 # Last Updated
 
-2 Oktober 2026 (sore)
+2 Oktober 2026 (sore, lanjutan)
 
 ---
 

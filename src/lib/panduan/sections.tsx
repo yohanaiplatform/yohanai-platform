@@ -260,11 +260,19 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           klik tombol &quot;Ajukan Akses&quot; di halaman yang sama. Admin akan dapat notifikasi dan menambahkan
           email Anda sebagai test user secara manual.
         </GuideP>
-        <GuideHeading>Nomor WhatsApp & Pemilik (khusus admin)</GuideHeading>
+        <GuideHeading>Nomor WhatsApp & Pemilik</GuideHeading>
         <GuideP>
           Admin bisa daftarkan nomor WhatsApp bisnis (satu atau lebih) dan tentukan siapa pemiliknya -- lead
           baru yang chat ke nomor itu otomatis jadi milik orang yang ditentukan, dan balasan AI/manual terkirim
-          dari nomor yang sesuai. Bagian ini tidak tampil untuk non-admin.
+          dari nomor yang sesuai.
+        </GuideP>
+        <GuideP>
+          <strong>Kalau Anda bukan admin</strong>, bagian ini menampilkan status nomor WhatsApp Anda sendiri
+          (kalau sudah ada), atau form untuk mengajukan nomor baru -- ketik nomor WhatsApp Anda, klik &quot;Tambah
+          Nomor&quot;, lalu tunggu. Nomor WA bisnis butuh pendaftaran manual (bukan sesuatu yang bisa langsung
+          otomatis dari sini), jadi setelah mengajukan, statusnya akan menampilkan &quot;Menunggu Verifikasi&quot;
+          sampai admin menyelesaikan pendaftarannya dan menyetujui -- Anda akan dapat notifikasi begitu nomor
+          Anda aktif.
         </GuideP>
         <GuideNote>
           Fitur Settings lain masih akan ditambahkan -- termasuk rencana <strong>watermark foto milik
