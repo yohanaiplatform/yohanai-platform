@@ -741,11 +741,38 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 ---
 
+### Sesi malam 2 Oktober 2026 -- Template follow-up WhatsApp (sisa weekly usage ~5%, sengaja hemat)
+
+**Dibangun & di-push:**
+- **Tombol "Kirim Template Follow-up"** di Lead Detail (`LeadWhatsApp.tsx`) + `POST /api/whatsapp/send-template` + `sendWhatsAppTemplate()` di `kapso.ts`. Template `yohan_griya` (bahasa `id`, tanpa variabel, 3 tombol quick reply: Sudah dapat rumah / Belum dapat rumah / Hubungi Pak Yohan) -- nama template TERTULIS TETAP di route (`FOLLOW_UP_TEMPLATE`). **Live-tested sukses** ke nomor Yohan sendiri (template terkirim, tombol balas masuk).
+- **Edit video + edit Data Pemilik & Komisi** di detail listing: tombol edit pemilik/komisi sebelumnya admin-only (akun agent Yohan tidak melihatnya) -- sekarang siapa pun yang bisa melihat listing (admin / agent yang di-assign, dijaga RLS `listings_owner_or_admin`) bisa edit. Komponen baru `PropertyVideoEditable.tsx`.
+- **Bug: pesan sistem Meta jadi lead palsu.** Nomor `447710173736` ("Facebook Business", notifikasi "WhatsApp account connected to your Facebook Page") otomatis dibuatkan lead lewat auto-create Task 033. Sekarang diabaikan di webhook (`META_SYSTEM_PHONE`). Lead lama "Facebook Business" harus dihapus manual.
+- **Bug: AI Agent diam untuk balasan tombol template.** Balasan quick reply bertipe `button`/`interactive`, bukan `text`, jadi webhook melewati AI (`ai.agent_runs` kosong). Sekarang ketiga tipe diproses. Prompt `interpretLeadReply.ts` dapat bagian baru "ATURAN BALASAN TOMBOL FOLLOW-UP": "Sudah dapat rumah" -> terima kasih + saran referral ke Pak Yohan + Temperature **Batal** (dipilih supaya tidak perlu kategori baru -- kekurangan: tercampur dengan lead yang membatalkan di laporan/funnel; kategori terpisah = ubah tipe, UI, i18n, funnel, email laporan); "Belum dapat rumah" -> tanya area + tawarkan listing tersedia; "Hubungi Pak Yohan" -> needsFollowUp. **Belum live-tested** setelah perbaikan.
+
+**Temuan penting (belum ada kode):**
+- **Biaya template WhatsApp:** balasan dalam 24 jam gratis; template ke lead yang diam >24 jam berbayar per pesan (Meta; Marketing Indonesia kira-kira US$0,03-0,05, dari ingatan -- verifikasi di rate card Meta). **Iklan Click-to-WhatsApp (FB/IG)** biasanya punya jendela gratis 72 jam -- follow-up jam ke-48 kemungkinan gratis; BUKAN berlaku untuk iklan ke website lalu klik link wa.me. Belum diverifikasi ke docs Meta/Kapso. Cek jenis iklan Kapur Mas Tahap 2 (Destination harus WhatsApp).
+- **Kapso Free plan:** 2.000 pesan/bulan (masuk+keluar), 1 nomor, template dihitung sebagai pesan biasa. Biaya Meta dibayar lewat kredit Kapso ATAU langsung ke Meta (Billing Hub); pengiriman berbayar berhenti kalau kredit habis. Pembuatan & pengiriman template di Kapso lewat API (`POST .../message_templates`), tidak ada menu dashboard yang ditemukan.
+- **Notifikasi follow-up ke WhatsApp pribadi agen (Task 036) berisiko gagal diam-diam:** `flush-follow-ups/route.ts:110` pakai `sendWhatsAppText` (teks bebas) -- hanya sampai kalau agen mengirim pesan ke nomor bisnis dalam 24 jam terakhir, errornya ditelan `.catch(() => null)`. Perlu template Utility sendiri. **Jangan aktifkan cron itu (`AI_FOLLOW_UP_FLUSH_SECRET`) sebelum ini diperbaiki.** Notifikasi in-app tidak terpengaruh.
+- **Template Kapur Mas Tahap 2** (teks siap pakai, Marketing, `id`, tanpa variabel, belum tentu sudah diajukan): nama `follow_up_kapur_mas_t2`, 3 tombol (Masih tertarik / Belum saat ini / Hubungi Pak Yohan). Tombol di Lead Detail masih hanya kirim `yohan_griya`; template baru dikirim manual dari inbox Kapso.
+
+**Rencana sesi berikutnya -- Nurturing (setelah reset weekly usage Senin 5 Okt 2026):**
+1. Halaman **Template** di Settings: buat template lewat API Kapso, lihat status Pending/Approved/Rejected (Meta tetap mereview, tidak bisa dilewati).
+2. **Aturan nurturing** per kampanye/kategori listing: template mana, jeda kirim (mis. 48 jam, lalu 5 hari), batas maksimal kirim per lead, jam kirim (bukan malam).
+3. **Cron pengirim** otomatis ke lead yang memenuhi syarat; berhenti kalau lead membalas / memilih "Belum saat ini" / Temperature Batal-Closing; balasan lead diteruskan ke AI Agent seperti sekarang; hasil dicatat.
+4. Tombol Lead Detail diubah jadi **pilih template** (bukan hardcode `yohan_griya`). Pengaturan per pengguna (multi-tenant).
+5. Template Utility untuk notifikasi follow-up agen (lihat temuan di atas).
+Risiko: pengiriman otomatis massal dari nomor produksi bisa membuat nomor ditandai spam -- batas kirim & jeda wajib dari awal.
+
+---
+
 ### Next Task
 
 Task 037
 
 **Checklist buat sesi berikutnya:**
+
+00. **Nurturing + Template dashboard** -- lihat "Rencana sesi berikutnya" tepat di atas. Prioritas utama setelah reset weekly usage.
+00b. **Live-test balasan AI untuk tombol template** (Sudah/Belum dapat rumah, Hubungi Pak Yohan) -- perbaikan malam 2 Okt belum dites. **Hapus lead "Facebook Business"** (nomor 447710173736) dari CRM.
 
 0. **Live-test perubahan AI Agent Task 030** (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan -- belum pernah dites selain lewat kode/tsc/build.
 
@@ -778,7 +805,7 @@ Task 037
 
 # Last Updated
 
-2 Oktober 2026 (malam)
+2 Oktober 2026 (malam, template follow-up WA + rencana nurturing)
 
 ---
 
