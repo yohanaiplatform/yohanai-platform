@@ -110,6 +110,31 @@ export function LeadWhatsApp({
     setText("");
   }
 
+  async function handleSendTemplate() {
+    if (!window.confirm("Kirim template follow-up ke lead ini? Pesan template berbayar per pesan (Meta).")) return;
+
+    setSending(true);
+    setError(null);
+
+    const res = await fetch("/api/whatsapp/send-template", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leadId }),
+    });
+
+    setSending(false);
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setError(body?.error ?? t.detail.whatsappSendError);
+      return;
+    }
+
+    const result = await res.json();
+    if (result.conversationId && !conversationId) setConversationId(result.conversationId);
+    if (result.message) appendMessage(result.message);
+  }
+
   return (
     <div className="space-y-4">
       <ChatMessageList messages={messages} emptyLabel={t.detail.whatsappEmpty} />
@@ -125,7 +150,10 @@ export function LeadWhatsApp({
           <Button type="submit" size="sm" disabled={sending || !text.trim()}>
             {sending ? t.detail.whatsappSending : t.detail.whatsappSend}
           </Button>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="button" size="sm" variant="outline" disabled={sending} onClick={handleSendTemplate}>
+            Kirim Template Follow-up
+          </Button>
+          {error &&<p className="text-sm text-destructive">{error}</p>}
         </div>
       </form>
     </div>

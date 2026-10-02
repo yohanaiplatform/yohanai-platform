@@ -60,6 +60,51 @@ export async function sendWhatsAppText(
   return { success: true, messageId };
 }
 
+/**
+ * Kirim template WhatsApp yang sudah disetujui Meta (tanpa variabel) --
+ * satu-satunya cara memulai/melanjutkan chat setelah jendela 24 jam lewat.
+ */
+export async function sendWhatsAppTemplate(
+  to: string,
+  templateName: string,
+  languageCode: string,
+  phoneNumberId?: string | null
+): Promise<SendTextResult> {
+  const apiKey = process.env.KAPSO_API_KEY;
+  const numberId = resolvePhoneNumberId(phoneNumberId);
+
+  if (!apiKey || !numberId) {
+    return {
+      success: false,
+      error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/phone_number_id)",
+    };
+  }
+
+  const res = await fetch(`${KAPSO_API_BASE}/${numberId}/messages`, {
+    method: "POST",
+    headers: {
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      to,
+      type: "template",
+      template: { name: templateName, language: { code: languageCode } },
+    }),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    return { success: false, error: errorBody };
+  }
+
+  const json = await res.json();
+  const messageId = json?.messages?.[0]?.id as string | undefined;
+
+  return { success: true, messageId };
+}
+
 interface SimpleResult {
   success: boolean;
   error?: string;
