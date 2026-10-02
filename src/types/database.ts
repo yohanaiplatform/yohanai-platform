@@ -354,6 +354,36 @@ export type Database = {
           },
         ]
       }
+      whatsapp_numbers: {
+        Row: {
+          id: string
+          phone_number_id: string
+          label: string | null
+          assigned_to: string
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          phone_number_id: string
+          label?: string | null
+          assigned_to: string
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          phone_number_id?: string
+          label?: string | null
+          assigned_to?: string
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

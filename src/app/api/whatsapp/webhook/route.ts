@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { normalizePhone } from '@/lib/crm/normalizePhone'
 import { findOrCreateLeadConversation } from '@/lib/chat/conversations'
 import { generateUniqueLeadSlug } from '@/lib/crm/slugify'
+import { getAssigneeForPhoneNumberId } from '@/lib/whatsapp/whatsappNumbers'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
@@ -61,11 +62,17 @@ interface KapsoConversation {
   id?: string
   contact_name?: string | null
   phone_number?: string
+  phone_number_id?: string
 }
 
 interface KapsoMessageReceivedPayload {
   message: KapsoMessage
   conversation?: KapsoConversation
+  // Nomor WA KITA (Kapso phone_number_id) yang menerima pesan ini -- ada di
+  // top level payload (dikonfirmasi docs.kapso.ai), dipakai buat tentukan
+  // pemilik default lead baru + nomor pengirim balasan nanti. Beda dari
+  // conversation.phone_number yang itu nomor LEAD, bukan nomor kita.
+  phone_number_id?: string
 }
 
 // message.kapso.has_media dari Kapso ternyata tidak selalu terisi untuk
@@ -110,19 +117,24 @@ function verifySignature(
  * supaya kelihatan asalnya dari sini, bukan Google Form/Input Manual.
  *
  * assigned_to WAJIB diisi (RLS leads_owner_or_admin) -- diambil dari
- * WHATSAPP_DEFAULT_ASSIGNEE_USER_ID (bukan di-hardcode langsung di kode,
- * supaya gampang diganti kalau pemilik nomor produksi berubah nanti).
- * Kalau env var ini belum diisi, sengaja TIDAK membuat lead (balik ke
- * perilaku lama -- pesan tetap tersimpan sebagai conversation tanpa lead,
- * AI tidak jalan) daripada membuat lead tanpa assigned_to yang cuma
- * kelihatan oleh admin.
+ * chat.whatsapp_numbers (migration 056, dikelola lewat UI admin di
+ * Settings) berdasarkan phoneNumberId nomor KITA yang menerima pesan ini --
+ * BUKAN env var tunggal lagi, supaya tiap nomor WA (tiap agent/user) bisa
+ * punya pemilik defaultnya sendiri-sendiri (persiapan multi-agent/SaaS).
+ * Kalau nomornya belum terdaftar di tabel itu, sengaja TIDAK membuat lead
+ * (balik ke perilaku lama -- pesan tetap tersimpan sebagai conversation
+ * tanpa lead, AI tidak jalan) daripada membuat lead tanpa assigned_to yang
+ * cuma kelihatan oleh admin.
  */
 async function autoCreateLeadFromWhatsApp(
   supabase: ReturnType<typeof createAdminClient>,
   phone: string,
-  contactName: string | null
+  contactName: string | null,
+  phoneNumberId: string | null
 ): Promise<string | null> {
-  const assignedTo = process.env.WHATSAPP_DEFAULT_ASSIGNEE_USER_ID
+  if (!phoneNumberId) return null
+
+  const assignedTo = await getAssigneeForPhoneNumberId(supabase, phoneNumberId)
   if (!assignedTo) return null
 
   const [{ data: source }, slug] = await Promise.all([
@@ -176,6 +188,7 @@ async function handleMessageReceived(
 
   const phone = normalizePhone(rawPhone)
   const waMessageId = payload.message.id
+  const phoneNumberId = payload.phone_number_id ?? payload.conversation?.phone_number_id ?? null
   const content =
     payload.message.kapso?.content ??
     payload.message.text?.body ??
@@ -218,7 +231,7 @@ async function handleMessageReceived(
       .limit(1)
     orphanConversationId = orphanConversations?.[0]?.id ?? null
 
-    leadId = await autoCreateLeadFromWhatsApp(supabase, phone, payload.conversation?.contact_name ?? null)
+    leadId = await autoCreateLeadFromWhatsApp(supabase, phone, payload.conversation?.contact_name ?? null, phoneNumberId)
 
     if (leadId && orphanConversationId) {
       await supabase.schema('chat').from('conversations').update({ lead_id: leadId }).eq('id', orphanConversationId)
@@ -227,7 +240,7 @@ async function handleMessageReceived(
 
   if (leadId) {
     conversationId = orphanConversationId
-      ?? (await findOrCreateLeadConversation(supabase, leadId, payload.conversation?.contact_name ?? phone))
+      ?? (await findOrCreateLeadConversation(supabase, leadId, payload.conversation?.contact_name ?? phone, phoneNumberId))
   } else {
     conversationId = orphanConversationId
   }
@@ -240,7 +253,7 @@ async function handleMessageReceived(
         lead_id: leadId,
         title: payload.conversation?.contact_name ?? phone,
         status: 'active',
-        metadata: { phone, kapso_conversation_id: payload.conversation?.id ?? null },
+        metadata: { phone, kapso_conversation_id: payload.conversation?.id ?? null, phone_number_id: phoneNumberId },
       })
       .select('id')
       .single()
@@ -282,8 +295,8 @@ async function handleMessageReceived(
   if (leadId && isTextMessage && process.env.ANTHROPIC_API_KEY) {
     // Best-effort -- indikator "mengetik" cuma UX, jangan sampai gagal
     // ngirim ini menggagalkan pemrosesan AI Agent yang sebenarnya.
-    await sendTypingIndicator(waMessageId).catch(() => {})
-    await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, content)
+    await sendTypingIndicator(waMessageId, phoneNumberId).catch(() => {})
+    await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, content, phoneNumberId)
   }
 }
 
@@ -292,7 +305,8 @@ async function runAiAgent(
   leadId: string,
   conversationId: string,
   triggerMessageId: string,
-  newMessage: string
+  newMessage: string,
+  phoneNumberId: string | null
 ) {
   const { data: lead } = await supabase
     .schema('customer')
@@ -393,6 +407,7 @@ async function runAiAgent(
     decision,
     inputSnapshot,
     rawResponse,
+    phoneNumberId,
   })
 }
 

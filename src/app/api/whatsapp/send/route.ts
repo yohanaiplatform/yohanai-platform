@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
 import { findOrCreateLeadConversation } from "@/lib/chat/conversations";
+import { getPhoneNumberIdForUser } from "@/lib/whatsapp/whatsappNumbers";
 
 /**
  * Kirim balasan WhatsApp keluar dari Lead Detail. Diamankan lewat sesi
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   const { data: lead, error: leadError } = await supabase
     .schema("customer")
     .from("leads")
-    .select("id, phone, first_name, last_name")
+    .select("id, phone, first_name, last_name, assigned_to")
     .eq("id", leadId)
     .maybeSingle();
 
@@ -54,7 +55,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const sendResult = await sendWhatsAppText(lead.phone, message);
+  // Tentukan nomor WA pengirim SEBELUM kirim -- WhatsApp Business API
+  // mengharuskan balasan dari nomor yang sama dengan yang di-chat lead.
+  // Prioritas: (1) percakapan yang sudah ada (lead ini sudah pernah chat ke
+  // nomor tertentu, ambil dari metadata.phone_number_id -- lihat migration
+  // 056), (2) kalau belum pernah ada percakapan sama sekali (agent kirim
+  // pesan PERTAMA duluan), fallback ke nomor terdaftar milik agent yang
+  // di-assign ke lead ini (chat.whatsapp_numbers).
+  const { data: existingConversation } = await supabase
+    .schema("chat")
+    .from("conversations")
+    .select("metadata")
+    .eq("lead_id", leadId)
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const existingMetadata = (existingConversation?.metadata ?? {}) as Record<string, unknown>;
+  const conversationPhoneNumberId = typeof existingMetadata.phone_number_id === "string" ? existingMetadata.phone_number_id : null;
+
+  const phoneNumberId =
+    conversationPhoneNumberId ?? (lead.assigned_to ? await getPhoneNumberIdForUser(supabase, lead.assigned_to) : null);
+
+  const sendResult = await sendWhatsAppText(lead.phone, message, phoneNumberId);
 
   if (!sendResult.success) {
     return NextResponse.json(
@@ -64,7 +88,7 @@ export async function POST(request: Request) {
   }
 
   const fallbackTitle = `${lead.first_name} ${lead.last_name}`.trim() || lead.phone;
-  const conversationId = await findOrCreateLeadConversation(supabase, leadId, fallbackTitle);
+  const conversationId = await findOrCreateLeadConversation(supabase, leadId, fallbackTitle, phoneNumberId);
 
   let savedMessage: { id: string; sender_type: string; content: string; created_at: string } | null = null;
 

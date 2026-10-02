@@ -20,6 +20,8 @@ export interface ApplyAgentDecisionInput {
   decision: AgentDecision;
   inputSnapshot: Json;
   rawResponse: Json | null;
+  /** Nomor WA KITA yang dipakai lead ini chat -- dipakai supaya balasan terkirim dari nomor yang sama (migration 056, src/lib/whatsapp/whatsappNumbers.ts). */
+  phoneNumberId: string | null;
 }
 
 /**
@@ -108,7 +110,7 @@ export async function applyAgentDecision(
   let replyMessageId: string | null = null;
 
   if (decision.replyText && decision.confidence !== "low") {
-    const sendResult = await sendWhatsAppText(input.leadPhone, decision.replyText);
+    const sendResult = await sendWhatsAppText(input.leadPhone, decision.replyText, input.phoneNumberId);
 
     if (sendResult.success) {
       const { data: inserted } = await supabaseAdmin
@@ -137,7 +139,7 @@ export async function applyAgentDecision(
   // halusinasi LLM. Kirim satu per satu (WhatsApp/Kapso tidak punya endpoint
   // multi-image sekali kirim); satu foto gagal tidak menggagalkan yang lain.
   for (const photoUrl of decision.sharePhotoUrls) {
-    const sendResult = await sendWhatsAppImage(input.leadPhone, photoUrl);
+    const sendResult = await sendWhatsAppImage(input.leadPhone, photoUrl, undefined, input.phoneNumberId);
 
     if (sendResult.success) {
       await supabaseAdmin

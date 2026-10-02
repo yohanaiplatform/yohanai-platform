@@ -8,19 +8,34 @@ interface SendTextResult {
   error?: string;
 }
 
-/** Kirim pesan teks WhatsApp lewat Kapso (WhatsApp Cloud API resmi Meta). */
-export async function sendWhatsAppText(to: string, body: string): Promise<SendTextResult> {
-  const apiKey = process.env.KAPSO_API_KEY;
-  const phoneNumberId = process.env.KAPSO_PHONE_NUMBER_ID;
+/**
+ * Nomor pengirim (Kapso phone_number_id) -- dulu selalu dari env var
+ * KAPSO_PHONE_NUMBER_ID (1 nomor saja). Sekarang pemanggil BOLEH kirim
+ * phoneNumberId eksplisit (nomor yang benar sesuai percakapan/pemilik lead,
+ * lihat src/lib/whatsapp/whatsappNumbers.ts) -- env var cuma jadi fallback
+ * terakhir kalau pemanggil tidak tahu nomor mana yang harus dipakai.
+ */
+function resolvePhoneNumberId(explicit?: string | null): string | null {
+  return explicit || process.env.KAPSO_PHONE_NUMBER_ID || null;
+}
 
-  if (!apiKey || !phoneNumberId) {
+/** Kirim pesan teks WhatsApp lewat Kapso (WhatsApp Cloud API resmi Meta). */
+export async function sendWhatsAppText(
+  to: string,
+  body: string,
+  phoneNumberId?: string | null
+): Promise<SendTextResult> {
+  const apiKey = process.env.KAPSO_API_KEY;
+  const numberId = resolvePhoneNumberId(phoneNumberId);
+
+  if (!apiKey || !numberId) {
     return {
       success: false,
-      error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/KAPSO_PHONE_NUMBER_ID)",
+      error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/phone_number_id)",
     };
   }
 
-  const res = await fetch(`${KAPSO_API_BASE}/${phoneNumberId}/messages`, {
+  const res = await fetch(`${KAPSO_API_BASE}/${numberId}/messages`, {
     method: "POST",
     headers: {
       "X-API-Key": apiKey,
@@ -58,15 +73,18 @@ interface SimpleResult {
  * dari sisi Meta/WhatsApp setelah ~25 detik atau begitu balasan terkirim
  * -- dikonfirmasi ke docs.kapso.ai/api/meta/whatsapp/messages/send-a-message.
  */
-export async function sendTypingIndicator(waMessageId: string): Promise<SimpleResult> {
+export async function sendTypingIndicator(
+  waMessageId: string,
+  phoneNumberId?: string | null
+): Promise<SimpleResult> {
   const apiKey = process.env.KAPSO_API_KEY;
-  const phoneNumberId = process.env.KAPSO_PHONE_NUMBER_ID;
+  const numberId = resolvePhoneNumberId(phoneNumberId);
 
-  if (!apiKey || !phoneNumberId) {
-    return { success: false, error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/KAPSO_PHONE_NUMBER_ID)" };
+  if (!apiKey || !numberId) {
+    return { success: false, error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/phone_number_id)" };
   }
 
-  const res = await fetch(`${KAPSO_API_BASE}/${phoneNumberId}/messages`, {
+  const res = await fetch(`${KAPSO_API_BASE}/${numberId}/messages`, {
     method: "POST",
     headers: {
       "X-API-Key": apiKey,
@@ -92,19 +110,20 @@ export async function sendTypingIndicator(waMessageId: string): Promise<SimpleRe
 export async function sendWhatsAppImage(
   to: string,
   imageUrl: string,
-  caption?: string
+  caption?: string,
+  phoneNumberId?: string | null
 ): Promise<SendTextResult> {
   const apiKey = process.env.KAPSO_API_KEY;
-  const phoneNumberId = process.env.KAPSO_PHONE_NUMBER_ID;
+  const numberId = resolvePhoneNumberId(phoneNumberId);
 
-  if (!apiKey || !phoneNumberId) {
+  if (!apiKey || !numberId) {
     return {
       success: false,
-      error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/KAPSO_PHONE_NUMBER_ID)",
+      error: "Kapso belum dikonfigurasi (KAPSO_API_KEY/phone_number_id)",
     };
   }
 
-  const res = await fetch(`${KAPSO_API_BASE}/${phoneNumberId}/messages`, {
+  const res = await fetch(`${KAPSO_API_BASE}/${numberId}/messages`, {
     method: "POST",
     headers: {
       "X-API-Key": apiKey,
