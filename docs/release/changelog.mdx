@@ -51,6 +51,15 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 2 Oktober 2026 (dini hari) — Lead Detail: Slug URL + Edit Nama/Kontak
+
+### Added
+
+- **URL Lead Detail sekarang pakai slug nama** (`/crm/bang-yohan`), bukan UUID mentah -- mudah diingat/dibagikan saat di-copy. Link lama (`/crm/<uuid>`) tetap jalan lewat fallback, otomatis redirect ke URL slug
+- **Tombol "Edit Nama/Kontak" baru di Lead Detail** -- nama, email, dan telepon lead sekarang bisa dikoreksi manual dari UI (sebelumnya cuma bisa lewat database langsung)
+
+---
+
 ## 2 Oktober 2026 (dini hari) — Fix: Lead Detail 500 untuk Lead dengan Percakapan WhatsApp
 
 ### Fixed

@@ -288,6 +288,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideHeading>Buka Lead Detail</GuideHeading>
         <GuideList
           items={[
+            <>
+              <strong>Link halaman pakai nama lead</strong> (mis. <code>/crm/bang-yohan</code>), bukan kode
+              acak -- gampang diingat/dibagikan kalau di-copy.
+            </>,
+            <>
+              <strong>Edit Nama/Kontak</strong> -- tombol di bagian atas untuk koreksi manual nama, email, atau
+              nomor HP lead (mis. kalau nama aslinya baru diketahui dari percakapan WhatsApp).
+            </>,
             "Ubah Temperature dan siapa yang ditugaskan (assigned) ke lead itu.",
             "Percakapan WhatsApp tampil live di bagian bawah -- bisa balas langsung dari situ, update real-time tanpa refresh halaman.",
             "Catatan (notes) bisa ditambahkan untuk mencatat detail penting yang tidak masuk field standar.",

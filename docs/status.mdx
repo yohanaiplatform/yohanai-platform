@@ -241,7 +241,7 @@ Semua diverifikasi visual di panel browser (mobile 375px, tablet, desktop) sebel
 | Authentication | 🟢 Stable secara teknis (Google, Email/Password, Forgot Password, Email Verification semua confirmed jalan; SMTP kini via Resend; Facebook Login dibatalkan permanen) |
 | Profile | ✅ Edit Profile, Change Password, dan Notification Preferences semua confirmed jalan end-to-end. **Field "Nama Brand" ditambahkan (1 Okt 2026)** untuk header Laporan Pemasaran. Backlog: upload foto profil masih URL manual, keputusan visibility "System Information", **redesain lebih besar (sembunyikan field tak perlu, tambah logo + setting watermark) sengaja ditunda** — lihat memory `profile-page-redesign-deferred` |
 | Dashboard Foundation | ✅ Complete — Lead Funnel & Recent Leads pakai data asli, 1 AI Insight nyata. **Quick Actions diperbaiki (1 Okt 2026)**: "Import Listing"/"View Reports" sebelumnya mengarah ke fitur yang tidak ada, diganti 4 aksi nyata (Tambah/Lihat Listing, Tambah Lead, Buka CRM) |
-| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live. **"Kaitkan ke Listing" ditambahkan di Lead Detail (1 Okt 2026)** untuk Laporan Pemasaran |
+| CRM | ✅ Foundation Fase 2 selesai — Lead List, Lead Detail, ubah/edit status & field, assign agent, filter (termasuk lokasi), tambah lead manual, catatan berwaktu, export CSV, bi-lingual ID/EN semua live. **"Kaitkan ke Listing" ditambahkan di Lead Detail (1 Okt 2026)** untuk Laporan Pemasaran. **URL Lead Detail pakai slug nama (bukan UUID) + tombol Edit Nama/Kontak (2 Okt 2026)** |
 | Property | ✅ Fondasi Fase 1 selesai (26 Sep 2026) — CRUD listing (URL slug), upload foto (dikompres + watermark otomatis di browser), video embed YouTube, spesifikasi standar + kontak, manajemen kategori (UI, soft delete), pagination list (24/48/96), kepemilikan listing per agent (27 Sep 2026), edit/hapus listing, 91 listing dimigrasikan dari spreadsheet legacy (28 Sep 2026), Data Pemilik & Nilai Komisi rahasia admin+agent (28 Sep 2026). **Laporan Pemasaran per listing live (1 Okt 2026)** — vendor report otomatis dari data lead, lihat `docs/modules/property.mdx`. Export flyer PDF/JPG 🔴 **dihentikan** (ditolak Yohan, lihat Task 010). Storage foto ✅ pindah penuh ke Cloudflare R2 (29 Sep 2026, 272/272 foto) |
 | Sales | ✅ v1 live (1 Okt 2026) — Follow-up Hot Lead (Hot/Warm terpisah) + Proses Closing (checklist PPJB→Berkas→BAST Kunci per metode pembayaran). Visi besar (Pipeline/Opportunity/Commission) di `docs/modules/sales.mdx` masih rencana, belum dikerjakan |
 | AI Intelligence | 🟢 AI Agent otomatis **aktif & live-tested** (sejak 29 Sep 2026 malam, 6+ bug diperbaiki lewat Task 026/027) — interpretasi balasan WA + update Temperature + auto-reply + kirim foto listing lewat Claude API, audit trail `ai.agent_runs`, knowledge base (`knowledge.entries`) untuk istilah lokasi & FAQ. **Deflect survey/nego harga/lokasi persis ke agen lapangan + konfirmasi nama lead (1 Okt 2026, Task 030) — belum live-tested ke sandbox sungguhan.** 2 insight dashboard nyata (Follow-up Backlog, Lead Beku), 1 kartu contoh masih placeholder |
@@ -656,14 +656,26 @@ Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS.
 
 Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. **Yohan perlu konfirmasi di production setelah deploy** -- saya tidak bisa login ke yohanai.id untuk reproduksi langsung (hanya test-value login yang diizinkan di localhost, bukan akun asli di domain production).
 
+Task 031
+
+**Lanjutan sama dini hari -- bug Lead Detail 500 + URL lead pakai slug + edit Nama/Kontak.** Yohan konfirmasi fix Task 030 jalan (lead bisa dibuka, ringkasan AI muncul di Catatan), lalu kasih 2 feedback baru lewat screenshot:
+
+- **URL Lead Detail diganti slug nama** (sebelumnya `/crm/<uuid>`, Yohan minta supaya gampang diingat kalau di-copy) -- `/crm/[slug]`, migration `055` (backfill 1973 lead, 363 bentrok ditangani window function). Detail lengkap di `docs/modules/crm.mdx`.
+- **Tombol "Edit Nama/Kontak" ditambahkan di Lead Detail** -- sebelumnya nama/email/telepon lead sama sekali tidak bisa dikoreksi manual dari UI. Ditemukan Yohan dari kasus nyata lead "Test Lead": catatan ringkasan AI sudah bilang dipanggil "Bang Yohan", tapi `first_name` masih "Test Lead" (karena catatan itu dibackfill manual, bukan dari run AI Agent sungguhan) -- sekalian diperbaiki manual ke "Bang Yohan" supaya konsisten.
+
+Verifikasi: TypeScript PASS, ESLint PASS (baseline 8, tidak nambah), build PASS. Diverifikasi end-to-end di dev server lokal (database production yang sama) dengan sesi browser yang sudah ada: URL slug `/crm/bang-yohan` render penuh (percakapan WA 115 pesan, catatan ringkasan AI, status/assign), navigasi ke URL UUID lama otomatis redirect ke URL slug, dan form Edit Nama/Kontak tampil terisi benar. Backfill migration diverifikasi lewat query langsung: 1973/1973 slug unik, 0 null.
+
+---
+
 ### Next Task
 
-Task 031
+Task 032
 
 **Checklist buat sesi berikutnya:**
 
 0. **Live-test perubahan AI Agent Task 030** (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan -- belum pernah dites selain lewat kode/tsc/build.
 
+0b. **Verifikasi di production**: bug fix Lead Detail (toChatMessage server/client), URL slug lead baru, dan tombol Edit Nama/Kontak -- semua sudah dites di dev server lokal (database sama), belum dites di domain production yohanai.id sungguhan.
 1. **Integrasikan Cloudflare "AI Crawl Control" ke Platform Report** — data jumlah request AI crawler (OpenAI/Google/Microsoft/Anthropic/dll) sudah tersedia gratis di dashboard Cloudflare (`AI Crawl Control` di sidebar, domain `yohanai.id`), tinggal dipanggil lewat API Cloudflare (kemungkinan perlu API token baru dengan scope khusus buat baca data ini — belum dicek endpoint pastinya) dan ditambahkan ke `getPlatformReport.ts`/`sendPlatformReportEmail.ts`.
 2. **Sambungkan nomor WhatsApp produksi Griya Indonesia ke Kapso** (Task 015, ditunda berkali-kali — sengaja) — AI Agent sudah live-tested 2x dan total 6 bug besar sudah diperbaiki, realistis jadi prioritas berikutnya kalau Yohan sudah puas.
 3. **Verifikasi biaya AI Agent asli** — sekarang sudah ada data live + section "AI Agent Kemarin" di laporan, tinggal bandingkan `response.usage` asli vs estimasi simulasi Task 025.
@@ -679,7 +691,7 @@ Task 031
 
 # Last Updated
 
-1 Oktober 2026 (malam)
+2 Oktober 2026 (dini hari)
 
 ---
 
