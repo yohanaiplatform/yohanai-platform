@@ -54,8 +54,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createAdminClient();
   const now = new Date();
+
+  // Dipanggil TIAP JAM oleh cron eksternal (cron-job.org), tapi hanya bertindak
+  // di jam slot (08, 13, 21 WIB) -- supaya jadwal di sisi cron cukup "tiap jam"
+  // tanpa perlu jam kustom. `?force=1` melewati pengecekan jam (untuk tes manual).
+  const wibHour = (now.getUTCHours() + WIB_OFFSET_HOURS) % 24;
+  const force = new URL(request.url).searchParams.get("force") === "1";
+  if (!force && !SLOTS_WIB.includes(wibHour)) {
+    return NextResponse.json({ skipped: true, reason: "bukan jam kirim", wibHour });
+  }
+
+  const supabase = createAdminClient();
   const since = getWindowStart(now).toISOString();
 
   const { data: inbound } = await supabase
