@@ -30,6 +30,7 @@ export function LeadIdentityEditable({ leadId, firstName, lastName, email, phone
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [formFirstName, setFormFirstName] = useState(firstName);
   const [formLastName, setFormLastName] = useState(lastName);
@@ -77,11 +78,52 @@ export function LeadIdentityEditable({ leadId, firstName, lastName, email, phone
     router.refresh();
   }
 
+  async function handleDelete() {
+    const displayName = `${firstName} ${lastName}`.trim() || phone || "lead ini";
+    if (
+      !window.confirm(
+        `Hapus lead "${displayName}"? Lead hilang dari daftar CRM beserta percakapannya di layar. Data tetap tersimpan di database dan bisa dipulihkan lewat database kalau salah hapus.`
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+
+    const supabase = createClient();
+    const { error: deleteError } = await supabase
+      .schema("customer")
+      .from("leads")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", leadId);
+
+    if (deleteError) {
+      setDeleting(false);
+      setError("Gagal menghapus lead. Coba lagi.");
+      return;
+    }
+
+    router.push("/crm");
+    router.refresh();
+  }
+
   if (!isEditing) {
     return (
-      <div className="flex justify-end">
-        <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)} disabled={deleting}>
           Edit Nama/Kontak
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="text-destructive"
+          onClick={handleDelete}
+          disabled={deleting}
+        >
+          {deleting ? "Menghapus..." : "Hapus Lead"}
         </Button>
       </div>
     );

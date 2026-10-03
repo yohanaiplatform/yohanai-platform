@@ -51,6 +51,19 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 3 Oktober 2026 — Hapus Lead, Nama (NN), Auto-isi Detail Lead
+
+### Added
+
+- **Tombol "Hapus Lead"** di Lead Detail (dengan konfirmasi) — lead dihapus lembut (`deleted_at`), tidak hilang permanen
+- Lead baru dari WhatsApp otomatis diisi Sumber (iklan), Kategori, Minat Lokasi, dan Sudah Survey "Belum"; Minat Lokasi diperbarui AI sesuai percakapan
+
+### Changed
+
+- Nama lead dari WhatsApp tersimpan sebagai `<nama profil> (NN)` sampai konsumen menyebut namanya sendiri; AI menggantinya begitu nama disebut
+- Catatan ringkasan otomatis AI berbentuk poin topik, bukan paragraf
+- Gaya jawaban AI lebih ringkas (jawab yang ditanya saja), dan rangkuman chat dikirim 3x sehari ke WhatsApp agen
+
 ## 2 Oktober 2026 (malam) — Template Follow-up WhatsApp, Edit Video & Pemilik
 
 ### Added

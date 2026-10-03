@@ -315,6 +315,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
               <strong>Edit Nama/Kontak</strong> -- tombol di bagian atas untuk koreksi manual nama, email, atau
               nomor HP lead (mis. kalau nama aslinya baru diketahui dari percakapan WhatsApp).
             </>,
+            <>
+              <strong>Hapus Lead</strong> -- tombol di sebelah Edit Nama/Kontak untuk membuang lead yang tidak
+              relevan (mis. pesan otomatis atau salah nomor). Selalu ada konfirmasi dulu. Lead hilang dari
+              daftar, tapi datanya tidak dihapus permanen sehingga masih bisa dipulihkan lewat database kalau
+              salah hapus.
+            </>,
             "Ubah Temperature dan siapa yang ditugaskan (assigned) ke lead itu.",
             "Percakapan WhatsApp tampil live di bagian bawah -- bisa balas langsung dari situ, update real-time tanpa refresh halaman.",
             "Catatan (notes) bisa ditambahkan untuk mencatat detail penting yang tidak masuk field standar.",
