@@ -379,13 +379,13 @@ async function runAiAgent(
   const { data: recentMessages } = await supabase
     .schema('chat')
     .from('messages')
-    .select('sender_type, content')
+    .select('sender_type, content, created_at')
     .eq('conversation_id', conversationId)
     .neq('id', triggerMessageId)
     .order('created_at', { ascending: false })
     .limit(10)
 
-  const history = (recentMessages ?? []).reverse().map((m) => ({ senderType: m.sender_type, content: m.content }))
+  const history = (recentMessages ?? []).reverse().map((m) => ({ senderType: m.sender_type, content: m.content, createdAt: m.created_at }))
 
   // Ringkasan percakapan rolling (ditulis applyAgentDecision() tiap run) --
   // dibaca sebagai konteks jangka panjang, berguna juga kalau riwayat chat

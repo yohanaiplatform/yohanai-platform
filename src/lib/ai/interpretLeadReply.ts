@@ -16,6 +16,7 @@ export interface AgentLeadContext {
 export interface AgentMessageHistoryItem {
   senderType: string;
   content: string;
+  createdAt?: string;
 }
 
 export interface AgentKnowledgeContext {
@@ -81,7 +82,8 @@ ATURAN BALAS OTOMATIS:
 - confidence menilai keyakinan keseluruhan (Temperature ATAU replyText, mana pun yang paling Anda ragukan) -- "low" kalau ragu. **Penting**: sistem TIDAK akan mengirim replyText ke lead kalau confidence "low" (dikirim ke agen manusia untuk direview dulu) -- jadi tetap isi replyText apa adanya walau confidence low, jangan diam, biar agen manusia punya draft untuk dikirim/diedit.
 
 GAYA JAWABAN (WAJIB, mengalahkan aturan panjang replyText di atas kalau bertabrakan):
-- JAWAB HANYA YANG DITANYA. Kalau lead tanya lokasi, jawab lokasi saja; tanya harga, harga saja; tanya DP, DP saja. JANGAN "obral" info (harga, DP, angsuran, spesifikasi, foto) yang belum ditanya -- tutup dengan sapaan singkat yang mempersilakan bertanya lagi, lalu TUNGGU lead bertanya hal berikutnya.
+- JAWAB HANYA YANG DITANYA. Kalau lead tanya lokasi, jawab lokasi saja; tanya harga, harga saja; tanya DP, DP saja. JANGAN "obral" info (harga, DP, angsuran, spesifikasi, foto) yang belum ditanya -- cukup jawab lalu TUNGGU lead bertanya hal berikutnya.
+- JANGAN menutup jawaban dengan kalimat ajakan bertanya seperti "Kalau ada yang mau ditanyakan lagi, silakan ya" atau variasinya -- itu terkesan ingin cepat mengakhiri percakapan. Kalimat semacam itu BOLEH dipakai HANYA kalau data "Jeda sejak pesan terakhir" menunjukkan percakapan sempat terputus >= 2 jam (anggap seperti follow-up); kalau percakapan baru dimulai atau masih berjalan (< 2 jam), akhiri jawaban begitu saja setelah isi jawabannya.
 - JANGAN menawarkan lokasi/listing/perumahan lain sebelum lead sendiri menanyakannya.
 - Kalau lead menanyakan lokasi/area LAIN (mis. "selain Desa Kapur ada di mana?"): cukup sebutkan nama-nama lokasi/kawasan yang ada di "Listing Tersedia" beserta tipe unitnya (mis. rumah subsidi/non-subsidi), contoh: "Selain Desa Kapur, kami juga ada rumah subsidi di Ambawang, Sungai Raya Dalam, Kotabaru, Pal 7, Pal 9, dan Pontianak Timur." JANGAN langsung memberi harga/DP/detail tiap lokasi -- tunggu lead memilih satu lalu bertanya. Sebut HANYA lokasi yang benar-benar ada di data, jangan mengarang.
 - FORMAT: jawaban 1-2 poin cukup kalimat biasa. Kalau jawaban memuat 3 poin atau lebih (spesifikasi, daftar lokasi, simulasi angsuran, syarat), susun sebagai daftar berpoin (satu baris per poin diawali "- ") dengan format WhatsApp: *tebal* (satu bintang) untuk nama/angka kunci, _miring_ (garis bawah) untuk catatan/penekanan, dan jeda baris kosong antar bagian. WhatsApp TIDAK mendukung garis bawah (underline) -- jangan pakai. Jangan pakai markdown ** atau # atau tabel.
@@ -158,6 +160,17 @@ function buildUserPrompt(
   listings: AgentListingContext[],
   previousSummary: string | null
 ): string {
+  // Jeda sejak pesan terakhir SEBELUM pesan baru ini -- dipakai aturan "jangan menutup
+  // jawaban dengan ajakan bertanya lagi kecuali percakapan sempat terputus >= 2 jam".
+  const lastHistoryAt = history.length ? history[history.length - 1].createdAt : undefined;
+  const gapMinutes = lastHistoryAt ? Math.max(0, Math.round((Date.now() - new Date(lastHistoryAt).getTime()) / 60000)) : null;
+  const gapText =
+    gapMinutes === null
+      ? "percakapan baru dimulai (belum ada riwayat)"
+      : gapMinutes >= 120
+        ? `${Math.round(gapMinutes / 60)} jam (percakapan sempat terputus >= 2 jam)`
+        : `${gapMinutes} menit (percakapan masih berjalan)`;
+
   const historyText = history
     .map((m) => `${m.senderType === "customer" ? "Lead" : "Agen"}: ${m.content}`)
     .join("\n");
@@ -195,6 +208,8 @@ function buildUserPrompt(
 
 Ringkasan percakapan sebelumnya (kalau ada):
 ${previousSummary ?? "(belum ada ringkasan sebelumnya)"}
+
+Jeda sejak pesan terakhir sebelum pesan baru ini: ${gapText}
 
 Riwayat percakapan terakhir (paling lama ke paling baru):
 ${historyText || "(belum ada riwayat)"}
