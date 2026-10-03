@@ -33,6 +33,25 @@ export interface ApplyAgentDecisionInput {
  */
 export const AI_SUMMARY_NOTE_AUTHOR_LABEL = "AI Agent (ringkasan otomatis)";
 
+/**
+ * Pagar kode di atas aturan prompt: AI hanya boleh MENAIKKAN Cold -> Warm -> Hot (atau mengisi lead
+ * yang belum punya Temperature), dan Batal untuk penolakan eksplisit. AI TIDAK PERNAH mengisi
+ * Closing, dan tidak pernah mengubah lead yang sudah Closing/Batal (keputusan agen manusia).
+ */
+const TEMPERATURE_RANK: Record<string, number> = { Cold: 1, Warm: 2, Hot: 3 };
+
+function isAllowedTemperatureChange(current: string | null, next: string | null): boolean {
+  if (!next || next === current) return false;
+  if (next === "Closing") return false;
+  if (current === "Closing" || current === "Batal") return false;
+  if (next === "Batal") return true;
+  if (!current) return true;
+  const currentRank = TEMPERATURE_RANK[current];
+  const nextRank = TEMPERATURE_RANK[next];
+  if (!currentRank || !nextRank) return true;
+  return nextRank > currentRank;
+}
+
 /** Nama dianggap placeholder (bukan nama asli) -- sama seperti kriteria di system prompt interpretLeadReply.ts, harus tetap sinkron. */
 function isPlaceholderName(name: string): boolean {
   const trimmed = name.trim();
@@ -59,8 +78,8 @@ export async function applyAgentDecision(
   // Update metadata lead sekali jalan: Temperature (status_funnel_awal) dan/atau
   // Minat Unit/Lokasi (minat_unit_lokasi) dari percakapan.
   const metadataUpdates: Record<string, Json> = {};
-  if (decision.newTemperature && decision.newTemperature !== input.currentTemperature) {
-    metadataUpdates.status_funnel_awal = decision.newTemperature;
+  if (isAllowedTemperatureChange(input.currentTemperature, decision.newTemperature)) {
+    metadataUpdates.status_funnel_awal = decision.newTemperature as string;
   }
   const newMinatLokasi = decision.minatLokasi?.trim();
   if (newMinatLokasi) {
