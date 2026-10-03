@@ -145,7 +145,10 @@ function formatRupiah(n: number): string {
 // buru-buru kirim foto/video kalau tidak diminta (hemat token sekalian,
 // bukan cuma soal sopan-santun): kalau datanya tidak ada di prompt sama
 // sekali, AI secara struktural tidak bisa "buru-buru" menawarkannya.
-const PHOTO_VIDEO_INTENT_KEYWORDS = ["foto", "photo", "poto", "gambar", "pic", "video", "penampakan", "denah"];
+const PHOTO_VIDEO_INTENT_KEYWORDS = [
+  "foto", "photo", "poto", "gambar", "gbr", "gmbr", "pic", "pict", "video", "vidio", "vid ",
+  "penampakan", "denah", "siteplan", "site plan", "brosur", "flyer",
+];
 
 function hasPhotoOrVideoIntent(text: string): boolean {
   const lower = text.toLowerCase();
@@ -186,7 +189,14 @@ function buildUserPrompt(
     ? knowledge.map((k) => `- ${k.title}: ${k.content}`).join("\n")
     : "(tidak ada info area yang relevan ditemukan)";
 
-  const photoVideoIntent = hasPhotoOrVideoIntent(newMessage);
+  // Pesan lead beruntun bisa digabung webhook (debounce) sehingga permintaan foto ada di pesan
+  // SEBELUM pesan terakhir (mis. "kirim gbr" lalu "apakah one gate system") -- cek juga semua
+  // pesan lead yang belum sempat dibalas agen (setelah balasan agen terakhir di riwayat).
+  const unansweredLeadMessages: string[] = [];
+  for (let i = history.length - 1; i >= 0 && history[i].senderType === "customer"; i--) {
+    unansweredLeadMessages.push(history[i].content);
+  }
+  const photoVideoIntent = [newMessage, ...unansweredLeadMessages].some(hasPhotoOrVideoIntent);
 
   const listingsText = listings.length
     ? listings
