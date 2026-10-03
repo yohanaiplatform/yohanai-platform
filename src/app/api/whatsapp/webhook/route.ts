@@ -155,7 +155,7 @@ async function autoCreateLeadFromWhatsApp(
   phone: string,
   contactName: string | null,
   phoneNumberId: string | null,
-  fromAd: boolean
+  origin: { isAd: boolean; kapurMas: boolean }
 ): Promise<string | null> {
   if (!phoneNumberId) return null
 
@@ -183,11 +183,11 @@ async function autoCreateLeadFromWhatsApp(
       assigned_to: assignedTo,
       metadata: {
         origin: 'whatsapp_inbound',
-        sumber_informasi: fromAd ? 'Iklan (Meta/Google)' : null,
-        kategori: fromAd ? 'Calon Konsumen Kapur Mas' : null,
+        sumber_informasi: origin.isAd ? 'Iklan (Meta/Google)' : null,
+        kategori: origin.kapurMas ? 'Calon Konsumen Kapur Mas' : null,
         permintaan: null,
         komentar: null,
-        minat_unit_lokasi: fromAd ? 'Kapur Mas' : null,
+        minat_unit_lokasi: origin.kapurMas ? 'Kapur Mas' : null,
         sudah_survey: 'Belum',
         status_funnel_awal: null,
         follow_up_terakhir: null,
@@ -219,17 +219,24 @@ function extractAdContext(payload: KapsoMessageReceivedPayload): string | null {
 }
 
 /**
- * Lead datang dari iklan Kapur Mas? Docs Kapso tidak mendokumentasikan field
- * referral iklan, jadi dua sinyal: (1) kalau Meta kebetulan mengirim `referral`
- * di pesan, (2) teks pembuka iklan ("minta info detail untuk Kapur Mas ...").
- * Heuristik -- kalau iklan baru dengan teks lain jalan, sesuaikan di sini.
+ * Asal lead WhatsApp baru. Kapso MENERUSKAN `message.referral` Meta (terbukti 3 Okt 2026):
+ * headline = nama Page, body = caption postingan/iklan, source_url = link fb.me.
+ * - isAd: referral bukan dari postingan Page biasa (source_type 'post'), ATAU teks pembuka
+ *   iklan Kapur Mas ("minta info ... Kapur Mas").
+ * - kapurMas: proyek Kapur Mas disebut di teks pembuka atau di konteks iklan/postingan.
+ * Heuristik -- sesuaikan kalau teks iklan/proyek lain mulai jalan.
  */
-function isFromKapurMasAd(payload: KapsoMessageReceivedPayload, content: string): boolean {
+function classifyLeadOrigin(
+  payload: KapsoMessageReceivedPayload,
+  content: string,
+  adContext: string | null
+): { isAd: boolean; kapurMas: boolean } {
   const referral = (payload.message as { referral?: { source_type?: unknown } }).referral
-  // Tombol WhatsApp di postingan Page (bukan iklan berbayar) datang dengan source_type 'post' --
-  // bukan iklan, jangan diberi sumber "Iklan (Meta/Google)".
-  if (referral && typeof referral === 'object' && referral.source_type !== 'post') return true
-  return /mintas+info.*kapurs*mas/i.test(content)
+  const openingLooksLikeAd = /mintas+info.*kapurs*mas/i.test(content)
+  const isAd =
+    openingLooksLikeAd || Boolean(referral && typeof referral === 'object' && referral.source_type !== 'post')
+  const kapurMas = openingLooksLikeAd || /kapurs*mas/i.test(adContext ?? '')
+  return { isAd, kapurMas }
 }
 
 async function handleMessageReceived(
@@ -301,7 +308,7 @@ async function handleMessageReceived(
       phone,
       payload.conversation?.contact_name ?? null,
       phoneNumberId,
-      isFromKapurMasAd(payload, content)
+      classifyLeadOrigin(payload, content, extractAdContext(payload))
     )
 
     if (leadId && orphanConversationId) {
