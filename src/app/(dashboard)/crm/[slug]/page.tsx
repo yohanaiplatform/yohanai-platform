@@ -50,6 +50,24 @@ function formatMetadataDate(value: string | null): string | null {
   return Number.isNaN(parsed.getTime()) ? value : formatDateTime(parsed.toISOString());
 }
 
+interface DatangDariView {
+  platform: string | null;
+  tipe: string | null;
+  judul: string | null;
+  isi: string | null;
+  url: string | null;
+}
+
+/** Baca metadata.datang_dari (asal postingan/iklan, diisi webhook WhatsApp dari referral Meta). */
+function getDatangDari(metadata: unknown): DatangDariView | null {
+  if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) return null;
+  const raw = (metadata as Record<string, unknown>).datang_dari;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" && v ? v : null);
+  return { platform: str(r.platform), tipe: str(r.tipe), judul: str(r.judul), isi: str(r.isi), url: str(r.url) };
+}
+
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const { slug } = await params;
 
@@ -103,6 +121,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const minatUnitLokasi = getLeadMetadataString(lead.metadata, "minat_unit_lokasi");
   const sudahSurvey = getLeadMetadataString(lead.metadata, "sudah_survey");
   const statusFunnelAwal = getLeadMetadataString(lead.metadata, "status_funnel_awal");
+  const datangDari = getDatangDari(lead.metadata);
   const followUpTerakhir = formatMetadataDate(
     getLeadMetadataString(lead.metadata, "follow_up_terakhir")
   );
@@ -142,6 +161,32 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
               label={t.detail.lastUpdated}
               value={formatDateTime(lead.updated_at)}
             />
+            {datangDari && (
+              <LeadDetailField
+                label="Datang dari"
+                value={
+                  <div className="space-y-1">
+                    <div className="font-medium">
+                      {[datangDari.tipe, datangDari.platform].filter(Boolean).join(" ") || "Postingan/iklan"}
+                      {datangDari.judul ? ` — ${datangDari.judul}` : ""}
+                    </div>
+                    {datangDari.isi && (
+                      <div className="text-xs text-muted-foreground">{datangDari.isi.slice(0, 140)}</div>
+                    )}
+                    {datangDari.url && (
+                      <a
+                        href={datangDari.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-brand underline underline-offset-2"
+                      >
+                        Buka postingan
+                      </a>
+                    )}
+                  </div>
+                }
+              />
+            )}
             <LeadDetailField
               label="Kaitkan ke Listing"
               value={

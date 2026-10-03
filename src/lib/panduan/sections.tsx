@@ -305,7 +305,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           aslinya, dan jika masih (NN) asisten menanyakannya dengan sopan. Untuk lead yang datang dari
           iklan, kolom Sumber, Kategori, dan Minat Lokasi terisi otomatis, Sudah Survey diisi
           &quot;Belum&quot;, dan Minat Lokasi diperbarui mengikuti isi percakapan. Catatan ringkasan otomatis
-          berbentuk poin topik.
+          berbentuk poin topik. Kalau konsumen menekan tombol WhatsApp dari sebuah postingan atau iklan di
+          Facebook/Instagram, di Lead Detail muncul kolom <strong>Datang dari</strong> berisi platform, judul,
+          isi singkat, dan tautan postingannya.
         </GuideP>
         <GuideHeading>Mencari & menyaring</GuideHeading>
         <GuideP>

@@ -209,6 +209,56 @@ const META_SYSTEM_PHONE = '447710173736'
  * docs Kapso tidak mendokumentasikannya, jadi dibaca defensif; kalau Kapso tidak
  * meneruskannya hasilnya kosong dan alur lama tetap jalan.
  */
+interface DatangDari {
+  platform: string | null
+  tipe: string | null
+  judul: string | null
+  isi: string | null
+  url: string | null
+}
+
+/** Asal lead (postingan/iklan) terstruktur untuk ditampilkan di Lead Detail ("Datang dari"). */
+function extractDatangDari(payload: KapsoMessageReceivedPayload): DatangDari | null {
+  const referral = (payload.message as { referral?: Record<string, unknown> }).referral
+  if (!referral || typeof referral !== 'object') return null
+
+  const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+  const url = str(referral.source_url)
+  const host = (() => {
+    try {
+      return url ? new URL(url).hostname.toLowerCase() : ''
+    } catch {
+      return ''
+    }
+  })()
+
+  let platform: string | null = null
+  if (/(^|.)(fb.me|facebook.com|fb.com)$/.test(host)) platform = 'Facebook'
+  else if (/(^|.)(instagram.com|ig.me|instagr.am)$/.test(host)) platform = 'Instagram'
+  else if (/(^|.)tiktok.com$/.test(host)) platform = 'TikTok'
+
+  const sourceType = str(referral.source_type)
+  const tipe = sourceType === 'ad' ? 'Iklan' : sourceType === 'post' ? 'Postingan' : null
+
+  return { platform, tipe, judul: str(referral.headline), isi: str(referral.body), url }
+}
+
+async function saveDatangDariIfMissing(
+  supabase: ReturnType<typeof createAdminClient>,
+  leadId: string,
+  datangDari: DatangDari
+) {
+  const { data: lead } = await supabase.schema('customer').from('leads').select('metadata').eq('id', leadId).maybeSingle()
+  if (!lead) return
+  const metadata = (lead.metadata ?? {}) as Record<string, unknown>
+  if (metadata.datang_dari) return
+  await supabase
+    .schema('customer')
+    .from('leads')
+    .update({ metadata: { ...metadata, datang_dari: datangDari } as unknown as Json })
+    .eq('id', leadId)
+}
+
 function extractAdContext(payload: KapsoMessageReceivedPayload): string | null {
   const referral = (payload.message as { referral?: Record<string, unknown> }).referral
   if (!referral || typeof referral !== 'object') return null
@@ -341,6 +391,9 @@ async function handleMessageReceived(
   }
 
   const adContext = extractAdContext(payload)
+
+  const datangDari = extractDatangDari(payload)
+  if (leadId && datangDari) await saveDatangDariIfMissing(supabase, leadId, datangDari)
 
   const { data: insertedMessage, error: insertError } = await supabase
     .schema('chat')
