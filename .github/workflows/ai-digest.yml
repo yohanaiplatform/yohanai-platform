@@ -1,0 +1,27 @@
+name: AI Chat Digest
+
+on:
+  schedule:
+    # 08:00, 13:00, 21:00 WIB = 01:00, 06:00, 14:00 UTC. Dijadwalkan ~8 menit
+    # lebih awal (bukan menit :00) karena cron GitHub Actions di jam bulat
+    # sering telat berjam-jam (lihat jebakan di AGENTS.md soal daily-report.yml).
+    - cron: "52 0 * * *"
+    - cron: "52 5 * * *"
+    - cron: "52 13 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kirim rangkuman chat
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            "https://yohanai.id/api/ai/send-digest" \
+            -H "x-flush-secret: ${{ secrets.AI_FOLLOW_UP_FLUSH_SECRET }}")
+          echo "HTTP Status: $HTTP_CODE"
+          cat /tmp/response.json
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::AI digest failed with status $HTTP_CODE"
+            exit 1
+          fi

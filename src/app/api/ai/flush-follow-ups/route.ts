@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications/createNotification";
 import { getAdminUserIds } from "@/lib/notifications/getAdminUserIds";
-import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
 import { formatFollowUpSummary } from "@/lib/ai/followUpFormatting";
 
 const QUIET_MINUTES = 5;
@@ -96,19 +95,10 @@ export async function GET(request: Request) {
       )
     );
 
-    // Kirim juga ke nomor WA notifikasi personal tiap recipient, kalau
-    // sudah diisi di Profile (field terpisah dari nomor WA bisnis).
-    const { data: profiles } = await supabase
-      .schema("auth_ext")
-      .from("profiles")
-      .select("user_id, notification_whatsapp_number")
-      .in("user_id", recipientIds);
-
-    await Promise.all(
-      (profiles ?? [])
-        .filter((p): p is { user_id: string; notification_whatsapp_number: string } => Boolean(p.notification_whatsapp_number))
-        .map((p) => sendWhatsAppText(p.notification_whatsapp_number, summary).catch(() => null))
-    );
+    // Pesan WhatsApp ke nomor notifikasi pribadi SENGAJA tidak lagi dikirim
+    // per lead di sini (3 Okt 2026) -- diganti rangkuman 3x sehari
+    // (GET /api/ai/send-digest: 08:00, 13:00, 21:00 WIB). Notifikasi in-app
+    // di atas tetap real-time.
 
     const idsToFlush = items.map((i) => i.id);
     await supabase.schema("ai").from("follow_up_queue").update({ flushed_at: new Date().toISOString() }).in("id", idsToFlush);

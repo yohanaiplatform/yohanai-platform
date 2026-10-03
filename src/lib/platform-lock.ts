@@ -49,6 +49,7 @@ const PUBLIC_PATHS = [
   '/api/whatsapp/webhook',
   '/api/reports/daily',
   '/api/ai/flush-follow-ups',
+  '/api/ai/send-digest',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */
