@@ -56,7 +56,18 @@ export async function applyAgentDecision(
 ): Promise<void> {
   const { decision } = input;
 
+  // Update metadata lead sekali jalan: Temperature (status_funnel_awal) dan/atau
+  // Minat Unit/Lokasi (minat_unit_lokasi) dari percakapan.
+  const metadataUpdates: Record<string, Json> = {};
   if (decision.newTemperature && decision.newTemperature !== input.currentTemperature) {
+    metadataUpdates.status_funnel_awal = decision.newTemperature;
+  }
+  const newMinatLokasi = decision.minatLokasi?.trim();
+  if (newMinatLokasi) {
+    metadataUpdates.minat_unit_lokasi = newMinatLokasi.slice(0, 80);
+  }
+
+  if (Object.keys(metadataUpdates).length > 0) {
     const baseMetadata =
       typeof input.currentMetadata === "object" && input.currentMetadata !== null && !Array.isArray(input.currentMetadata)
         ? (input.currentMetadata as Record<string, Json>)
@@ -65,7 +76,7 @@ export async function applyAgentDecision(
     await supabaseAdmin
       .schema("customer")
       .from("leads")
-      .update({ metadata: { ...baseMetadata, status_funnel_awal: decision.newTemperature } })
+      .update({ metadata: { ...baseMetadata, ...metadataUpdates } })
       .eq("id", input.leadId);
   }
 

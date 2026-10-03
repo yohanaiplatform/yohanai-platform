@@ -44,6 +44,7 @@ export interface AgentDecision {
   sharePhotoUrls: string[];
   confirmedName: string | null;
   conversationSummary: string | null;
+  minatLokasi: string | null;
 }
 
 export interface InterpretLeadReplyResult {
@@ -105,10 +106,14 @@ ATURAN KONFIRMASI NAMA & SAPAAN:
 - Nama lead dianggap BELUM JELAS kalau: kosong, mengandung "(NN)", persis "Test Lead", atau cuma angka/nomor HP. Kalau nama lead saat ini JELAS (nama asli), JANGAN tanya nama lagi, langsung sapa dengan itu.
 - Kalau nama BELUM JELAS dan riwayat percakapan sudah ada minimal 3 pesan (gabungan lead+agen) TANPA pernah ada pertanyaan soal nama sebelumnya, selipkan pertanyaan sopan di replyText, mis. "Sebelumnya mohon maaf, boleh tahu ini dengan Bapak/Ibu siapa ya?" -- JANGAN tanya di pesan pertama/kedua (terkesan interogatif).
 - JANGAN asumsikan sapaan "Bapak"/"Ibu" sebelum lead sendiri menyebutkan atau mengonfirmasinya.
-- Kalau pesan BARU dari lead berisi jawaban atas pertanyaan nama (nama atau sapaan yang diinginkan, mis. "saya Pak Yohan" / "panggil Bu Siti aja"), isi confirmedName dengan nama itu PERSIS seperti disebutkan lead (termasuk sapaan kalau ada, mis. "Pak Yohan") supaya bisa disimpan ke data lead. Kalau tidak ada info nama baru di pesan ini, confirmedName: null.
+- Nama yang tersimpan berformat "<nama profil WhatsApp> (NN)" artinya lead BELUM pernah menyebutkan namanya sendiri. Begitu lead menyebutkan namanya di pesan MANAPUN (bukan hanya saat ditanya; mis. "saya Marsel", "dengan Pak Dwi", tanda tangan di akhir pesan), ATAU menjawab pertanyaan nama/sapaan ("panggil Bu Siti aja"), isi confirmedName dengan nama itu PERSIS seperti disebutkan lead (termasuk sapaan kalau ada, mis. "Pak Yohan") supaya bisa disimpan ke data lead. Kalau tidak ada info nama baru di pesan ini, confirmedName: null.
+
+ATURAN MINAT LOKASI (minatLokasi):
+- Isi minatLokasi dengan nama perumahan/lokasi yang diminati lead berdasarkan percakapan, SANGAT SINGKAT (mis. "Kapur Mas", "Serdam", "Kapur Mas & Serdam"). Kalau lead berpindah/menambah minat, perbarui. Kalau belum ada informasi baru tentang minat lokasi di pesan ini, isi null (nilai lama tetap dipakai).
 
 ATURAN RINGKASAN PERCAKAPAN (conversationSummary):
-- SELALU isi conversationSummary -- ringkasan singkat (maks 500 karakter) kondisi lead TERKINI, Bahasa Indonesia, mencakup (kalau relevan): nama/sapaan yang sudah dikonfirmasi, kebutuhan/budget/preferensi lokasi, listing yang sudah dibahas & sejauh mana (sudah dikirim foto/harga/dll), status survey/follow-up yang masih menggantung, dan hal penting lain yang perlu diingat untuk percakapan selanjutnya.
+- SELALU isi conversationSummary -- FORMAT DAFTAR BERPOIN (tiap poin satu baris diawali "- ", pisahkan dengan baris baru 
+), maks 6 poin pendek, TOPIK percakapan saja -- JANGAN menceritakan ulang tiap pesan/bubble chat, dan JANGAN pakai paragraf naratif. Total maks 500 karakter, Bahasa Indonesia, kondisi lead TERKINI, mencakup (kalau relevan): nama/sapaan yang sudah dikonfirmasi, kebutuhan/budget/preferensi lokasi, listing yang sudah dibahas & sejauh mana (sudah dikirim foto/harga/dll), status survey/follow-up yang masih menggantung, dan hal penting lain yang perlu diingat untuk percakapan selanjutnya.
 - Kalau di bawah ada "Ringkasan percakapan sebelumnya", GABUNGKAN info itu dengan pesan BARU ini jadi satu ringkasan baru yang konsisten dan ter-update -- JANGAN cuma mengulang ringkasan lama kalau ada info baru, dan JANGAN buang info lama yang masih relevan hanya karena tidak disebut lagi di pesan ini.
 - Ringkasan ini jadi memori jangka panjang AI Agent (menggantikan baca ulang seluruh riwayat chat tiap kali, dan tetap berguna kalau pesan WhatsApp lama terhapus/hilang) -- tulis padat & faktual, BUKAN narasi panjang.
 
@@ -118,7 +123,7 @@ ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:
-{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[], "confirmedName": string|null, "conversationSummary": string|null}`;
+{"newTemperature": "Hot"|"Warm"|"Cold"|"Closing"|"Batal"|null, "replyText": string|null, "reasoning": string, "confidence": "high"|"medium"|"low", "needsFollowUp": boolean, "followUpNote": string|null, "sharePhotoUrls": string[], "confirmedName": string|null, "conversationSummary": string|null, "minatLokasi": string|null}`;
 
 function formatRupiah(n: number): string {
   return `Rp${n.toLocaleString("id-ID")}`;
@@ -222,6 +227,7 @@ function isValidDecision(value: unknown): value is AgentDecision {
   const validConfirmedName = v.confirmedName === null || v.confirmedName === undefined || typeof v.confirmedName === "string";
   const validConversationSummary =
     v.conversationSummary === null || v.conversationSummary === undefined || typeof v.conversationSummary === "string";
+  const validMinatLokasi = v.minatLokasi === null || v.minatLokasi === undefined || typeof v.minatLokasi === "string";
   return (
     validTemp &&
     validReply &&
@@ -231,7 +237,8 @@ function isValidDecision(value: unknown): value is AgentDecision {
     validFollowUpNote &&
     validSharePhotoUrls &&
     validConfirmedName &&
-    validConversationSummary
+    validConversationSummary &&
+    validMinatLokasi
   );
 }
 
@@ -309,6 +316,7 @@ export async function interpretLeadReply(
   if (parsed.followUpNote === undefined) parsed.followUpNote = null;
   if (parsed.confirmedName === undefined) parsed.confirmedName = null;
   if (parsed.conversationSummary === undefined) parsed.conversationSummary = null;
+  if (parsed.minatLokasi === undefined) parsed.minatLokasi = null;
   if (parsed.sharePhotoUrls === undefined) parsed.sharePhotoUrls = [];
 
   // Jangan percaya URL apa adanya dari LLM (walau sudah diinstruksikan copy-paste

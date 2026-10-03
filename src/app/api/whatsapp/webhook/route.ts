@@ -154,7 +154,8 @@ async function autoCreateLeadFromWhatsApp(
   supabase: ReturnType<typeof createAdminClient>,
   phone: string,
   contactName: string | null,
-  phoneNumberId: string | null
+  phoneNumberId: string | null,
+  fromAd: boolean
 ): Promise<string | null> {
   if (!phoneNumberId) return null
 
@@ -171,7 +172,10 @@ async function autoCreateLeadFromWhatsApp(
     .from('leads')
     .insert({
       lead_source_id: source?.id ?? null,
-      first_name: contactName ?? phone,
+      // "(NN)" = lead belum pernah menyebut namanya sendiri; diganti nama asli
+      // begitu AI menangkapnya dari percakapan (confirmedName) -- dan jadi sinyal
+      // supaya AI menanyakan nama dengan sopan.
+      first_name: contactName ? `${contactName} (NN)` : phone,
       last_name: '',
       slug,
       phone,
@@ -179,12 +183,12 @@ async function autoCreateLeadFromWhatsApp(
       assigned_to: assignedTo,
       metadata: {
         origin: 'whatsapp_inbound',
-        sumber_informasi: null,
-        kategori: null,
+        sumber_informasi: fromAd ? 'Iklan (Meta/Google)' : null,
+        kategori: fromAd ? 'Calon Konsumen Kapur Mas' : null,
         permintaan: null,
         komentar: null,
-        minat_unit_lokasi: null,
-        sudah_survey: null,
+        minat_unit_lokasi: fromAd ? 'Kapur Mas' : null,
+        sudah_survey: 'Belum',
         status_funnel_awal: null,
         follow_up_terakhir: null,
         submitted_at: new Date().toISOString(),
@@ -198,6 +202,18 @@ async function autoCreateLeadFromWhatsApp(
 }
 
 const META_SYSTEM_PHONE = '447710173736'
+
+/**
+ * Lead datang dari iklan Kapur Mas? Docs Kapso tidak mendokumentasikan field
+ * referral iklan, jadi dua sinyal: (1) kalau Meta kebetulan mengirim `referral`
+ * di pesan, (2) teks pembuka iklan ("minta info detail untuk Kapur Mas ...").
+ * Heuristik -- kalau iklan baru dengan teks lain jalan, sesuaikan di sini.
+ */
+function isFromKapurMasAd(payload: KapsoMessageReceivedPayload, content: string): boolean {
+  const referral = (payload.message as { referral?: unknown }).referral
+  if (referral && typeof referral === 'object') return true
+  return /mintas+info.*kapurs*mas/i.test(content)
+}
 
 async function handleMessageReceived(
   supabase: ReturnType<typeof createAdminClient>,
@@ -263,7 +279,13 @@ async function handleMessageReceived(
       .limit(1)
     orphanConversationId = orphanConversations?.[0]?.id ?? null
 
-    leadId = await autoCreateLeadFromWhatsApp(supabase, phone, payload.conversation?.contact_name ?? null, phoneNumberId)
+    leadId = await autoCreateLeadFromWhatsApp(
+      supabase,
+      phone,
+      payload.conversation?.contact_name ?? null,
+      phoneNumberId,
+      isFromKapurMasAd(payload, content)
+    )
 
     if (leadId && orphanConversationId) {
       await supabase.schema('chat').from('conversations').update({ lead_id: leadId }).eq('id', orphanConversationId)
