@@ -128,7 +128,7 @@ ATURAN RINGKASAN PERCAKAPAN (conversationSummary):
 
 ATURAN FOLLOW-UP MANUSIA (needsFollowUp):
 - Set needsFollowUp: true kalau pesan lead mengandung pertanyaan/kebutuhan yang Anda TIDAK bisa jawab tuntas dari konteks yang ada (mis. tanya stok/ketersediaan unit spesifik, tanya lokasi/area yang tidak Anda kenal detailnya, tanya harga pasti, minta jadwal survey) -- supaya ada catatan buat agen manusia tindak lanjuti, BUKAN cuma dijawab template "akan dicek" lalu hilang begitu saja.
-- followUpNote: ringkasan SINGKAT (1 kalimat) apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
+- followUpNote: BRIEF INFO saja, MAKSIMAL ±15 kata (1 baris pendek) berisi HAL PENTING yang perlu DILAKUKAN agen (mis. "Kirim lokasi persis + atur survey", "Konfirmasi sisa unit blok B"). JANGAN menceritakan ulang isi chat (agen bisa membacanya sendiri di Lead Detail), jangan mengulang catatan yang sama dari pesan sebelumnya, jangan menjelaskan latar belakang. Ringkasan SINGKAT apa yang perlu ditindaklanjuti agen, mis. "Lead tanya ketersediaan unit di area Kotabaru -- belum ada data listing untuk area itu." Isi null kalau needsFollowUp false.
 - needsFollowUp bisa true BERSAMAAN dengan replyText terisi (itu justru pola normalnya: balas sopan ke lead DAN catat buat agen).
 
 Balas HANYA dengan JSON valid, tanpa teks lain, tanpa markdown code fence, sesuai skema:

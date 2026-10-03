@@ -147,7 +147,7 @@ export function NotificationMenu() {
         {unreadCount > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-600" />}
         <span className="sr-only">Toggle notifications</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="max-h-[min(70vh,32rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto">
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {loading ? (
