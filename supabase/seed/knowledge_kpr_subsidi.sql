@@ -88,3 +88,11 @@ Gunakan ini kalau konsumen tanya batas harga rumah subsidi di suatu daerah. Suku
 array['batas harga subsidi','harga maksimal subsidi','harga rumah subsidi','harga subsidi','plafon harga subsidi','rumah subsidi di','subsidi di jawa','subsidi di sumatera','subsidi di sulawesi','subsidi di papua','subsidi di bali','harga subsidi kalimantan'],
 array['subsidi'], true
 );
+
+-- Ditambahkan 3 Okt 2026
+delete from knowledge.entries where title = 'ASN / P3K / PNS membeli Rumah Subsidi';
+insert into knowledge.entries (title, content, keywords, related_listing_terms, is_active) values (
+'ASN / P3K / PNS membeli Rumah Subsidi',
+$c$Pertanyaan: apakah ASN/P3K (PPPK)/PNS bisa KPR rumah subsidi? JAWABAN: Pada dasarnya BISA, dan mengikuti ketentuan penerima rumah subsidi dari pemerintah (KPR FLPP / Tapera), dengan beberapa penyesuaian khusus mengenai MASA KERJA dan BATAS PENGHASILAN. Syarat inti tetap berlaku: SLIK OJK bersih, penghasilan dalam batas subsidi (lajang maksimal Rp8 juta, berkeluarga maksimal Rp11 juta per bulan), belum pernah memiliki rumah/menerima subsidi. Untuk P3K/PPPK atau status kepegawaian khusus, detail masa kerja minimal dan dokumen (SK pengangkatan, slip gaji, dsb) mengikuti kebijakan bank penyedia kredit -- sampaikan bahwa agen akan membantu memastikan syarat pastinya. Boleh dijawab bahwa tidak terbatas satu lokasi: syarat ini berlaku untuk rumah subsidi di lokasi mana pun yang tersedia.$c$,
+array['asn','p3k','pppk','pns','pegawai negeri','honorer','kontrak p3k','sk pengangkatan','masa kerja'],
+array['subsidi'], true);
