@@ -298,6 +298,15 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           Menu <strong>CRM</strong> menampilkan daftar lead (calon pembeli). Lead masuk otomatis dari WhatsApp
           (begitu nomor baru chat ke sistem) atau ditambah manual lewat tombol &quot;Add Lead&quot;.
         </GuideP>
+        <GuideHeading>Lead baru dari WhatsApp</GuideHeading>
+        <GuideP>
+          Nama lead tersimpan sebagai nama profil WhatsApp diikuti <strong>(NN)</strong> selama konsumen belum
+          menyebutkan namanya sendiri; begitu ia menyebutkannya di chat, nama otomatis diganti nama
+          aslinya, dan jika masih (NN) asisten menanyakannya dengan sopan. Untuk lead yang datang dari
+          iklan, kolom Sumber, Kategori, dan Minat Lokasi terisi otomatis, Sudah Survey diisi
+          &quot;Belum&quot;, dan Minat Lokasi diperbarui mengikuti isi percakapan. Catatan ringkasan otomatis
+          berbentuk poin topik.
+        </GuideP>
         <GuideHeading>Mencari & menyaring</GuideHeading>
         <GuideP>
           Kolom pencarian di atas daftar lead mencari nama, nomor HP, DAN istilah lokasi/minat yang pernah
@@ -693,6 +702,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Permintaan nomor WhatsApp baru dari user lain, dan kabar nomor Anda sudah aktif setelah diajukan -- lihat panduan Pengaturan.",
           ]}
         />
+        <GuideHeading>Rangkuman chat 3x sehari di WhatsApp</GuideHeading>
+        <GuideP>
+          Kalau Nomor WhatsApp untuk Notifikasi sudah diisi di Profil, Anda menerima satu pesan rangkuman pada
+          pukul 08.00, 13.00, dan 21.00 WIB. Isinya semua konsumen yang chat di jendela waktu itu, satu baris
+          per konsumen (nama, nomor, inti singkat). Tanda ⚠️ berarti perlu tindak lanjut Anda. Pesan tidak
+          dikirim kalau tidak ada chat baru. Catatan: pesan ini baru sampai kalau Anda sudah berkirim pesan
+          ke nomor WhatsApp bisnis dalam 24 jam terakhir.
+        </GuideP>
       </>
     ),
   },
