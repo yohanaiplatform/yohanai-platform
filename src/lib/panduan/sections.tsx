@@ -635,9 +635,16 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
               duluan) -- otomatis dicatat sebagai lead baru di CRM, bukan cuma didiamkan.
             </>,
             "Membalas pertanyaan umum (harga, lokasi, spesifikasi, DP/cicilan) pakai data listing yang benar-benar ada di sistem.",
-            "Mengirim foto listing asli lewat WhatsApp -- TAPI cuma kalau lead eksplisit minta foto/gambar/video (AI sengaja tidak menawarkan sendiri supaya tidak terkesan memaksa, sekalian hemat biaya).",
+            "Mengirim foto listing asli lewat WhatsApp -- TAPI cuma kalau lead eksplisit minta foto/gambar/video (termasuk singkatan seperti \"gbr\") (AI sengaja tidak menawarkan sendiri supaya tidak terkesan memaksa, sekalian hemat biaya).",
             "Menampilkan indikator \"sedang mengetik...\" di WhatsApp lead selama memproses.",
-            "Mengubah status Temperature otomatis kalau ada sinyal jelas dari pesan lead (mis. \"saya sudah booking\" -> Closing).",
+            <>
+              Menilai status <strong>Temperature</strong> otomatis dari obrolan: <strong>Cold</strong> untuk lead baru
+              yang baru tanya hal dasar (mis. lokasi), <strong>Warm</strong> kalau sudah tanya DP+akad, harga,
+              angsuran, syarat KPR, atau lokasi lain, <strong>Hot</strong> kalau sudah mengatur jadwal survey.
+              AI hanya menaikkan (tidak menurunkan). <strong>Closing</strong> selalu diisi manual oleh agen setelah
+              booking -- AI hanya memberi tahu Anda. <strong>Batal</strong> diisi AI hanya kalau lead eksplisit
+              menolak atau sudah dapat rumah lain.
+            </>,
           ]}
         />
         <GuideHeading>Yang TIDAK dilakukan AI Agent</GuideHeading>
