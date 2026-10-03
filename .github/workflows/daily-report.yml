@@ -1,15 +1,8 @@
 name: Daily Report
 
 on:
-  schedule:
-    # 00:12 UTC = 07:12 WIB -- sengaja TIDAK tepat jam bulat (00:00), GitHub
-    # Actions mendokumentasikan jadwal tepat di awal jam sebagai waktu
-    # beban tertinggi/paling sering telat. Ketemu 2 Oktober 2026: 3 run
-    # berturut-turut (29-30 Sep, 1 Okt) semua telat konsisten ~3-3.5 jam
-    # dari jadwal "0 0 * * *", dan run tanggal 2 Okt tidak pernah jalan
-    # otomatis sama sekali sampai ditrigger manual. Pola linier (bukan
-    # hard fail) ini konsisten dengan warning resmi GitHub, bukan bug kode.
-    - cron: "12 0 * * *"
+  # Jadwal otomatis DIMATIKAN (3 Okt 2026): GitHub membatasi cron repo ini (jalan tiap 3-4 jam / terlewat).
+  # Pemicu sekarang: cron-job.org -> GET /api/cron/hourly. Workflow ini tinggal untuk run manual.
   workflow_dispatch: {}
 
 jobs:

@@ -1,13 +1,8 @@
 name: Flush AI Follow-up Queue
 
 on:
-  schedule:
-    # Tiap 5 menit, mulai dari menit ke-3 (bukan kelipatan 5 bulat) biar
-    # sedikit menghindari waktu antrian terpadat GitHub Actions (lihat
-    # jebakan di AGENTS.md soal daily-report.yml yang sempat telat
-    # berjam-jam) -- walau untuk cadence sesering ini dampaknya kecil,
-    # karena run yang telat/terlewat tetap aman diproses run berikutnya.
-    - cron: "3-58/5 * * * *"
+  # Jadwal otomatis DIMATIKAN (3 Okt 2026): GitHub membatasi cron repo ini (jalan tiap 3-4 jam / terlewat).
+  # Pemicu sekarang: cron-job.org -> GET /api/cron/hourly. Workflow ini tinggal untuk run manual.
   workflow_dispatch: {}
 
 jobs:

@@ -50,6 +50,7 @@ const PUBLIC_PATHS = [
   '/api/reports/daily',
   '/api/ai/flush-follow-ups',
   '/api/ai/send-digest',
+  '/api/cron/hourly',
 ]
 
 /** Registrasi ditutup total selama terkunci, tanpa kecuali. */

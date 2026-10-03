@@ -1,13 +1,8 @@
 name: AI Chat Digest
 
 on:
-  schedule:
-    # 08:00, 13:00, 21:00 WIB = 01:00, 06:00, 14:00 UTC. Dijadwalkan ~8 menit
-    # lebih awal (bukan menit :00) karena cron GitHub Actions di jam bulat
-    # sering telat berjam-jam (lihat jebakan di AGENTS.md soal daily-report.yml).
-    - cron: "52 0 * * *"
-    - cron: "52 5 * * *"
-    - cron: "52 13 * * *"
+  # Jadwal otomatis DIMATIKAN (3 Okt 2026): GitHub membatasi cron repo ini (jalan tiap 3-4 jam / terlewat).
+  # Pemicu sekarang: cron-job.org -> GET /api/cron/hourly. Workflow ini tinggal untuk run manual.
   workflow_dispatch: {}
 
 jobs:
