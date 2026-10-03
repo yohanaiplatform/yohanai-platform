@@ -225,8 +225,10 @@ function extractAdContext(payload: KapsoMessageReceivedPayload): string | null {
  * Heuristik -- kalau iklan baru dengan teks lain jalan, sesuaikan di sini.
  */
 function isFromKapurMasAd(payload: KapsoMessageReceivedPayload, content: string): boolean {
-  const referral = (payload.message as { referral?: unknown }).referral
-  if (referral && typeof referral === 'object') return true
+  const referral = (payload.message as { referral?: { source_type?: unknown } }).referral
+  // Tombol WhatsApp di postingan Page (bukan iklan berbayar) datang dengan source_type 'post' --
+  // bukan iklan, jangan diberi sumber "Iklan (Meta/Google)".
+  if (referral && typeof referral === 'object' && referral.source_type !== 'post') return true
   return /mintas+info.*kapurs*mas/i.test(content)
 }
 
