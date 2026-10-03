@@ -204,6 +204,21 @@ async function autoCreateLeadFromWhatsApp(
 const META_SYSTEM_PHONE = '447710173736'
 
 /**
+ * Konteks iklan Click-to-WhatsApp yang diklik lead (headline/body/link iklan).
+ * Meta mengirimnya sebagai `message.referral` di pesan PERTAMA dari iklan --
+ * docs Kapso tidak mendokumentasikannya, jadi dibaca defensif; kalau Kapso tidak
+ * meneruskannya hasilnya kosong dan alur lama tetap jalan.
+ */
+function extractAdContext(payload: KapsoMessageReceivedPayload): string | null {
+  const referral = (payload.message as { referral?: Record<string, unknown> }).referral
+  if (!referral || typeof referral !== 'object') return null
+  const parts = [referral.headline, referral.body, referral.source_url]
+    .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+    .map((v) => v.trim())
+  return parts.length > 0 ? parts.join(' | ') : null
+}
+
+/**
  * Lead datang dari iklan Kapur Mas? Docs Kapso tidak mendokumentasikan field
  * referral iklan, jadi dua sinyal: (1) kalau Meta kebetulan mengirim `referral`
  * di pesan, (2) teks pembuka iklan ("minta info detail untuk Kapur Mas ...").
@@ -316,6 +331,8 @@ async function handleMessageReceived(
     conversationId = created.id
   }
 
+  const adContext = extractAdContext(payload)
+
   const { data: insertedMessage, error: insertError } = await supabase
     .schema('chat')
     .from('messages')
@@ -327,6 +344,7 @@ async function handleMessageReceived(
         wa_message_id: waMessageId,
         message_type: payload.message.type,
         has_media: MEDIA_MESSAGE_TYPES.has(payload.message.type) || (payload.message.kapso?.has_media ?? false),
+        ...(adContext ? { ad_context: adContext } : {}),
       },
     })
     .select('id')
@@ -352,7 +370,11 @@ async function handleMessageReceived(
     // Best-effort -- indikator "mengetik" cuma UX, jangan sampai gagal
     // ngirim ini menggagalkan pemrosesan AI Agent yang sebenarnya.
     await sendTypingIndicator(waMessageId, phoneNumberId).catch(() => {})
-    await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, content, phoneNumberId)
+    // Konteks iklan ditempel HANYA ke teks yang dikirim ke AI (bukan ke pesan yang tersimpan),
+    // supaya AI tahu proyek apa yang sedang diiklankan walau pesan lead cuma "info selengkapnya".
+    const messageForAi = adContext ? `${content}
+[Konteks: lead menekan iklan "${adContext}"]` : content
+    await runAiAgent(supabase, leadId, conversationId, insertedMessage.id, messageForAi, phoneNumberId)
   }
 }
 
