@@ -287,6 +287,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           menandainya &quot;otomatis, belum diverifikasi&quot; -- periksa dan ganti dengan titik Google Maps yang tepat bila
           meleset.
         </GuideP>
+        <GuideHeading>Menambah pengetahuan bersama (kurator)</GuideHeading>
+        <GuideP>
+          Pengetahuan asisten adalah satu kumpulan yang dipakai bersama. Siapa pun boleh <strong>mengusulkan</strong>
+          jawaban atau titik peta baru, tetapi usulan dari pengguna biasa menunggu persetujuan <strong>kurator</strong>
+          (di bagian &quot;Menunggu Persetujuan Kurator&quot;) sebelum dipakai asisten. Pengguna biasa tidak bisa mengubah
+          atau menghapus yang sudah ada. Dengan begitu pengetahuan terus bertambah tanpa risiko isi yang salah
+          langsung dipakai.
+        </GuideP>
         <GuideHeading>Celah Pengetahuan Asisten</GuideHeading>
         <GuideP>
           Setiap pagi sistem merangkum hal-hal yang sering membuat asisten otomatis tidak bisa menjawab konsumen

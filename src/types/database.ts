@@ -253,6 +253,7 @@ export type Database = {
           last_name: string | null
           linkedin_url: string | null
           notification_whatsapp_number: string | null
+          is_knowledge_curator: boolean
           role_details: Json
           role_id: string | null
           tiktok_url: string | null
@@ -278,6 +279,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
+          is_knowledge_curator?: boolean
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null
@@ -303,6 +305,7 @@ export type Database = {
           last_name?: string | null
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
+          is_knowledge_curator?: boolean
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null
@@ -1025,6 +1028,8 @@ export type Database = {
     Tables: {
       places: {
         Row: {
+          review_status: string
+          submitted_by: string | null
           id: string
           name: string
           aliases: string[]
@@ -1036,6 +1041,8 @@ export type Database = {
           created_at: string
         }
         Insert: {
+          review_status?: string
+          submitted_by?: string | null
           id?: string
           name: string
           aliases?: string[]
@@ -1047,6 +1054,8 @@ export type Database = {
           created_at?: string
         }
         Update: {
+          review_status?: string
+          submitted_by?: string | null
           id?: string
           name?: string
           aliases?: string[]
@@ -1103,6 +1112,8 @@ export type Database = {
       }
       entries: {
         Row: {
+          review_status: string
+          submitted_by: string | null
           content: string
           created_at: string
           created_by: string | null
@@ -1115,6 +1126,8 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          review_status?: string
+          submitted_by?: string | null
           content: string
           created_at?: string
           created_by?: string | null
@@ -1127,6 +1140,8 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          review_status?: string
+          submitted_by?: string | null
           content?: string
           created_at?: string
           created_by?: string | null

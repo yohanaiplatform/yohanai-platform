@@ -5,6 +5,7 @@ import { GoogleContactsConnection } from "@/components/settings/GoogleContactsCo
 import { WhatsAppNumbersManager } from "@/components/settings/WhatsAppNumbersManager";
 import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager";
 import { KnowledgePlacesManager } from "@/components/settings/KnowledgePlacesManager";
+import { KnowledgeReviewQueue } from "@/components/settings/KnowledgeReviewQueue";
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,10 @@ export default function SettingsPage() {
           <GoogleContactsConnection />
         </Suspense>
       </SectionCard>
+
+      <Suspense fallback={null}>
+        <KnowledgeReviewQueue />
+      </Suspense>
 
       <SectionCard
         title="Kamus Kawasan (Titik Peta)"

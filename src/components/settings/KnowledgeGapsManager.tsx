@@ -26,6 +26,8 @@ export function KnowledgeGapsManager() {
   const [keywords, setKeywords] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isCurator, setIsCurator] = useState(false);
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -47,10 +49,20 @@ export function KnowledgeGapsManager() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    (async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.schema("auth_ext").from("profiles").select("is_knowledge_curator").eq("user_id", user.id).maybeSingle();
+      setIsCurator(data?.is_knowledge_curator === true);
+    })();
   }, [load]);
 
   async function resolve(gap: GapRow, action: "answer" | "dismiss") {
     setError(null);
+    setNotice(null);
     if (action === "dismiss" && !window.confirm(`Abaikan topik "${gap.topic}"? Topik ini tidak akan muncul lagi.`)) return;
 
     setBusyId(gap.id);
@@ -71,6 +83,8 @@ export function KnowledgeGapsManager() {
       setError(body?.error ?? "Gagal memproses topik.");
       return;
     }
+    const result = await res.json().catch(() => null);
+    if (result?.pending) setNotice("Terkirim -- menunggu persetujuan kurator sebelum dipakai asisten. Terima kasih sudah menambah pengetahuan!");
     await load();
   }
 
@@ -88,6 +102,7 @@ export function KnowledgeGapsManager() {
   return (
     <div className="space-y-4">
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {notice && <p className="text-sm text-green-600">{notice}</p>}
       {gaps.map((gap) => (
         <div key={gap.id} className="space-y-3 rounded-lg border border-border p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
@@ -121,11 +136,13 @@ export function KnowledgeGapsManager() {
               disabled={busyId === gap.id || (answers[gap.id] ?? "").trim().length < 10}
               onClick={() => resolve(gap, "answer")}
             >
-              {busyId === gap.id ? "Menyimpan..." : "Simpan sebagai pengetahuan"}
+              {busyId === gap.id ? "Menyimpan..." : isCurator ? "Simpan sebagai pengetahuan" : "Usulkan jawaban"}
             </Button>
-            <Button type="button" size="sm" variant="outline" disabled={busyId === gap.id} onClick={() => resolve(gap, "dismiss")}>
-              Abaikan
-            </Button>
+            {isCurator && (
+              <Button type="button" size="sm" variant="outline" disabled={busyId === gap.id} onClick={() => resolve(gap, "dismiss")}>
+                Abaikan
+              </Button>
+            )}
           </div>
         </div>
       ))}

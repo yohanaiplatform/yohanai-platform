@@ -15,6 +15,7 @@ interface PlaceRow {
   lat: number;
   lng: number;
   source: string;
+  review_status: string;
 }
 
 /**
@@ -30,13 +31,15 @@ export function KnowledgePlacesManager() {
   const [mapsUrl, setMapsUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isCurator, setIsCurator] = useState(false);
 
   const load = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase
       .schema("knowledge")
       .from("places")
-      .select("id, name, aliases, lat, lng, source")
+      .select("id, name, aliases, lat, lng, source, review_status")
       .order("source", { ascending: true })
       .order("name", { ascending: true });
     setPlaces((data ?? []) as PlaceRow[]);
@@ -45,6 +48,15 @@ export function KnowledgePlacesManager() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    (async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.schema("auth_ext").from("profiles").select("is_knowledge_curator").eq("user_id", user.id).maybeSingle();
+      setIsCurator(data?.is_knowledge_curator === true);
+    })();
   }, [load]);
 
   async function post(payload: Record<string, unknown>) {
@@ -57,14 +69,16 @@ export function KnowledgePlacesManager() {
       const body = await res.json().catch(() => null);
       throw new Error(body?.error ?? "Gagal memproses.");
     }
+    return (await res.json().catch(() => null)) as { pending?: boolean } | null;
   }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setNotice(null);
     try {
-      await post({
+      const result = await post({
         action: "add",
         name,
         aliases: aliases.split(",").map((a) => a.trim()).filter(Boolean),
@@ -73,6 +87,7 @@ export function KnowledgePlacesManager() {
       setName("");
       setAliases("");
       setMapsUrl("");
+      if (result?.pending) setNotice("Terkirim -- menunggu persetujuan kurator sebelum dipakai asisten.");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan.");
@@ -112,6 +127,7 @@ export function KnowledgePlacesManager() {
             {saving ? "Menyimpan..." : "Tambah Titik"}
           </Button>
           {error && <p className="text-sm text-destructive">{error}</p>}
+          {notice && <p className="text-sm text-green-600">{notice}</p>}
         </div>
       </form>
 
@@ -126,6 +142,11 @@ export function KnowledgePlacesManager() {
               <div>
                 <div className="text-sm font-medium">
                   {place.name}
+                  {place.review_status === "pending" && (
+                    <span className="ml-2 rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-normal text-blue-700 dark:text-blue-400">
+                      menunggu persetujuan
+                    </span>
+                  )}
                   {place.source === "geocoded" && (
                     <span className="ml-2 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-normal text-amber-700 dark:text-amber-400">
                       otomatis, belum diverifikasi
@@ -137,9 +158,11 @@ export function KnowledgePlacesManager() {
                   {place.aliases.length > 0 && ` · ${place.aliases.join(", ")}`}
                 </div>
               </div>
-              <Button type="button" size="sm" variant="outline" onClick={() => handleDelete(place)}>
-                Hapus
-              </Button>
+              {isCurator && (
+                <Button type="button" size="sm" variant="outline" onClick={() => handleDelete(place)}>
+                  Hapus
+                </Button>
+              )}
             </li>
           ))}
         </ul>

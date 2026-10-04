@@ -82,7 +82,11 @@ export async function buildGeoContext(
 ): Promise<string | null> {
   const lines: string[] = [];
 
-  const { data: placeRows } = await supabase.schema("knowledge").from("places").select("id, name, aliases, lat, lng, source");
+  const { data: placeRows } = await supabase
+    .schema("knowledge")
+    .from("places")
+    .select("id, name, aliases, lat, lng, source")
+    .eq("review_status", "approved");
   const places = (placeRows ?? []) as PlaceRow[];
 
   let place = findInDictionary(places, message);

@@ -23,7 +23,8 @@ export async function findRelevantKnowledge(
     .schema("knowledge")
     .from("entries")
     .select("title, content, keywords, related_listing_terms")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("review_status", "approved");
 
   if (!data) return [];
 

@@ -3,6 +3,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCuratorUserIds, isKnowledgeCurator } from "@/lib/knowledge/curator";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 /**
  * Jawab atau abaikan satu celah pengetahuan AI (Knowledge Loop). Diamankan sesi login.
@@ -30,6 +32,7 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+  const curator = await isKnowledgeCurator(admin, user.id);
   const { data: gap } = await admin.schema("knowledge").from("gaps").select("id, topic, status").eq("id", gapId).maybeSingle();
   if (!gap) return NextResponse.json({ error: "Celah tidak ditemukan" }, { status: 404 });
   if (gap.status !== "open") return NextResponse.json({ error: "Celah sudah diproses" }, { status: 409 });
@@ -37,6 +40,7 @@ export async function POST(request: Request) {
   const now = new Date().toISOString();
 
   if (action === "dismiss") {
+    if (!curator) return NextResponse.json({ error: "Hanya kurator yang boleh mengabaikan topik" }, { status: 403 });
     await admin.schema("knowledge").from("gaps").update({ status: "dismissed", resolved_at: now, resolved_by: user.id }).eq("id", gapId);
     return NextResponse.json({ success: true });
   }
@@ -55,7 +59,10 @@ export async function POST(request: Request) {
       content: `Pertanyaan: ${gap.topic}\nJawaban: ${answer}`,
       keywords,
       related_listing_terms: [],
-      is_active: true,
+      // Usulan user biasa menunggu persetujuan kurator; entri kurator langsung aktif.
+      is_active: curator,
+      review_status: curator ? "approved" : "pending",
+      submitted_by: user.id,
       created_by: user.id,
     })
     .select("id")
@@ -71,5 +78,20 @@ export async function POST(request: Request) {
     .update({ status: "answered", answer, entry_id: entry.id, resolved_at: now, resolved_by: user.id })
     .eq("id", gapId);
 
-  return NextResponse.json({ success: true, entryId: entry.id });
+  if (!curator) {
+    const curatorIds = (await getCuratorUserIds(admin)).filter((id) => id !== user.id);
+    await Promise.all(
+      curatorIds.map((recipientId) =>
+        createNotification(admin, {
+          recipientId,
+          type: "knowledge_review_requested",
+          title: "Usulan pengetahuan menunggu persetujuan",
+          body: `*${gap.topic}* -- buka Settings untuk menyetujui atau menolak.`,
+          link: "/settings",
+        })
+      )
+    );
+  }
+
+  return NextResponse.json({ success: true, entryId: entry.id, pending: !curator });
 }

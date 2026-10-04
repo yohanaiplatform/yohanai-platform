@@ -90,6 +90,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **"Info untuk Asisten AI" (4 Oktober 2026)** — `metadata.ai_info` per listing, 13 kategori (`AI_INFO_FIELDS` di `src/lib/property/aiInfo.ts`), jadi blok "Info resmi dari agen" di prompt (sumber kebenaran; poin larangan = instruksi internal). Tag/Info AI (`ai_tags`) tetap untuk pencarian. Menambah kategori = edit array itu saja (JSONB, tanpa migration).
 
+**Kurator pengetahuan (4 Oktober 2026)** — `knowledge.entries`/`places` punya `review_status`; hanya `approved` yang dibaca AI. Usulan user non-kurator = `pending` sampai kurator (`profiles.is_knowledge_curator`) menyetujui di Settings. `is_knowledge_curator` hanya bisa diubah admin/service_role (trigger `trg_protect_curator_flag`) -- jangan tambah jalur yang menulisnya dari sesi user biasa. Kode server yang menambah pengetahuan WAJIB lewat `isKnowledgeCurator()` (`src/lib/knowledge/curator.ts`).
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

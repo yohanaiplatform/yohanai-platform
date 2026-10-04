@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveMapsUrl } from "@/lib/geo/geo";
+import { getCuratorUserIds, isKnowledgeCurator } from "@/lib/knowledge/curator";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 /**
  * Kamus Kawasan: tambah / hapus titik. Diamankan sesi login; penulisan pakai service_role
@@ -25,8 +27,10 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+  const curator = await isKnowledgeCurator(admin, user.id);
 
   if (body.action === "delete") {
+    if (!curator) return NextResponse.json({ error: "Hanya kurator yang boleh menghapus titik" }, { status: 403 });
     if (!body.id) return NextResponse.json({ error: "id wajib diisi" }, { status: 400 });
     await admin.schema("knowledge").from("places").delete().eq("id", body.id);
     return NextResponse.json({ success: true });
@@ -54,8 +58,33 @@ export async function POST(request: Request) {
   const { error } = await admin
     .schema("knowledge")
     .from("places")
-    .insert({ name, aliases, lat: coords.lat, lng: coords.lng, maps_url: mapsUrl, source: "manual", created_by: user.id });
+    .insert({
+      name,
+      aliases,
+      lat: coords.lat,
+      lng: coords.lng,
+      maps_url: mapsUrl,
+      source: "manual",
+      review_status: curator ? "approved" : "pending",
+      submitted_by: user.id,
+      created_by: user.id,
+    });
   if (error) return NextResponse.json({ error: "Gagal menyimpan titik" }, { status: 500 });
 
-  return NextResponse.json({ success: true, lat: coords.lat, lng: coords.lng });
+  if (!curator) {
+    const curatorIds = (await getCuratorUserIds(admin)).filter((id) => id !== user.id);
+    await Promise.all(
+      curatorIds.map((recipientId) =>
+        createNotification(admin, {
+          recipientId,
+          type: "knowledge_review_requested",
+          title: "Usulan titik peta menunggu persetujuan",
+          body: `*${name}* -- buka Settings untuk menyetujui atau menolak.`,
+          link: "/settings",
+        })
+      )
+    );
+  }
+
+  return NextResponse.json({ success: true, lat: coords.lat, lng: coords.lng, pending: !curator });
 }
