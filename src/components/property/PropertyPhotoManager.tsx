@@ -48,18 +48,26 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
 
     const supabase = createClient();
     const uploadedUrls: string[] = [];
+    const withoutWatermark: string[] = [];
 
     for (const file of files) {
-      const { url, error: uploadError } = await uploadListingPhoto(listingId, file);
+      const { url, error: uploadError, watermarkFailed } = await uploadListingPhoto(listingId, file);
       if (uploadError || !url) {
         setError(`Gagal upload ${file.name}: ${uploadError}`);
         continue;
       }
       uploadedUrls.push(url);
+      if (watermarkFailed) withoutWatermark.push(file.name);
     }
 
     if (uploadedUrls.length > 0) {
       await updatePhotoUrls(supabase, listingId, metadata, [...photoUrls, ...uploadedUrls]);
+    }
+
+    if (withoutWatermark.length > 0) {
+      setError(
+        `Terunggah TANPA watermark (${withoutWatermark.length} foto: ${withoutWatermark.join(", ")}). Hapus lalu upload ulang, atau coba lewat laptop.`
+      );
     }
 
     setUploading(false);

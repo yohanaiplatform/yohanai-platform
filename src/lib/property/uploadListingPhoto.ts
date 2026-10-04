@@ -19,7 +19,7 @@ const COMPRESSION_OPTIONS = {
 export async function uploadListingPhoto(
   listingId: string,
   file: File
-): Promise<{ url: string | null; error: string | null }> {
+): Promise<{ url: string | null; error: string | null; watermarkFailed?: boolean }> {
   let compressed: File | Blob;
   try {
     compressed = await imageCompression(file, COMPRESSION_OPTIONS);
@@ -29,11 +29,15 @@ export async function uploadListingPhoto(
   }
 
   let watermarked: Blob;
+  let watermarkFailed = false;
   try {
     watermarked = await watermarkPhoto(compressed, file.type || "image/jpeg");
-  } catch {
-    // Watermark gagal (mis. logo gagal dimuat) -- upload versi tanpa watermark daripada gagal total.
+  } catch (watermarkError) {
+    // Watermark gagal -- tetap upload versi tanpa watermark daripada gagal total, TAPI beri tahu
+    // pemanggil supaya pengguna tahu (dulu gagal diam-diam, ketemu 4 Okt 2026 pada foto dari HP).
+    console.warn("Watermark gagal:", watermarkError);
     watermarked = compressed;
+    watermarkFailed = true;
   }
 
   const formData = new FormData();
@@ -48,5 +52,5 @@ export async function uploadListingPhoto(
   }
 
   const { url } = await res.json();
-  return { url: url ?? null, error: url ? null : "Upload gagal" };
+  return { url: url ?? null, error: url ? null : "Upload gagal", watermarkFailed };
 }
