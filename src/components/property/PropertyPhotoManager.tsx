@@ -37,6 +37,7 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -50,7 +51,8 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
     const uploadedUrls: string[] = [];
     const withoutWatermark: string[] = [];
 
-    for (const file of files) {
+    for (const [fileIndex, file] of files.entries()) {
+      setProgress(`${fileIndex + 1}/${files.length}`);
       const { url, error: uploadError, watermarkFailed } = await uploadListingPhoto(listingId, file);
       if (uploadError || !url) {
         setError(`Gagal upload ${file.name}: ${uploadError}`);
@@ -70,6 +72,7 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
       );
     }
 
+    setProgress(null);
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
     router.refresh();
@@ -143,12 +146,13 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
                   Sampul
                 </span>
               )}
-              <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              {/* Tombol selalu tampil di layar sentuh (HP/tablet tidak punya hover); di desktop muncul saat kursor/fokus di atas foto. */}
+              <div className="absolute right-1 top-1 flex gap-1.5 opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => handleDownload(url, index)}
                   aria-label="Download foto"
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white shadow [@media(hover:hover)]:h-6 [@media(hover:hover)]:w-6"
                 >
                   <Download className="h-3.5 w-3.5" />
                 </button>
@@ -156,7 +160,7 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
                   type="button"
                   onClick={() => handleRemove(url)}
                   aria-label="Hapus foto"
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white shadow [@media(hover:hover)]:h-6 [@media(hover:hover)]:w-6"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -184,7 +188,7 @@ export function PropertyPhotoManager({ listingId, metadata, photoUrls }: Propert
           disabled={uploading}
           onClick={() => fileInputRef.current?.click()}
         >
-          {uploading ? "Mengunggah..." : "+ Upload Foto"}
+          {uploading ? `Mengunggah${progress ? ` ${progress}` : ""}...` : "+ Upload Foto"}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
