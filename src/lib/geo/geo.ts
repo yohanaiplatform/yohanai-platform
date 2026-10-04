@@ -65,6 +65,8 @@ export function parseCoordsFromUrl(url: string): LatLng | null {
     /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
     /@(-?\d+\.\d+),(-?\d+\.\d+)/,
     /[?&](?:q|ll|query|destination)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,
+    // Link pendek maps.app.goo.gl sering berakhir di /maps/search/-0.07,+109.40 (koordinat di PATH, ada "+" setelah koma).
+    /\/maps\/(?:search|place|dir)\/(-?\d+\.\d+),[+\s]*(-?\d+\.\d+)/,
   ];
   for (const pattern of patterns) {
     const match = decoded.match(pattern);
