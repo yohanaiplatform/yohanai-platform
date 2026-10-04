@@ -82,6 +82,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Nurturing otomatis v1 DIBANGUN, masih DRY-RUN (4 Oktober 2026)** — `src/lib/nurture/runNurture.ts` dari `/api/cron/hourly`, tabel `ai.nurture_sends` (migration `060`). Tidak ada pesan terkirim sampai env `NURTURE_ENABLED=true` diisi di Vercel; cek dulu daftar "eligible" di respons cron sebelum menyalakan. Detail aturan: status.mdx item 00j. Belum ada UI Template/aturan.
 
+**Knowledge Loop v1 DIBANGUN (4 Oktober 2026)** — `src/lib/knowledge/generateGaps.ts` (jam 06 WIB via `/api/cron/hourly`), tabel `knowledge.gaps` (migration `061`, `062` grant), UI Settings "Celah Pengetahuan Asisten", `POST /api/knowledge/gaps/resolve`. AI hanya mengusulkan topik; jawaban wajib dari manusia. Detail: status.mdx item 00k. **Jebakan:** `service_role` sebelumnya cuma punya SELECT di `knowledge.entries` -- kode server yang menulis entri butuh `062`.
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

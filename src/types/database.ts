@@ -993,6 +993,48 @@ export type Database = {
   }
   knowledge: {
     Tables: {
+      gaps: {
+        Row: {
+          id: string
+          topic: string
+          sample_questions: string[]
+          occurrence_count: number
+          suggested_keywords: string[]
+          status: string
+          answer: string | null
+          entry_id: string | null
+          created_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          id?: string
+          topic: string
+          sample_questions?: string[]
+          occurrence_count?: number
+          suggested_keywords?: string[]
+          status?: string
+          answer?: string | null
+          entry_id?: string | null
+          created_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          id?: string
+          topic?: string
+          sample_questions?: string[]
+          occurrence_count?: number
+          suggested_keywords?: string[]
+          status?: string
+          answer?: string | null
+          entry_id?: string | null
+          created_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: []
+      }
       entries: {
         Row: {
           content: string

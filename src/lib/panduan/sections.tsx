@@ -279,6 +279,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           sampai admin menyelesaikan pendaftarannya dan menyetujui -- Anda akan dapat notifikasi begitu nomor
           Anda aktif.
         </GuideP>
+        <GuideHeading>Celah Pengetahuan Asisten</GuideHeading>
+        <GuideP>
+          Setiap pagi sistem merangkum hal-hal yang sering membuat asisten otomatis tidak bisa menjawab konsumen
+          (misalnya fasilitas atau biaya tertentu) dan menampilkannya di bagian <strong>Celah Pengetahuan
+          Asisten</strong>. Tulis jawaban yang benar lalu klik &quot;Simpan sebagai pengetahuan&quot; -- asisten langsung
+          memakainya di chat berikutnya. Pilih &quot;Abaikan&quot; kalau topiknya tidak perlu dijawab. Asisten tidak pernah
+          menambah pengetahuan sendiri tanpa jawaban dari Anda.
+        </GuideP>
         <GuideNote>
           Fitur Settings lain masih akan ditambahkan -- termasuk rencana <strong>watermark foto milik
           sendiri</strong> (saat ini watermark logo Yohan.AI terpasang otomatis di semua foto listing yang

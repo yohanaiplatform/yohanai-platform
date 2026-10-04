@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { SectionCard } from "@/components/ui/section-card";
 import { GoogleContactsConnection } from "@/components/settings/GoogleContactsConnection";
 import { WhatsAppNumbersManager } from "@/components/settings/WhatsAppNumbersManager";
+import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager";
 
 export default function SettingsPage() {
   return (
@@ -10,6 +11,15 @@ export default function SettingsPage() {
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GoogleContactsConnection />
+        </Suspense>
+      </SectionCard>
+
+      <SectionCard
+        title="Celah Pengetahuan Asisten"
+        description="Hal-hal yang sering membuat asisten otomatis tidak bisa menjawab. Tulis jawabannya, dan asisten langsung memakainya."
+      >
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
+          <KnowledgeGapsManager />
         </Suspense>
       </SectionCard>
 

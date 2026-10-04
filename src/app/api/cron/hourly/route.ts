@@ -6,6 +6,7 @@ import { GET as sendDigest } from "@/app/api/ai/send-digest/route";
 import { GET as sendDailyReport } from "@/app/api/reports/daily/route";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runNurture } from "@/lib/nurture/runNurture";
+import { generateKnowledgeGaps } from "@/lib/knowledge/generateGaps";
 
 const WIB_OFFSET_HOURS = 7;
 const DIGEST_HOURS_WIB = [8, 13, 21];
@@ -20,6 +21,7 @@ const DAILY_REPORT_HOUR_WIB = 7;
  * - tiap jam: flush antrean follow-up AI (notifikasi in-app)
  * - jam 08/13/21 WIB: rangkuman chat ke WhatsApp agen
  * - jam 07 WIB: Daily Report + Platform Report
+ * - jam 06 WIB: Knowledge Loop (rangkum celah pengetahuan AI -> Settings)
  * - tiap jam (08-20 WIB): nurturing template ke lead diam (dry-run kecuali NURTURE_ENABLED=true)
  *
  * Handler lain dipanggil langsung (bukan lewat HTTP), dengan secret masing-
@@ -70,6 +72,15 @@ export async function GET(request: Request) {
     results.nurture = await runNurture(createAdminClient());
   } catch (error) {
     results.nurture = { error: error instanceof Error ? error.message : "gagal" };
+  }
+
+  // Knowledge Loop: rangkum celah pengetahuan AI tiap pagi jam 06 WIB.
+  if (force === "gaps" || wibHour === 6) {
+    try {
+      results.gaps = await generateKnowledgeGaps(createAdminClient());
+    } catch (error) {
+      results.gaps = { error: error instanceof Error ? error.message : "gagal" };
+    }
   }
 
   return NextResponse.json(results);
