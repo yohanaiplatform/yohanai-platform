@@ -94,7 +94,7 @@ GAYA JAWABAN (WAJIB, mengalahkan aturan panjang replyText di atas kalau bertabra
 - Untuk penawaran DP khusus/negosiasi DP dan harga unit rumah SECONDARY (bukan listing di data): jangan menjawab sendiri -- arahkan bahwa Bg. Yohan akan menghubungi langsung, needsFollowUp: true.
 
 ATURAN LOKASI, JARAK, DAN KEDEKATAN (WAJIB -- AI TIDAK PUNYA PETA):
-- Anda TIDAK punya peta dan pengetahuan Anda tentang jalan/kawasan lokal Pontianak-Kubu Raya TIDAK dapat diandalkan. JANGAN menyimpulkan atau menebak kedekatan, arah, jarak, waktu tempuh, atau "satu kawasan" antar jalan/kawasan, KECUALI tertulis eksplisit di data yang diberikan (Listing Tersedia, Tag lokasi/info, Deskripsi, Info Area/knowledge).
+- Anda TIDAK punya peta dan pengetahuan Anda tentang jalan/kawasan lokal Pontianak-Kubu Raya TIDAK dapat diandalkan. JANGAN menyimpulkan atau menebak kedekatan, arah, jarak, waktu tempuh, atau "satu kawasan" antar jalan/kawasan, KECUALI tertulis eksplisit di data yang diberikan (Listing Tersedia, Tag lokasi/info, Deskripsi, Info Area/knowledge) atau ada blok "DATA PETA" (jarak/fasilitas yang dihitung kode dari koordinat -- itu boleh dipakai persis).
 - Pertanyaan pembenaran ("X dekat Y ya?", "itu arah Kakap kan?", "satu kawasan ya?"): JANGAN menjawab "Betul"/"Ya" kecuali data menyatakannya. Kalau tidak ada datanya, jawab jujur bahwa posisi/jaraknya belum ada di data dan akan dikonfirmasi agen lapangan, dan set needsFollowUp: true.
 - Lead menyebut lokasi tertentu (jalan/kawasan) dan menanyakan listing di sekitarnya: sebutkan HANYA listing yang alamat, tag, atau kawasannya cocok langsung dengan nama itu atau tertulis "dekat <lokasi itu>". JANGAN menawarkan listing lain dengan klaim "dekat"/"searah". Kalau tidak ada yang cocok, katakan belum ada listing di area itu di data dan agen akan membantu mencarikan; menyebut listing di area lain boleh HANYA sebagai alternatif tanpa klaim jarak.
 - Kalau lead atau agen mengoreksi posisi sebenarnya, terima tanpa membantah dan jangan mengulang klaim lama.
@@ -175,7 +175,8 @@ function buildUserPrompt(
   knowledge: AgentKnowledgeContext[],
   listings: AgentListingContext[],
   previousSummary: string | null,
-  kprSimulation: string | null = null
+  kprSimulation: string | null = null,
+  geoContext: string | null = null
 ): string {
   // Jeda sejak pesan terakhir SEBELUM pesan baru ini -- dipakai aturan "jangan menutup
   // jawaban dengan ajakan bertanya lagi kecuali percakapan sempat terputus >= 2 jam".
@@ -244,7 +245,10 @@ ${knowledgeText}
 Listing Tersedia yang relevan dengan pesan ini:
 ${listingsText}
 
-${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan PERSIS: \"Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR.\" (JANGAN menambah kalimat bahwa perbedaan antar bank tipis). JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).
+${geoContext ? `DATA PETA (JARAK & FASILITAS, dihitung kode dari koordinat listing/titik kawasan) -- pakai PERSIS, jangan menambah atau mengubah angka. Sampaikan jarak sebagai "sekitar X km garis lurus" (jarak tempuh lewat jalan bisa lebih jauh). Hanya sebut fasilitas yang ada di daftar; kalau daftar tidak memuatnya, katakan belum tercatat di data dan akan dikonfirmasi agen.
+${geoContext}
+
+` : ""}${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan PERSIS: \"Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR.\" (JANGAN menambah kalimat bahwa perbedaan antar bank tipis). JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).
 ${kprSimulation}
 
 ` : ""}Pesan BARU dari lead:
@@ -296,7 +300,8 @@ export async function interpretLeadReply(
   knowledge: AgentKnowledgeContext[] = [],
   listings: AgentListingContext[] = [],
   previousSummary: string | null = null,
-  kprSimulation: string | null = null
+  kprSimulation: string | null = null,
+  geoContext: string | null = null
 ): Promise<InterpretLeadReplyResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -324,7 +329,7 @@ export async function interpretLeadReply(
         model,
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary, kprSimulation) }],
+        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext) }],
         output_config: { effort },
       }),
     });

@@ -279,6 +279,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           sampai admin menyelesaikan pendaftarannya dan menyetujui -- Anda akan dapat notifikasi begitu nomor
           Anda aktif.
         </GuideP>
+        <GuideHeading>Kamus Kawasan (Titik Peta)</GuideHeading>
+        <GuideP>
+          Tempel link Google Maps untuk jalan, kawasan, atau patokan yang sering disebut konsumen (mis. Jalan Ujung
+          Pandang, Pal 7, Untan) beserta nama lainnya. Asisten memakai titik itu untuk menghitung jarak ke listing,
+          jadi tidak menebak lagi. Kalau konsumen menyebut jalan yang belum ada, sistem mencarinya otomatis dan
+          menandainya &quot;otomatis, belum diverifikasi&quot; -- periksa dan ganti dengan titik Google Maps yang tepat bila
+          meleset.
+        </GuideP>
         <GuideHeading>Celah Pengetahuan Asisten</GuideHeading>
         <GuideP>
           Setiap pagi sistem merangkum hal-hal yang sering membuat asisten otomatis tidak bisa menjawab konsumen
@@ -484,6 +492,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           Bagian ini rahasia -- cuma admin dan agent yang ditugaskan ke listing itu yang bisa lihat, dan tidak
           pernah ikut ke flyer/export promosi. Keduanya juga yang bisa mengubah nama pemilik, nomor HP, dan
           nilai komisi lewat tombol Edit.
+        </GuideP>
+        <GuideHeading>Lokasi & Fasilitas Sekitar</GuideHeading>
+        <GuideP>
+          Setelah mengisi <strong>Link Google Maps</strong> di Spesifikasi (pakai tombol Bagikan di Google Maps),
+          klik <strong>Perbarui Data Lokasi</strong> di kartu &quot;Lokasi &amp; Fasilitas Sekitar&quot;. Sistem membaca titik
+          koordinatnya dan mencatat fasilitas umum terdekat (sekolah, kampus, rumah sakit, pasar/swalayan, tempat
+          ibadah, SPBU). Asisten otomatis memakai data ini untuk menjawab jarak dan fasilitas sekitar. Klik lagi
+          setiap kali link Maps diganti. Data fasilitas berasal dari peta terbuka dan bisa belum lengkap.
         </GuideP>
         <GuideHeading>Simulasi KPR</GuideHeading>
         <GuideP>

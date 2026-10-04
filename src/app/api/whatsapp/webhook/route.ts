@@ -10,6 +10,7 @@ import { getAssigneeForPhoneNumberId } from '@/lib/whatsapp/whatsappNumbers'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
+import { buildGeoContext } from '@/lib/geo/placeContext'
 import {
   buildKprSimulationText,
   isSubsidiListing,
@@ -540,7 +541,16 @@ async function runAiAgent(
         })
       : null
 
-  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary, kprSimulation } as unknown as Json
+  // Data peta (jarak ke listing dari lokasi yang disebut lead + fasilitas sekitar) dihitung di KODE.
+  // Gagal/kosong tidak boleh mengganggu balasan AI.
+  let geoContext: string | null = null
+  try {
+    geoContext = await buildGeoContext(supabase, newMessage, listings.map((l) => l.title))
+  } catch {
+    geoContext = null
+  }
+
+  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext } as unknown as Json
 
   const { decision, rawResponse, error } = await interpretLeadReply(
     leadContext,
@@ -549,7 +559,8 @@ async function runAiAgent(
     knowledge,
     listings,
     previousSummary,
-    kprSimulation
+    kprSimulation,
+    geoContext
   )
 
   if (error || !decision) {

@@ -11,6 +11,7 @@ import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFi
 import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
+import { PropertyGeoCard } from "@/components/property/PropertyGeoCard";
 import { KprSimulator } from "@/components/property/KprSimulator";
 import { isSubsidiListing } from "@/lib/kpr/calculator";
 import { PropertyVideoEditable } from "@/components/property/PropertyVideoEditable";
@@ -64,6 +65,10 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const videoUrl = getListingMetadataValue<string>(listing.metadata, "video_url");
   const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
   const mapsUrl = getListingMetadataValue<string>(listing.metadata, "maps_url");
+  const geo = getListingMetadataValue<{ lat: number; lng: number; updatedAt?: string; nearby?: { category: string; name: string; distanceM: number }[] }>(
+    listing.metadata,
+    "geo"
+  );
   const aiTags = getListingMetadataValue<string[]>(listing.metadata, "ai_tags") ?? [];
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
   const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
@@ -161,6 +166,10 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           mapsUrl={mapsUrl}
           aiTags={aiTags}
         />
+      </SectionCard>
+
+      <SectionCard title="Lokasi & Fasilitas Sekitar" description="Titik peta dari Link Google Maps. Dibaca asisten untuk menjawab jarak dan fasilitas umum di sekitar.">
+        <PropertyGeoCard listingId={listing.id} mapsUrl={mapsUrl ?? null} geo={geo ?? null} />
       </SectionCard>
 
       {listing.price ? (

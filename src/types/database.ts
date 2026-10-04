@@ -1023,6 +1023,42 @@ export type Database = {
   }
   knowledge: {
     Tables: {
+      places: {
+        Row: {
+          id: string
+          name: string
+          aliases: string[]
+          lat: number
+          lng: number
+          maps_url: string | null
+          source: string
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          aliases?: string[]
+          lat: number
+          lng: number
+          maps_url?: string | null
+          source?: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          aliases?: string[]
+          lat?: number
+          lng?: number
+          maps_url?: string | null
+          source?: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       gaps: {
         Row: {
           id: string

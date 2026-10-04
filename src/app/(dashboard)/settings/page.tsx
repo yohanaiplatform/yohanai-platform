@@ -4,6 +4,7 @@ import { SectionCard } from "@/components/ui/section-card";
 import { GoogleContactsConnection } from "@/components/settings/GoogleContactsConnection";
 import { WhatsAppNumbersManager } from "@/components/settings/WhatsAppNumbersManager";
 import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager";
+import { KnowledgePlacesManager } from "@/components/settings/KnowledgePlacesManager";
 
 export default function SettingsPage() {
   return (
@@ -11,6 +12,15 @@ export default function SettingsPage() {
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GoogleContactsConnection />
+        </Suspense>
+      </SectionCard>
+
+      <SectionCard
+        title="Kamus Kawasan (Titik Peta)"
+        description="Tempel link Google Maps jalan/kawasan/patokan yang sering ditanyakan konsumen. Asisten menghitung jaraknya ke listing."
+      >
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
+          <KnowledgePlacesManager />
         </Suspense>
       </SectionCard>
 

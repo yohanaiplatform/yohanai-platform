@@ -86,6 +86,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Riwayat Temperature (4 Oktober 2026)** — tabel `customer.lead_temperature_history` + trigger `trg_log_lead_temperature_change` (migration `063`) mencatat tiap perubahan `status_funnel_awal` dari jalur apa pun; jangan menambah kode manual untuk mencatatnya. Migration kini sampai `063` (060 nurture_sends, 061 knowledge.gaps, 062 grant). Visi 3 AI Agent baru (Data Analysis/Listing Hunter/Ads Analytics) ada di status.mdx item 00m beserta risikonya.
 
+**Peta & jarak DIBANGUN (4 Oktober 2026)** — `src/lib/geo/` (koordinat dari link Google Maps, haversine, fasilitas OSM Overpass, geocoding Nominatim), `metadata.geo` per listing, tabel `knowledge.places` (Kamus Kawasan, migration `064`), AI mendapat blok "DATA PETA" yang dihitung kode. **Jangan biarkan LLM menebak jarak/kedekatan -- itu sumber halusinasi nyata (Padat Karya vs Ujung Pandang).** Jebakan: server Overpass publik sering 504 (fetch mengembalikan null, bukan []); data OSM Kalbar bisa tidak lengkap; geocoding nama jalan kecil bisa keliru (makanya disimpan "belum diverifikasi"). 0/91 listing punya `maps_url` saat dibangun.
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

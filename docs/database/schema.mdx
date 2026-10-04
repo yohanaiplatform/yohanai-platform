@@ -157,6 +157,10 @@ Definisi otomasi, langkah-langkahnya, dan riwayat eksekusi.
 
 ## knowledge
 
+### places
+
+**Nyata, dipakai** (migration `064`, 4 Oktober 2026). Kamus Kawasan: `name`, `aliases[]`, `lat`/`lng`, `maps_url`, `source` (`manual` dari link Google Maps yang ditempel agen, `geocoded` hasil pencarian peta otomatis BELUM diverifikasi), unik per `lower(name)`. RLS SELECT semua user login; tulis lewat API (`service_role`). Dipakai `buildGeoContext()` untuk menghitung jarak lokasi yang disebut konsumen ke listing.
+
 ### entries
 
 **Nyata, dipakai** — bukan lagi aspirasional (deskripsi lama "categories, articles, chunks" sudah tidak akurat, diperbaiki 2 Oktober 2026). Tabel `knowledge.entries` (migration `050`, 30 September 2026) dipakai AI Agent sebagai basis pengetahuan: `title`, `content`, `keywords` (array, kata pemicu dari pesan lead), `related_listing_terms` (array, istilah tambahan mis. nama jalan untuk ikut mencari listing terkait), `is_active`. Dibaca `findRelevantKnowledge()` di webhook WhatsApp sebelum panggil LLM. Isi awal: istilah area informal → nama jalan asli (mis. "Kotabaru"), lalu diperluas migration `051`/`052` jadi syarat dokumen KPR per 4 metode pembayaran (FAQ lead).
@@ -217,7 +221,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`063` secara berurutan (per 4 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`064` secara berurutan (per 4 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -255,6 +259,7 @@ Folder `supabase/migrations/` berisi `001`–`063` secara berurutan (per 4 Oktob
 | `060` | Tabel `ai.nurture_sends` (log nurturing otomatis template follow-up, maks 2 step per lead) |
 | `061` | Tabel `knowledge.gaps` (Knowledge Loop: celah pengetahuan AI) |
 | `062` | GRANT INSERT/UPDATE `knowledge.entries` ke `service_role` |
+| `064` | Tabel `knowledge.places` (Kamus Kawasan: titik peta untuk jarak ke listing) |
 | `063` | Tabel `customer.lead_temperature_history` + trigger pencatat perubahan Temperature |
 | `059` | Tabel `ai.follow_up_queue` (rangkum notifikasi follow-up AI Agent, debounce 5 menit) + kolom `notification_whatsapp_number` di `auth_ext.profiles` |
 
