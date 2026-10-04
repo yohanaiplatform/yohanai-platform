@@ -253,7 +253,7 @@ ${knowledgeText}
 Listing Tersedia yang relevan dengan pesan ini:
 ${listingsText}
 
-${geoContext ? `DATA PETA (JARAK & FASILITAS, dihitung kode dari koordinat listing/titik kawasan) -- pakai PERSIS, jangan menambah atau mengubah angka. Sampaikan jarak sebagai "sekitar X km garis lurus" (jarak tempuh lewat jalan bisa lebih jauh). Hanya sebut fasilitas yang ada di daftar; kalau daftar tidak memuatnya, katakan belum tercatat di data dan akan dikonfirmasi agen.
+${geoContext ? `DATA PETA (JARAK & FASILITAS, dihitung kode dari koordinat listing/titik kawasan) -- pakai PERSIS, jangan menambah atau mengubah angka. Sampaikan jarak PERSIS seperti tertulis di data: kalau ada "lewat jalan ... menit naik mobil tanpa macet" sebut itu (jarak jalan dan perkiraan waktu, tanpa kemacetan); kalau hanya "garis lurus", sebut sebagai garis lurus dan jarak tempuh lewat jalan bisa lebih jauh. Hanya sebut fasilitas yang ada di daftar; kalau daftar tidak memuatnya, katakan belum tercatat di data dan akan dikonfirmasi agen.
 ${geoContext}
 
 ` : ""}${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan PERSIS: \"Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR.\" (JANGAN menambah kalimat bahwa perbedaan antar bank tipis). JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).

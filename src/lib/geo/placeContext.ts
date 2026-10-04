@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { formatDistance, formatNearbyForAi, geocodePlace, haversineMeters, type LatLng, type NearbyFacility } from "@/lib/geo/geo";
+import { computeDrivingRoutes, fetchNearbyFacilitiesGoogle } from "@/lib/geo/google";
 
 interface PlaceRow {
   id: string;
@@ -124,18 +125,37 @@ export async function buildGeoContext(
       place.source === "geocoded"
         ? "titik hasil pencarian peta otomatis, BELUM diverifikasi -- sebut jaraknya sebagai perkiraan kasar"
         : "titik terverifikasi dari kamus kawasan";
+    // Jarak & waktu LEWAT JALAN dari Google Routes (live, tidak disimpan); gagal/tanpa kunci -> garis lurus saja.
+    const routes = await computeDrivingRoutes(
+      origin,
+      nearest.map((n) => n.listing.point)
+    );
+    const hasRoutes = routes !== null && routes.some((r) => r !== null);
+
     lines.push(
-      `JARAK DARI "${place.name}" (${trust}). Jarak garis lurus (dihitung kode); jarak tempuh lewat jalan biasanya lebih jauh:`,
-      ...nearest.map(
-        (n, i) => `${i + 1}. ${n.listing.title}${n.listing.address ? ` (${n.listing.address})` : ""} -- sekitar ${formatDistance(n.distance)}${n.listing.status ? `, status: ${n.listing.status}` : ""}`
-      )
+      hasRoutes
+        ? `JARAK DARI "${place.name}" (${trust}). Jarak LEWAT JALAN dan waktu tempuh mobil TANPA kemacetan (Google Routes, dihitung sistem); garis lurus sebagai pembanding:`
+        : `JARAK DARI "${place.name}" (${trust}). Jarak garis lurus (dihitung kode); jarak tempuh lewat jalan biasanya lebih jauh:`,
+      ...nearest.map((n, i) => {
+        const route = routes?.[i];
+        const distanceText = route
+          ? `lewat jalan sekitar ${formatDistance(route.distanceM)}, kira-kira ${route.durationMin} menit naik mobil tanpa macet (garis lurus ${formatDistance(n.distance)})`
+          : `sekitar ${formatDistance(n.distance)} garis lurus`;
+        return `${i + 1}. ${n.listing.title}${n.listing.address ? ` (${n.listing.address})` : ""} -- ${distanceText}${n.listing.status ? `, status: ${n.listing.status}` : ""}`;
+      })
     );
   }
 
   if (FACILITY_INTENT.test(message) && geoListings.length > 0) {
     const targets = geoListings.filter((l) => relevantListingTitles.includes(l.title) && l.nearby.length > 0).slice(0, 2);
-    for (const target of targets) {
-      lines.push(`FASILITAS SEKITAR "${target.title}" (data OpenStreetMap, bisa tidak lengkap; jarak garis lurus): ${formatNearbyForAi(target.nearby)}`);
+    for (const [index, target] of targets.entries()) {
+      // Google Places live hanya untuk listing paling relevan (hemat biaya); sisanya data OpenStreetMap tersimpan.
+      const live = index === 0 ? await fetchNearbyFacilitiesGoogle(target.point) : null;
+      if (live) {
+        lines.push(`FASILITAS SEKITAR "${target.title}" (Google Maps, jarak garis lurus): ${formatNearbyForAi(live)}`);
+      } else {
+        lines.push(`FASILITAS SEKITAR "${target.title}" (data OpenStreetMap, bisa tidak lengkap; jarak garis lurus): ${formatNearbyForAi(target.nearby)}`);
+      }
     }
 
     // Patokan penting dari Kamus Kawasan (kampus ternama, dll.) dalam 10 km dari listing.

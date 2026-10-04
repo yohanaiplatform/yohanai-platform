@@ -92,6 +92,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Kurator pengetahuan (4 Oktober 2026)** — `knowledge.entries`/`places` punya `review_status`; hanya `approved` yang dibaca AI. Usulan user non-kurator = `pending` sampai kurator (`profiles.is_knowledge_curator`) menyetujui di Settings. `is_knowledge_curator` hanya bisa diubah admin/service_role (trigger `trg_protect_curator_flag`) -- jangan tambah jalur yang menulisnya dari sesi user biasa. Kode server yang menambah pengetahuan WAJIB lewat `isKnowledgeCurator()` (`src/lib/knowledge/curator.ts`).
 
+**Google Places/Routes (4 Oktober 2026)** — `src/lib/geo/google.ts`, dipanggil LIVE dari `buildGeoContext()`, hasil TIDAK disimpan (ToS Google). Env `GOOGLE_MAPS_API_KEY` (Places API New + Routes API aktif di kunci). Tanpa kunci = cadangan haversine + OSM. **Belum diuji terhadap API sungguhan** -- kalau jarak lewat jalan tidak muncul di jawaban AI, cek `inputSnapshot.geoContext` di `ai.agent_runs`.
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.
