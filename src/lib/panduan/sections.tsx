@@ -279,12 +279,6 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           sampai admin menyelesaikan pendaftarannya dan menyetujui -- Anda akan dapat notifikasi begitu nomor
           Anda aktif.
         </GuideP>
-        <GuideHeading>Insight Lead 7 Hari</GuideHeading>
-        <GuideP>
-          Ringkasan dari lead baru seminggu terakhir: tahap (Temperature), lokasi/perumahan yang paling dicari,
-          postingan atau iklan asal lead, dan sumber informasinya. Berguna untuk melihat apa yang sedang diminati
-          dan postingan mana yang efektif.
-        </GuideP>
         <GuideHeading>Celah Pengetahuan Asisten</GuideHeading>
         <GuideP>
           Setiap pagi sistem merangkum hal-hal yang sering membuat asisten otomatis tidak bisa menjawab konsumen
@@ -766,7 +760,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideP>
           Total lead & listing, lead baru kemarin, distribusi Temperature, listing yang butuh perhatian
           (Follow-up Backlog, Lead Beku), aktivitas WhatsApp, dan pemakaian AI Agent -- semuanya di-scope ke
-          data milik Anda sendiri (admin dapat versi agregat semua data).
+          data milik Anda sendiri (admin dapat versi agregat semua data). Ada juga bagian <strong>Insight Lead 7
+          Hari</strong>: tahap lead baru, lokasi/perumahan yang paling dicari, postingan atau iklan asal lead, dan
+          sumber informasinya -- berguna untuk melihat apa yang sedang diminati dan postingan mana yang efektif.
         </GuideP>
         <GuideHeading>Mematikan laporan</GuideHeading>
         <GuideP>

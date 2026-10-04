@@ -38,16 +38,23 @@ function topCounts(values: (string | null | undefined)[], limit = TOP_N): Insigh
  * (metadata lead) -- apa yang paling dicari, dari postingan/iklan mana datangnya, dan di tahap
  * Temperature mana mereka. Mengikuti RLS sesi (agen hanya melihat leadnya sendiri).
  */
-export async function getConversationInsights(supabase: SupabaseClient<Database>): Promise<ConversationInsights> {
+export async function getConversationInsights(
+  supabase: SupabaseClient<Database>,
+  options: { assignedTo?: string | null } = {}
+): Promise<ConversationInsights> {
   const since = new Date(Date.now() - DAYS * 24 * 3600 * 1000).toISOString();
 
-  const { data } = await supabase
+  let query = supabase
     .schema("customer")
     .from("leads")
     .select("metadata")
     .gte("created_at", since)
     .is("deleted_at", null)
     .limit(2000);
+  // Klien service_role (laporan harian) melewati RLS -- scope manual per agen; null = agregat semua.
+  if (options.assignedTo) query = query.eq("assigned_to", options.assignedTo);
+
+  const { data } = await query;
 
   const metadatas = (data ?? []).map((row) =>
     row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)

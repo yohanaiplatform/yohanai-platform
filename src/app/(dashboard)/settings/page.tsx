@@ -4,7 +4,6 @@ import { SectionCard } from "@/components/ui/section-card";
 import { GoogleContactsConnection } from "@/components/settings/GoogleContactsConnection";
 import { WhatsAppNumbersManager } from "@/components/settings/WhatsAppNumbersManager";
 import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager";
-import { ConversationInsights } from "@/components/settings/ConversationInsights";
 
 export default function SettingsPage() {
   return (
@@ -12,12 +11,6 @@ export default function SettingsPage() {
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GoogleContactsConnection />
-        </Suspense>
-      </SectionCard>
-
-      <SectionCard title="Insight Lead 7 Hari" description="Pola dari lead baru: apa yang dicari, dari mana datangnya, dan sudah sampai tahap mana.">
-        <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
-          <ConversationInsights />
         </Suspense>
       </SectionCard>
 

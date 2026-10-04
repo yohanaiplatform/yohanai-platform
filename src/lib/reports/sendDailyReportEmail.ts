@@ -93,12 +93,39 @@ function sectionCard(title: string, innerHtml: string): string {
   </table>`;
 }
 
+function renderInsightList(title: string, rows: { label: string; count: number }[]): string {
+  const items = rows.length
+    ? rows
+        .map(
+          (r) =>
+            `<div style="font-size:12px;color:#111827;padding:2px 0;">${escapeHtmlText(r.label)} <strong style="float:right;">${r.count}</strong></div>`
+        )
+        .join("")
+    : `<div style="font-size:12px;color:#9CA3AF;">-</div>`;
+  return `<td valign="top" style="padding:0 8px 8px 0;width:25%;">
+    <div style="font-size:11px;font-weight:600;color:#6B7280;margin-bottom:4px;">${title}</div>${items}
+  </td>`;
+}
+
+function escapeHtmlText(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderInsightsHtml(insights: DailyReport["insights"]): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+    ${renderInsightList("Tahap (Temperature)", insights.temperature)}
+    ${renderInsightList("Paling dicari", insights.minatLokasi)}
+    ${renderInsightList("Datang dari", insights.datangDari)}
+    ${renderInsightList("Sumber informasi", insights.sumber)}
+  </tr></table>`;
+}
+
 function formatUsd(n: number): string {
   return `$${n.toFixed(n < 1 ? 4 : 2)}`;
 }
 
 function renderHtml(report: DailyReport, recipientName: string | null): string {
-  const { leads, listings, chat, aiAgent, reportDateWIB, isAggregate } = report;
+  const { leads, listings, chat, aiAgent, insights, reportDateWIB, isAggregate } = report;
 
   const maxTemp = Math.max(leads.hot, leads.warm, leads.cold, leads.closing, leads.batal, 1);
   const listingTotal = listings.available + listings.booked + listings.sold + listings.hold || 1;
@@ -252,6 +279,13 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
                  <div style="margin-top:4px;font-size:11px;color:#9CA3AF;">
                    Estimasi berbasis harga Sonnet 5.5 ($2/$10 per 1M token) -- angka biaya sebenarnya, cek Anthropic Console.
                  </div>`
+              )}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard(
+                `Insight Lead ${insights.days} Hari (${insights.totalLeads} lead baru)`,
+                renderInsightsHtml(insights)
               )}
             </td></tr>
 

@@ -1,6 +1,7 @@
 // src/lib/reports/getDailyReport.ts
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getConversationInsights, type ConversationInsights } from "@/lib/knowledge/getConversationInsights";
 import type { Database } from "@/types/database";
 import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
 
@@ -38,6 +39,7 @@ export interface DailyReport {
     activeConversationsToday: number;
   };
   aiAgent: AiAgentUsage;
+  insights: ConversationInsights;
 }
 
 export interface GetDailyReportOptions {
@@ -243,6 +245,7 @@ export async function getDailyReport(
   const messagesOutToday = messageRows.length - messagesInToday;
 
   const aiAgent = await getAiAgentUsage(supabase, dayStart, dayEnd, assignedTo);
+  const insights = await getConversationInsights(supabase, { assignedTo });
 
   return {
     generatedAt: new Date().toISOString(),
@@ -276,5 +279,6 @@ export async function getDailyReport(
       activeConversationsToday,
     },
     aiAgent,
+    insights,
   };
 }
