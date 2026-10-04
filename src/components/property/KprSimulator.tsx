@@ -76,7 +76,7 @@ export function KprSimulator({ price, subsidi }: KprSimulatorProps) {
           )}
           <ScenarioTable
             title="KPR Non-Subsidi"
-            note="Asumsi bunga 7% tetap 3 tahun pertama, setelah itu mengambang (tidak dihitung)."
+            note="DP minimal 10%, bersifat pengajuan (bank menilai ulang kualitas kredit). Asumsi bunga tertinggi masa promo flat minimal 3 tahun, setelah itu mengambang (tidak dihitung)."
             scenario={calculateNonSubsidi(price, dp)}
           />
         </div>
@@ -85,8 +85,7 @@ export function KprSimulator({ price, subsidi }: KprSimulatorProps) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Ini hanya simulasi. Angka pasti ditentukan oleh pihak bank saat pengajuan KPR disetujui, dan bisa berbeda
-        antar bank.
+        Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR.
       </p>
     </div>
   );

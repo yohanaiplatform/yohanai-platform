@@ -238,7 +238,7 @@ ${knowledgeText}
 Listing Tersedia yang relevan dengan pesan ini:
 ${listingsText}
 
-${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan bahwa ini simulasi dan angka pasti ditentukan bank setelah pengajuan disetujui. JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).
+${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan PERSIS: \"Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR.\" (JANGAN menambah kalimat bahwa perbedaan antar bank tipis). JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).
 ${kprSimulation}
 
 ` : ""}Pesan BARU dari lead:

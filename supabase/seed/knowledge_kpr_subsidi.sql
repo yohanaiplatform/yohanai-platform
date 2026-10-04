@@ -40,7 +40,9 @@ BATAS PENGHASILAN KPR SUBSIDI (saat ini): lajang maksimal Rp8 juta per bulan, be
 
 RUMAH SUBSIDI BISA DIBELI DENGAN KPR NON-SUBSIDI: JAWABANNYA BISA. Subsidi hanya fasilitas dari pemerintah, tidak membatasi developer menjual unitnya secara komersial. Cocok untuk konsumen yang tidak mau ribet dokumen subsidi atau penghasilannya di atas batas maksimum. Jadi untuk lead yang gajinya melebihi batas subsidi, tawarkan KPR non-subsidi (bunga/angsuran beda, hitungan detail oleh agen/bank), atau cash/cash bertahap.
 
-ANGSURAN KPR SUBSIDI: bunga flat, sehingga angsuran flat (tetap) sampai lunas. Angka simulasi di deskripsi listing berasal dari Bank BSN dengan harga rumah Rp182 juta dan plafon KPR Rp176.180.000. Bank lain bisa berbeda tipis (selisih biasanya hanya puluhan ribu rupiah per bulan) -- selalu sebut itu SIMULASI/estimasi dan jelaskan perbedaan antar bank bisa ada; angka final ditentukan bank saat pengajuan.$c$,
+ANGSURAN KPR SUBSIDI: bunga flat, sehingga angsuran flat (tetap) sampai lunas. Angka simulasi di deskripsi listing berasal dari Bank BSN dengan harga rumah Rp182 juta dan plafon KPR Rp176.180.000. Untuk SUBSIDI selisih antar bank biasanya kecil, tetapi untuk NON-SUBSIDI selisih antar bank bisa cukup besar (bunga dan biaya berbeda-beda) -- JANGAN bilang "tipis" untuk non-subsidi. Akhiri setiap simulasi dengan catatan: "Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR."
+
+KPR NON-SUBSIDI UNTUK SEMUA PERUMAHAN BARU: DP minimal 10% dan sifatnya PENGAJUAN dari pemilik/developer, karena bank akan menilai ulang kualitas kredit calon konsumen. Simulasi memakai DP minimal 10% (kalau lead belum menyebut nominal DP) dan suku bunga tertinggi masa promo flat minimal 3 tahun, lalu berubah mengambang (floating) sesuai ketentuan bank. Kalau lead menanyakan KPR non-subsidi, JANGAN menjawab "angka belum bisa disebutkan" -- berikan simulasinya (dari HASIL HITUNG KODE kalau ada, atau tabel non-subsidi).$c$,
 array['slik','bi checking','kredit macet','gaji','penghasilan','batas penghasilan','minimal gaji','maksimal gaji','subsidi bisa non subsidi','kpr biasa','kpr non subsidi','kpr komersial','angsuran flat','bunga flat','angsuran','simulasi','materai','gaji berapa','gaji diatas'],
 array['subsidi','kapur mas'], true
 ),
@@ -52,7 +54,7 @@ DATA ASLI untuk jawab pertanyaan DP & angsuran Kapur Mas Type 36 (harga subsidi 
 
 ATURAN JAWAB:
 - DP lebih kecil/besar dari normal: jawab "bisa", tapi sifatnya PENGAJUAN -- menunggu keputusan bank atas kelayakan konsumen. Jangan menjanjikan disetujui.
-- Selalu akhiri simulasi dengan catatan: ini hanya hitungan simulasi, angka pastinya ditentukan pihak bank saat pengajuan KPR sudah disetujui. Perbedaan antar bank biasanya tipis (sekitar Rp10-20 ribu per bulan, karena biaya tambahan bank yang dibebankan ke angsuran).
+- Selalu akhiri simulasi dengan catatan: "Simulasi ini bersifat estimasi dan bukan penawaran resmi. Besaran cicilan, suku bunga, dan biaya final ditentukan oleh bank setelah proses pengajuan dan persetujuan KPR." JANGAN menambahkan kalimat bahwa perbedaan antar bank "tipis" (untuk non-subsidi bisa cukup besar).
 - Kalau DP lead tidak ada di tabel, sebut angka dari DP TERDEKAT sebagai gambaran kasar dan katakan agen akan menghitung persisnya. JANGAN mengarang angka di luar tabel.
 - Tenor yang tersedia: 10, 15, dan 20 tahun (subsidi & non-subsidi sama).
 

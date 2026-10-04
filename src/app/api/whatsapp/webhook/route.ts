@@ -10,7 +10,12 @@ import { getAssigneeForPhoneNumberId } from '@/lib/whatsapp/whatsappNumbers'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
-import { buildKprSimulationText, isSubsidiListing, parseDpFromText } from '@/lib/kpr/calculator'
+import {
+  buildKprSimulationText,
+  isSubsidiListing,
+  NON_SUBSIDI_MIN_DP_RATIO,
+  parseDpFromText,
+} from '@/lib/kpr/calculator'
 import { findRelevantListings } from '@/lib/ai/relevantListings'
 import { sendTypingIndicator } from '@/lib/whatsapp/kapso'
 import type { Json } from '@/types/database'
@@ -515,14 +520,23 @@ async function runAiAgent(
   // Simulasi KPR dihitung di KODE (bukan oleh LLM) kalau lead menyebut nominal DP: pakai listing
   // paling relevan yang punya harga. Angka ini disuntik ke AI sebagai hasil final.
   const dpFromLead = parseDpFromText(newMessage)
-  const kprListing = dpFromLead ? listings.find((l) => l.price) : undefined
+  // Lead tanya KPR non-subsidi TANPA menyebut DP -> hitung dengan DP minimal 10% (aturan Yohan),
+  // bukan menjawab "angka belum bisa disebutkan".
+  const asksNonSubsidi = /non[s-]?subsidi|kpr biasa|kpr komersial|bukan subsidi/i.test(`${newMessage} ${recentHistoryText}`)
+  const kprListing = dpFromLead || asksNonSubsidi ? listings.find((l) => l.price) : undefined
+  const listingIsSubsidi = kprListing
+    ? isSubsidiListing({ aiTags: kprListing.aiTags, title: kprListing.title, description: kprListing.description })
+    : false
+  const kprDp = dpFromLead ?? (kprListing?.price ? Math.round(kprListing.price * NON_SUBSIDI_MIN_DP_RATIO) : null)
   const kprSimulation =
-    dpFromLead && kprListing
+    kprDp && kprListing
       ? buildKprSimulationText({
           listingTitle: kprListing.title,
           price: kprListing.price,
-          dp: dpFromLead,
-          subsidi: isSubsidiListing({ aiTags: kprListing.aiTags, title: kprListing.title, description: kprListing.description }),
+          dp: kprDp,
+          // Kalau lead khusus menanyakan non-subsidi, jangan tampilkan skenario subsidi.
+          subsidi: listingIsSubsidi && !asksNonSubsidi,
+          dpIsMinimum: !dpFromLead,
         })
       : null
 

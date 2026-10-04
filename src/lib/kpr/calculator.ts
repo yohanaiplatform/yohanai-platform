@@ -126,13 +126,20 @@ export function buildKprSimulationText(input: {
   listingTitle: string;
   price: number | null;
   dp: number;
+  /** Tampilkan skenario subsidi (listing subsidi DAN lead tidak khusus menanyakan non-subsidi). */
   subsidi: boolean;
+  /** DP diambil dari DP minimal karena lead belum menyebut nominal DP. */
+  dpIsMinimum?: boolean;
 }): string | null {
   const { price, dp } = input;
   if (!price || price <= 0 || dp <= 0 || dp >= price) return null;
 
   const lines = [
-    `Listing: ${input.listingTitle}, harga ${formatRupiahShort(price)}, DP yang dibahas lead ${formatRupiahShort(dp)}.`,
+    `Listing: ${input.listingTitle}, harga ${formatRupiahShort(price)}, ${
+      input.dpIsMinimum
+        ? `DP dihitung dari DP MINIMAL ${formatRupiahShort(dp)} (lead belum menyebut nominal DP; DP minimal non-subsidi 10%, sifatnya pengajuan karena bank menilai ulang kualitas kredit)`
+        : `DP yang dibahas lead ${formatRupiahShort(dp)}`
+    }.`,
   ];
 
   const describe = (label: string, scenario: KprScenario, note: string) => {
@@ -144,7 +151,7 @@ export function buildKprSimulationText(input: {
   };
 
   if (input.subsidi) describe("KPR SUBSIDI", calculateSubsidi(price, dp), "");
-  describe("KPR NON-SUBSIDI", calculateNonSubsidi(price, dp), ", bunga 7% tetap 3 th pertama lalu mengambang");
+  describe("KPR NON-SUBSIDI", calculateNonSubsidi(price, dp), ", bunga tertinggi masa promo flat minimal 3 th (asumsi 7%) lalu mengambang sesuai bank");
 
   return lines.join("\n");
 }
