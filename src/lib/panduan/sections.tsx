@@ -470,7 +470,7 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Foto pertama di daftar = foto sampul, dipakai di grid list.",
             <>
               <strong>Hapus foto itu PERMANEN</strong> -- begitu dikonfirmasi, file-nya benar-benar hilang dari
-              penyimpanan (R2), tidak bisa dipulihkan lagi. Selalu ada konfirmasi dulu sebelum terhapus.
+              penyimpanan, tidak bisa dipulihkan lagi. Selalu ada konfirmasi dulu sebelum terhapus.
             </>,
           ]}
         />
@@ -515,7 +515,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           klik <strong>Perbarui Data Lokasi</strong> di kartu &quot;Lokasi &amp; Fasilitas Sekitar&quot;. Sistem membaca titik
           koordinatnya dan mencatat fasilitas umum terdekat (sekolah, kampus, rumah sakit, pasar/swalayan, tempat
           ibadah, SPBU). Asisten otomatis memakai data ini untuk menjawab jarak dan fasilitas sekitar. Klik lagi
-          setiap kali link Maps diganti. Data fasilitas berasal dari peta terbuka dan bisa belum lengkap.
+          setiap kali link Maps diganti. Data fasilitas berasal dari peta digital dan bisa belum lengkap. Saat konsumen bertanya jarak dari suatu lokasi,
+          asisten menyebut jarak lewat jalan dan perkiraan waktu tempuh naik mobil (tanpa kemacetan); jika data rute
+          belum tersedia, ia menyebut jarak garis lurus dan menjelaskan bahwa jarak tempuh bisa lebih jauh.
         </GuideP>
         <GuideHeading>Simulasi KPR</GuideHeading>
         <GuideP>
@@ -825,7 +827,7 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           platform ini.
         </GuideNote>
         <GuideP>
-          Saat ini AI Agent berjalan memakai kapasitas milik pemilik platform (bukan akun/API key pribadi tiap
+          Saat ini AI Agent berjalan memakai kapasitas milik pemilik platform (bukan akun pribadi tiap
           user) -- jadi semua user yang pakai AI Agent otomatis ikut memakai kapasitas itu bersama, tanpa perlu
           daftar/bayar terpisah ke pihak manapun. Rencana ke depan: tiap user bisa punya pengaturan/kuota
           sendiri, dengan pembayaran dikelola lewat platform -- panduan ini akan diperbarui begitu fitur ini

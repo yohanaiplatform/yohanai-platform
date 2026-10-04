@@ -330,6 +330,18 @@ Future Tables
 
 # Future Roadmap
 
+## Update 4 Oktober 2026 -- AI Agent chat (implementasi nyata)
+
+Ringkasan kemampuan AI Agent WhatsApp per 4 Oktober 2026 (detail teknis di `docs/status.mdx` item 000 dan `AGENTS.md`):
+
+- **Gaya jawaban:** jawab hanya yang ditanya, tanpa obral info, tanpa penutup "silakan ditanyakan lagi" kecuali jeda >=2 jam, format bullet WhatsApp untuk jawaban panjang.
+- **Temperature:** Cold (tanya dasar) -> Warm (DP/harga/angsuran/lokasi lain) -> Hot (atur survey); hanya naik; Closing diisi manual (pagar kode `isAllowedTemperatureChange()`); riwayat perubahan dicatat (`customer.lead_temperature_history`).
+- **Sumber kebenaran:** blok "Info resmi dari agen" per listing (`metadata.ai_info`, 13 kategori), Deskripsi, Tag/Info AI, `knowledge.entries` (hanya `review_status=approved`).
+- **Angka dihitung kode, bukan LLM:** simulasi KPR (`src/lib/kpr/calculator.ts`) dan jarak/fasilitas (`src/lib/geo/`, titik dari Link Google Maps + Kamus Kawasan; jarak lewat jalan via Google Routes bila tersedia). AI dilarang menebak kedekatan/arah/jarak.
+- **Knowledge Loop:** catatan "AI mentok" -> topik celah harian -> jawaban manusia -> pengetahuan; user biasa hanya mengusulkan, kurator menyetujui.
+- **Nurturing otomatis (dry-run):** template follow-up 48 jam / 5 hari setelahnya, maks 2, jam 08-20 WIB.
+- **Belum:** pencarian web, analisis pola lanjutan (pertanyaan -> Hot), Meta Ads Analytics, Listing Hunter.
+
 ## Phase 1
 
 AI Foundation
