@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { formatAiInfoForPrompt, parseAiInfo } from "@/lib/property/aiInfo";
 
 export interface ListingMatch {
   title: string;
@@ -12,6 +13,8 @@ export interface ListingMatch {
   description: string | null;
   photoUrls: string[];
   videoUrl: string | null;
+  /** Info resmi dari agen (metadata.ai_info) sudah diformat per baris, null kalau kosong. */
+  aiInfo: string | null;
 }
 
 const MAX_PHOTOS_PER_LISTING = 3;
@@ -114,6 +117,7 @@ export async function findRelevantListings(
       description,
       photoUrls,
       videoUrl: (metadata.video_url as string | undefined) || null,
+      aiInfo: formatAiInfoForPrompt(parseAiInfo(metadata)),
     };
   });
 }

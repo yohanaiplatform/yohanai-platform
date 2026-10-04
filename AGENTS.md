@@ -88,6 +88,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Peta & jarak DIBANGUN (4 Oktober 2026)** — `src/lib/geo/` (koordinat dari link Google Maps, haversine, fasilitas OSM Overpass, geocoding Nominatim), `metadata.geo` per listing, tabel `knowledge.places` (Kamus Kawasan, migration `064`), AI mendapat blok "DATA PETA" yang dihitung kode. **Jangan biarkan LLM menebak jarak/kedekatan -- itu sumber halusinasi nyata (Padat Karya vs Ujung Pandang).** Jebakan: server Overpass publik sering 504 (fetch mengembalikan null, bukan []); data OSM Kalbar bisa tidak lengkap; geocoding nama jalan kecil bisa keliru (makanya disimpan "belum diverifikasi"). 0/91 listing punya `maps_url` saat dibangun.
 
+**"Info untuk Asisten AI" (4 Oktober 2026)** — `metadata.ai_info` per listing, 13 kategori (`AI_INFO_FIELDS` di `src/lib/property/aiInfo.ts`), jadi blok "Info resmi dari agen" di prompt (sumber kebenaran; poin larangan = instruksi internal). Tag/Info AI (`ai_tags`) tetap untuk pencarian. Menambah kategori = edit array itu saja (JSONB, tanpa migration).
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

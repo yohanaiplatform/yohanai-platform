@@ -11,6 +11,8 @@ import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFi
 import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
+import { PropertyAiInfoEditable } from "@/components/property/PropertyAiInfoEditable";
+import { parseAiInfo } from "@/lib/property/aiInfo";
 import { PropertyGeoCard } from "@/components/property/PropertyGeoCard";
 import { KprSimulator } from "@/components/property/KprSimulator";
 import { isSubsidiListing } from "@/lib/kpr/calculator";
@@ -70,6 +72,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     "geo"
   );
   const aiTags = getListingMetadataValue<string[]>(listing.metadata, "ai_tags") ?? [];
+  const aiInfo = parseAiInfo(listing.metadata);
   const photoUrls = getListingMetadataValue<string[]>(listing.metadata, "photo_urls") ?? [];
   const hidden = getListingMetadataValue<boolean>(listing.metadata, "hidden") ?? false;
   const owner = getListingMetadataValue<{ name: string | null; phone: string | null }>(
@@ -166,6 +169,13 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           mapsUrl={mapsUrl}
           aiTags={aiTags}
         />
+      </SectionCard>
+
+      <SectionCard
+        title="Info untuk Asisten AI"
+        description="Info resmi yang dibaca asisten saat menjawab konsumen: skema bayar, DP/biaya, legalitas, kondisi unit, FAQ, dan batasan. Di luar Tag/Info AI, Deskripsi, dan data peta."
+      >
+        <PropertyAiInfoEditable listingId={listing.id} metadata={listing.metadata} aiInfo={aiInfo} />
       </SectionCard>
 
       <SectionCard title="Lokasi & Fasilitas Sekitar" description="Titik peta dari Link Google Maps. Dibaca asisten untuk menjawab jarak dan fasilitas umum di sekitar.">

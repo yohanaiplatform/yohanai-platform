@@ -607,6 +607,15 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           blok/tipe, promo, cicilan. Kalau detail itu cuma ditulis di Deskripsi (tidak ada field terpisah),
           pastikan ditulis jelas di situ supaya AI bisa mengutipnya saat menjawab lead.
         </GuideP>
+        <GuideHeading>Info untuk Asisten AI (kategori lengkap)</GuideHeading>
+        <GuideP>
+          Di halaman detail listing ada kartu <strong>Info untuk Asisten AI</strong> dengan 13 kategori: keunggulan,
+          skema pembayaran, DP/akad/booking, biaya di luar harga, legalitas, kondisi dan ketersediaan unit, posisi
+          blok, spesifikasi tambahan, akses lokasi, syarat pembeli, promo, tanya-jawab khusus, dan hal yang tidak
+          boleh dijanjikan. Isi dengan fakta yang pasti dan kosongkan yang belum diketahui -- asisten menjawab dari
+          sini dengan percaya diri, dan meneruskan ke agen kalau topiknya belum ada. Ini melengkapi Tag/Info AI,
+          Deskripsi, dan data peta.
+        </GuideP>
         <GuideNote>
           Listing lama hasil migrasi (sebelum field ini ada) belum semuanya terisi Tag / Info AI -- kalau AI
           Agent kelihatan &quot;tidak tahu&quot; soal listing tertentu, cek dulu apakah tag-nya sudah diisi.

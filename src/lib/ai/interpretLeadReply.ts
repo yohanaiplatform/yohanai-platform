@@ -33,6 +33,7 @@ export interface AgentListingContext {
   description: string | null;
   photoUrls: string[];
   videoUrl: string | null;
+  aiInfo: string | null;
 }
 
 export interface AgentDecision {
@@ -92,6 +93,11 @@ GAYA JAWABAN (WAJIB, mengalahkan aturan panjang replyText di atas kalau bertabra
 - FORMAT: jawaban 1-2 poin cukup kalimat biasa. Kalau jawaban memuat 3 poin atau lebih (spesifikasi, daftar lokasi, simulasi angsuran, syarat), susun sebagai daftar berpoin (satu baris per poin diawali "- ") dengan format WhatsApp: *tebal* (satu bintang) untuk nama/angka kunci, _miring_ (garis bawah) untuk catatan/penekanan, dan jeda baris kosong antar bagian. WhatsApp TIDAK mendukung garis bawah (underline) -- jangan pakai. Jangan pakai markdown ** atau # atau tabel.
 - ASN/P3K/PNS dan pertanyaan umum KPR lain yang datanya tidak ada di konteks: jawab dari pengetahuan umum yang Anda yakini benar dengan kata "umumnya", jelaskan prinsipnya, sebut bahwa detail/persyaratan finalnya mengikuti kebijakan bank dan akan dikonfirmasi agen. JANGAN mengarang angka/kebijakan yang Anda tidak yakin. Anda TIDAK punya akses internet.
 - Untuk penawaran DP khusus/negosiasi DP dan harga unit rumah SECONDARY (bukan listing di data): jangan menjawab sendiri -- arahkan bahwa Bg. Yohan akan menghubungi langsung, needsFollowUp: true.
+
+ATURAN INFO RESMI LISTING:
+- Bagian "Info resmi dari agen" di tiap listing adalah SUMBER KEBENARAN untuk listing itu (skema bayar, DP/akad, biaya, legalitas, kondisi unit, spesifikasi, syarat pembeli, promo, FAQ). Jawab dari sana dengan percaya diri dan JANGAN bertentangan dengannya.
+- Poin "Jangan dijanjikan / rujuk ke agen" adalah INSTRUKSI untuk Anda -- patuhi, jangan diungkapkan ke konsumen, dan arahkan hal itu ke agen.
+- Kalau topik yang ditanya TIDAK ada di Info resmi/Deskripsi/Tag, akui belum ada datanya dan teruskan ke agen (needsFollowUp: true) -- jangan menebak.
 
 ATURAN LOKASI, JARAK, DAN KEDEKATAN (WAJIB -- AI TIDAK PUNYA PETA):
 - Anda TIDAK punya peta dan pengetahuan Anda tentang jalan/kawasan lokal Pontianak-Kubu Raya TIDAK dapat diandalkan. JANGAN menyimpulkan atau menebak kedekatan, arah, jarak, waktu tempuh, atau "satu kawasan" antar jalan/kawasan, KECUALI tertulis eksplisit di data yang diberikan (Listing Tersedia, Tag lokasi/info, Deskripsi, Info Area/knowledge) atau ada blok "DATA PETA" (jarak/fasilitas yang dihitung kode dari koordinat -- itu boleh dipakai persis).
@@ -214,6 +220,8 @@ function buildUserPrompt(
           ];
           if (l.aiTags.length) lines.push(`  Tag lokasi/info: ${l.aiTags.join(", ")}`);
           if (l.description) lines.push(`  Deskripsi: ${l.description}`);
+          if (l.aiInfo) lines.push(`  Info resmi dari agen:
+${l.aiInfo}`);
           if (photoVideoIntent) {
             if (l.photoUrls.length) lines.push(`  Foto: ${l.photoUrls.join(" | ")}`);
             if (l.videoUrl) lines.push(`  Video: ${l.videoUrl}`);
