@@ -254,6 +254,7 @@ export type Database = {
           linkedin_url: string | null
           notification_whatsapp_number: string | null
           is_knowledge_curator: boolean
+          geo_radius_km: number
           role_details: Json
           role_id: string | null
           tiktok_url: string | null
@@ -280,6 +281,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
           is_knowledge_curator?: boolean
+          geo_radius_km?: number
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null
@@ -306,6 +308,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
           is_knowledge_curator?: boolean
+          geo_radius_km?: number
           role_details?: Json
           role_id?: string | null
           tiktok_url?: string | null

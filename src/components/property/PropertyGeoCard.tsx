@@ -16,7 +16,7 @@ interface NearbyItem {
 interface PropertyGeoCardProps {
   listingId: string;
   mapsUrl: string | null;
-  geo: { lat: number; lng: number; updatedAt?: string; nearby?: NearbyItem[] } | null;
+  geo: { lat: number; lng: number; updatedAt?: string; radiusKm?: number; nearby?: NearbyItem[] } | null;
 }
 
 /** Titik peta listing + fasilitas umum sekitar (dibaca AI Agent untuk jawab jarak/fasilitas). */
@@ -63,7 +63,7 @@ export function PropertyGeoCard({ listingId, mapsUrl, geo }: PropertyGeoCardProp
           <div className="text-sm">
             Koordinat: <strong>{geo.lat.toFixed(5)}, {geo.lng.toFixed(5)}</strong>
             {geo.updatedAt && (
-              <span className="text-xs text-muted-foreground"> · diperbarui {new Date(geo.updatedAt).toLocaleDateString("id-ID")}</span>
+              <span className="text-xs text-muted-foreground"> · diperbarui {new Date(geo.updatedAt).toLocaleDateString("id-ID")}{geo.radiusKm ? ` · radius ${geo.radiusKm} km` : ""}</span>
             )}
           </div>
           {grouped.size > 0 ? (
@@ -86,7 +86,7 @@ export function PropertyGeoCard({ listingId, mapsUrl, geo }: PropertyGeoCardProp
             <p className="text-sm text-muted-foreground">Belum ada fasilitas umum terdata di sekitar titik ini (data OpenStreetMap).</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Fasilitas dari OpenStreetMap (radius 2-4 km), bisa belum lengkap. Jarak adalah garis lurus dari titik listing.
+            Fasilitas dari OpenStreetMap, bisa belum lengkap. Radius diatur di Settings, Pengaturan Peta (kampus, rumah sakit, dan mall dicari sampai radius penuh). Jarak adalah garis lurus dari titik listing.
           </p>
         </div>
       ) : (

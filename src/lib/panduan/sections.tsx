@@ -279,6 +279,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           sampai admin menyelesaikan pendaftarannya dan menyetujui -- Anda akan dapat notifikasi begitu nomor
           Anda aktif.
         </GuideP>
+        <GuideHeading>Pengaturan Peta (radius)</GuideHeading>
+        <GuideP>
+          Di bagian <strong>Pengaturan Peta</strong> Anda bisa memilih radius pencarian fasilitas umum dari 1 sampai 10
+          km untuk akun Anda. Kampus, rumah sakit, dan mall dicari sampai radius penuh (cocok untuk menjangkau UNTAN
+          dan kampus lain dari listing di Pontianak dan Kubu Raya), sedangkan sekolah, klinik, dan tempat ibadah
+          dibatasi lebih dekat supaya daftarnya relevan. Setelah mengubah radius, klik &quot;Perbarui Data Lokasi&quot; di
+          tiap listing agar daftar fasilitasnya diperbarui.
+        </GuideP>
         <GuideHeading>Kamus Kawasan (Titik Peta)</GuideHeading>
         <GuideP>
           Tempel link Google Maps untuk jalan, kawasan, atau patokan yang sering disebut konsumen (mis. Jalan Ujung

@@ -150,13 +150,15 @@ const OVERPASS_ENDPOINTS = [
 
 const CATEGORY_LIMITS: Record<string, number> = {
   Sekolah: 3,
-  "Kampus": 2,
+  Kampus: 4,
   "Kesehatan": 3,
   "Belanja/Pasar": 3,
   "Tempat ibadah": 2,
   SPBU: 1,
   Transportasi: 1,
 };
+
+const CAMPUS_NOISE = /sekretariat|himpunan|himagrotek|himbun|markas|gedung|laboratorium|fakultas|fakutas|program|magister|\bukm\b|\bhmj\b|confucius|pasca/i;
 
 function categoryFromTags(tags: Record<string, string>): string | null {
   switch (tags.amenity) {
@@ -187,12 +189,19 @@ function categoryFromTags(tags: Record<string, string>): string | null {
  * Return null kalau SEMUA server Overpass gagal (beda dari array kosong = memang tidak ada data).
  */
 export async function fetchNearbyFacilities(center: LatLng, radiusM = 2000): Promise<NearbyFacility[] | null> {
-  const query = `[out:json][timeout:25];
+  // Radius per kategori: yang jarang & penting (kampus, rumah sakit, mall) pakai radius penuh (sampai 10 km),
+  // yang sangat banyak (sekolah, klinik, tempat ibadah) dibatasi supaya query tetap ringan dan hasilnya relevan.
+  const at = `${center.lat},${center.lng}`;
+  const cap = (maxM: number) => Math.min(radiusM, maxM);
+  const query = `[out:json][timeout:60];
 (
-  nwr(around:${radiusM},${center.lat},${center.lng})[amenity~"^(school|kindergarten|university|college|hospital|clinic|marketplace|fuel|bus_station|place_of_worship)$"][name];
-  nwr(around:${radiusM},${center.lat},${center.lng})[shop~"^(supermarket|mall)$"][name];
+  nwr(around:${radiusM},${at})[amenity~"^(university|college|hospital)$"][name];
+  nwr(around:${radiusM},${at})[shop~"^(supermarket|mall)$"][name];
+  nwr(around:${cap(5000)},${at})[amenity~"^(marketplace|fuel|bus_station)$"][name];
+  nwr(around:${cap(3000)},${at})[amenity~"^(school|clinic)$"][name];
+  nwr(around:${cap(2000)},${at})[amenity~"^(kindergarten|place_of_worship)$"][name];
 );
-out center 200;`;
+out center 400;`;
 
   for (const endpoint of OVERPASS_ENDPOINTS) {
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -202,7 +211,7 @@ out center 200;`;
           method: "POST",
           headers: { "User-Agent": OSM_UA, "Content-Type": "application/x-www-form-urlencoded" },
           body: `data=${encodeURIComponent(query)}`,
-          signal: AbortSignal.timeout(30_000),
+          signal: AbortSignal.timeout(45_000),
         });
         const contentType = res.headers.get("content-type") ?? "";
         if (!res.ok || !contentType.includes("json")) continue;
@@ -218,6 +227,8 @@ out center 200;`;
           const lat = el.lat ?? el.center?.lat;
           const lng = el.lon ?? el.center?.lon;
           if (!category || !tags.name || lat === undefined || lng === undefined) continue;
+          // Data OSM kampus sering berisi sub-unit/titik tanpa nama jelas (mis. "24", "Sekretariat UKM", "Laboratorium MIPA").
+          if (category === "Kampus" && (tags.name.length < 5 || /^\d+$/.test(tags.name) || CAMPUS_NOISE.test(tags.name))) continue;
           all.push({ category, name: tags.name, distanceM: Math.round(haversineMeters(center, { lat, lng })) });
         }
 

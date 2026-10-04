@@ -67,7 +67,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const videoUrl = getListingMetadataValue<string>(listing.metadata, "video_url");
   const contactPhone = getListingMetadataValue<string>(listing.metadata, "contact_phone");
   const mapsUrl = getListingMetadataValue<string>(listing.metadata, "maps_url");
-  const geo = getListingMetadataValue<{ lat: number; lng: number; updatedAt?: string; nearby?: { category: string; name: string; distanceM: number }[] }>(
+  const geo = getListingMetadataValue<{ lat: number; lng: number; updatedAt?: string; radiusKm?: number; nearby?: { category: string; name: string; distanceM: number }[] }>(
     listing.metadata,
     "geo"
   );

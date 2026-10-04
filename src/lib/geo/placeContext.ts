@@ -137,6 +137,18 @@ export async function buildGeoContext(
     for (const target of targets) {
       lines.push(`FASILITAS SEKITAR "${target.title}" (data OpenStreetMap, bisa tidak lengkap; jarak garis lurus): ${formatNearbyForAi(target.nearby)}`);
     }
+
+    // Patokan penting dari Kamus Kawasan (kampus ternama, dll.) dalam 10 km dari listing.
+    for (const target of geoListings.filter((l) => relevantListingTitles.includes(l.title)).slice(0, 2)) {
+      const landmarks = places
+        .map((p) => ({ name: p.name, distance: haversineMeters(target.point, { lat: p.lat, lng: p.lng }) }))
+        .filter((p) => p.distance <= 10_000)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 6);
+      if (landmarks.length > 0) {
+        lines.push(`PATOKAN PENTING DEKAT "${target.title}" (Kamus Kawasan, jarak garis lurus): ${landmarks.map((p) => `${p.name} (${formatDistance(p.distance)})`).join(", ")}`);
+      }
+    }
   }
 
   return lines.length > 0 ? lines.join("\n") : null;

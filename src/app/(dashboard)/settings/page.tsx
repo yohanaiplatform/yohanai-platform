@@ -6,10 +6,17 @@ import { WhatsAppNumbersManager } from "@/components/settings/WhatsAppNumbersMan
 import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager";
 import { KnowledgePlacesManager } from "@/components/settings/KnowledgePlacesManager";
 import { KnowledgeReviewQueue } from "@/components/settings/KnowledgeReviewQueue";
+import { GeoRadiusSetting } from "@/components/settings/GeoRadiusSetting";
 
 export default function SettingsPage() {
   return (
     <div className="space-y-6 p-6">
+      <SectionCard title="Pengaturan Peta" description="Radius pencarian fasilitas umum di sekitar listing, khusus akun Anda.">
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
+          <GeoRadiusSetting />
+        </Suspense>
+      </SectionCard>
+
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GoogleContactsConnection />

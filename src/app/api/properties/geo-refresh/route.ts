@@ -56,12 +56,10 @@ export async function POST(request: Request) {
     );
   }
 
-  // Daerah pinggiran biasanya jarang terdata di OSM: kalau dalam 2 km terlalu sedikit, perluas ke 4 km.
-  let fetched = await fetchNearbyFacilities(coords, 2000);
-  if (fetched !== null && fetched.length < 3) {
-    const wider = await fetchNearbyFacilities(coords, 4000);
-    if (wider !== null && wider.length > fetched.length) fetched = wider;
-  }
+  // Radius pencarian = pengaturan akun user (Settings -> Pengaturan Peta), 1-10 km, default 2.
+  const { data: profile } = await supabase.schema("auth_ext").from("profiles").select("geo_radius_km").eq("user_id", user.id).maybeSingle();
+  const radiusKm = Math.min(10, Math.max(1, profile?.geo_radius_km ?? 2));
+  const fetched = await fetchNearbyFacilities(coords, radiusKm * 1000);
   // Server peta sibuk (null): simpan koordinat, pertahankan fasilitas lama kalau ada.
   const previousGeo = typeof metadata.geo === "object" && metadata.geo !== null && !Array.isArray(metadata.geo) ? (metadata.geo as Record<string, Json>) : {};
   const nearby = fetched ?? (Array.isArray(previousGeo.nearby) ? previousGeo.nearby : []);
@@ -71,6 +69,7 @@ export async function POST(request: Request) {
     lng: coords.lng,
     mapsUrl,
     updatedAt: new Date().toISOString(),
+    radiusKm,
     nearby,
   };
 
