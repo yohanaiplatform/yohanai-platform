@@ -84,6 +84,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Knowledge Loop v1 DIBANGUN (4 Oktober 2026)** — `src/lib/knowledge/generateGaps.ts` (jam 06 WIB via `/api/cron/hourly`), tabel `knowledge.gaps` (migration `061`, `062` grant), UI Settings "Celah Pengetahuan Asisten", `POST /api/knowledge/gaps/resolve`. AI hanya mengusulkan topik; jawaban wajib dari manusia. Detail: status.mdx item 00k. **Jebakan:** `service_role` sebelumnya cuma punya SELECT di `knowledge.entries` -- kode server yang menulis entri butuh `062`.
 
+**Riwayat Temperature (4 Oktober 2026)** — tabel `customer.lead_temperature_history` + trigger `trg_log_lead_temperature_change` (migration `063`) mencatat tiap perubahan `status_funnel_awal` dari jalur apa pun; jangan menambah kode manual untuk mencatatnya. Migration kini sampai `063` (060 nurture_sends, 061 knowledge.gaps, 062 grant). Visi 3 AI Agent baru (Data Analysis/Listing Hunter/Ads Analytics) ada di status.mdx item 00m beserta risikonya.
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

@@ -838,6 +838,36 @@ export type Database = {
           },
         ]
       }
+      lead_temperature_history: {
+        Row: {
+          id: string
+          lead_id: string
+          from_temperature: string | null
+          to_temperature: string | null
+          changed_by_user: string | null
+          source: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          from_temperature?: string | null
+          to_temperature?: string | null
+          changed_by_user?: string | null
+          source: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          from_temperature?: string | null
+          to_temperature?: string | null
+          changed_by_user?: string | null
+          source?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           author_label: string
