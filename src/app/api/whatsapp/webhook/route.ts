@@ -10,6 +10,7 @@ import { getAssigneeForPhoneNumberId } from '@/lib/whatsapp/whatsappNumbers'
 import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
+import { buildKprSimulationText, isSubsidiListing, parseDpFromText } from '@/lib/kpr/calculator'
 import { findRelevantListings } from '@/lib/ai/relevantListings'
 import { sendTypingIndicator } from '@/lib/whatsapp/kapso'
 import type { Json } from '@/types/database'
@@ -511,7 +512,21 @@ async function runAiAgent(
   ]
   const listings = await findRelevantListings(supabase, listingSearchTerms)
 
-  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary } as unknown as Json
+  // Simulasi KPR dihitung di KODE (bukan oleh LLM) kalau lead menyebut nominal DP: pakai listing
+  // paling relevan yang punya harga. Angka ini disuntik ke AI sebagai hasil final.
+  const dpFromLead = parseDpFromText(newMessage)
+  const kprListing = dpFromLead ? listings.find((l) => l.price) : undefined
+  const kprSimulation =
+    dpFromLead && kprListing
+      ? buildKprSimulationText({
+          listingTitle: kprListing.title,
+          price: kprListing.price,
+          dp: dpFromLead,
+          subsidi: isSubsidiListing({ aiTags: kprListing.aiTags, title: kprListing.title, description: kprListing.description }),
+        })
+      : null
+
+  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary, kprSimulation } as unknown as Json
 
   const { decision, rawResponse, error } = await interpretLeadReply(
     leadContext,
@@ -519,7 +534,8 @@ async function runAiAgent(
     newMessage,
     knowledge,
     listings,
-    previousSummary
+    previousSummary,
+    kprSimulation
   )
 
   if (error || !decision) {

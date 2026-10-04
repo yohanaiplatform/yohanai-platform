@@ -11,6 +11,8 @@ import { PropertyMainFieldsEditable } from "@/components/property/PropertyMainFi
 import { PropertyVisibilityToggle } from "@/components/property/PropertyVisibilityToggle";
 import { PropertyAssignSelect } from "@/components/property/PropertyAssignSelect";
 import { PropertyPhotoManager } from "@/components/property/PropertyPhotoManager";
+import { KprSimulator } from "@/components/property/KprSimulator";
+import { isSubsidiListing } from "@/lib/kpr/calculator";
 import { PropertyVideoEditable } from "@/components/property/PropertyVideoEditable";
 import { PropertyExportButtons } from "@/components/property/PropertyExportButtons";
 import { Button } from "@/components/ui/button";
@@ -160,6 +162,15 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
           aiTags={aiTags}
         />
       </SectionCard>
+
+      {listing.price ? (
+        <SectionCard title="Simulasi KPR" description="Hitung perkiraan angsuran sesuai DP -- sama dengan hitungan yang dipakai asisten otomatis.">
+          <KprSimulator
+            price={listing.price}
+            subsidi={isSubsidiListing({ aiTags, title: listing.title, description: listing.description })}
+          />
+        </SectionCard>
+      ) : null}
 
       <SectionCard
         title="Data Pemilik & Komisi"

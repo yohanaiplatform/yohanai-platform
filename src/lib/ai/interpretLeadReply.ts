@@ -168,7 +168,8 @@ function buildUserPrompt(
   newMessage: string,
   knowledge: AgentKnowledgeContext[],
   listings: AgentListingContext[],
-  previousSummary: string | null
+  previousSummary: string | null,
+  kprSimulation: string | null = null
 ): string {
   // Jeda sejak pesan terakhir SEBELUM pesan baru ini -- dipakai aturan "jangan menutup
   // jawaban dengan ajakan bertanya lagi kecuali percakapan sempat terputus >= 2 jam".
@@ -237,7 +238,10 @@ ${knowledgeText}
 Listing Tersedia yang relevan dengan pesan ini:
 ${listingsText}
 
-Pesan BARU dari lead:
+${kprSimulation ? `HASIL HITUNG KODE (SIMULASI KPR) -- angka ini FINAL dan BENAR; pakai PERSIS, JANGAN menghitung ulang, JANGAN memakai angka tabel lain yang berbeda. Sampaikan sesuai yang ditanya lead (mis. tipe KPR yang ditanya), format bullet jika lebih dari 2 baris, akhiri dengan catatan bahwa ini simulasi dan angka pasti ditentukan bank setelah pengajuan disetujui. JANGAN menyebut rumus/komponen hitungan (bantuan DP, persen DP, plafon dasar).
+${kprSimulation}
+
+` : ""}Pesan BARU dari lead:
 "${newMessage}"
 ${photoVideoIntent ? PHOTO_VIDEO_INSTRUCTIONS : ""}
 
@@ -285,7 +289,8 @@ export async function interpretLeadReply(
   newMessage: string,
   knowledge: AgentKnowledgeContext[] = [],
   listings: AgentListingContext[] = [],
-  previousSummary: string | null = null
+  previousSummary: string | null = null,
+  kprSimulation: string | null = null
 ): Promise<InterpretLeadReplyResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -313,7 +318,7 @@ export async function interpretLeadReply(
         model,
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary) }],
+        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary, kprSimulation) }],
         output_config: { effort },
       }),
     });

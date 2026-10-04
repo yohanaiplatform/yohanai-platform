@@ -477,6 +477,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           pernah ikut ke flyer/export promosi. Keduanya juga yang bisa mengubah nama pemilik, nomor HP, dan
           nilai komisi lewat tombol Edit.
         </GuideP>
+        <GuideHeading>Simulasi KPR</GuideHeading>
+        <GuideP>
+          Di halaman detail listing ada kartu <strong>Simulasi KPR</strong>: isi DP yang dibayar konsumen untuk
+          melihat perkiraan angsuran per bulan (tenor 10, 15, dan 20 tahun) untuk KPR subsidi (kalau listing
+          bersubsidi) dan non-subsidi. Ini hanya simulasi, angka pasti ditentukan bank. Asisten otomatis memakai
+          hitungan yang sama saat konsumen menyebut nominal DP lewat chat.
+        </GuideP>
         <GuideHeading>Video listing</GuideHeading>
         <GuideP>
           Di bagian Video ada tombol <strong>Edit</strong> (atau <strong>Tambah Video</strong> kalau belum ada)

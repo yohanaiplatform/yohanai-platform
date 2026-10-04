@@ -78,6 +78,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Penjadwalan sekarang lewat cron-job.org, BUKAN GitHub Actions (3 Oktober 2026)** — cron GitHub Actions di repo ini dibatasi (flush tiap-5-menit hanya jalan tiap 3-4 jam, Daily Report terlewat). SATU entri cron-job.org memanggil `GET /api/cron/hourly` tiap jam (header `x-flush-secret` = `AI_FOLLOW_UP_FLUSH_SECRET`): flush follow-up tiap jam, rangkuman chat jam 08/13/21 WIB, Daily Report jam 07 WIB. Jadwal `schedule:` di workflow GitHub DIMATIKAN (tinggal `workflow_dispatch`); **jangan hidupkan lagi tanpa mematikan cron-job.org (laporan/rangkuman terkirim ganda).** Referral Meta (`message.referral`) terbukti diteruskan Kapso -> `metadata.datang_dari` + `ad_context`. Temperature oleh AI: Cold/Warm/Hot sesuai kebiasaan Yohan, Closing HANYA manual (pagar kode di `applyAgentDecision.ts`).
 
+**Kalkulator KPR sudah SELESAI (4 Oktober 2026)** — `src/lib/kpr/calculator.ts` (fungsi murni: subsidi = faktor skala tabel Bank BSN, non-subsidi = anuitas 7%), dipakai AI Agent (disuntik ke prompt kalau lead menyebut DP; jangan suruh LLM berhitung) dan `KprSimulator.tsx` di halaman listing. Jangan bangun ulang. Sisa homework: nurturing otomatis (aturan konservatif: 48 jam, maks 2x, 08-20 WIB) dan Knowledge Loop (status.mdx item 00 & 00d).
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

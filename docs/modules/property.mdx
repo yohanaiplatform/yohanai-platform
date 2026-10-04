@@ -91,6 +91,7 @@ Field dasar + spesifikasi standar dalam satu form. Foto ditambahkan setelah list
 - **Sembunyikan/Tampilkan Listing** (28 Sep 2026, `PropertyVisibilityToggle.tsx`) — lihat "Sembunyikan/Tampilkan Listing" di bawah untuk detail lengkap kenapa ini beda dari Hapus.
 - Galeri foto dengan tombol tambah/hapus (foto pertama = sampul), **klik foto buka ukuran penuh di tab baru, tombol Download terpisah** (28 Sep 2026 -- sebelumnya thumbnail tidak bisa diklik sama sekali). Foto baru otomatis diberi **watermark logo Yohan.AI** di tengah (lihat "Watermark Foto" di bawah).
 - Video embed (YouTube) kalau ada; **bisa diedit/ditambah/dihapus** (2 Okt 2026, `PropertyVideoEditable.tsx`, `metadata.video_url`).
+- **Simulasi KPR** (4 Okt 2026, `KprSimulator.tsx` + `src/lib/kpr/calculator.ts`) — input DP, angsuran subsidi (faktor tabel BSN) dan non-subsidi (anuitas 7% tetap 3 th) untuk tenor 10/15/20; listing dianggap subsidi kalau tag/judul/deskripsi memuat "subsidi". Fungsi yang sama dipakai AI Agent di webhook WhatsApp.
 - **Edit Data Pemilik & Komisi** (`PropertyConfidentialFields.tsx`) — sebelumnya admin-only; sejak 2 Okt 2026 siapa pun yang bisa melihat listing (admin / agent yang di-assign, dijaga RLS `listings_owner_or_admin`) boleh edit.
 - Spesifikasi inline-editable, termasuk `contact_phone` (pola sama seperti `LeadEditableFields` di CRM).
 - "Ditugaskan ke" — dropdown ganti penanggung jawab (`PropertyAssignSelect.tsx`, admin/super_admin saja; non-admin cuma lihat teks statis "Saya"), pola identik `LeadAssignSelect.tsx` di CRM.
