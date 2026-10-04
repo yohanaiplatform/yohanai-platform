@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchNearbyFacilities, resolveMapsUrl } from "@/lib/geo/geo";
 import type { Json } from "@/types/database";
 
+// Pencarian fasilitas memanggil server peta publik yang bisa lambat/sibuk (beberapa percobaan) --
+// default fungsi serverless terlalu pendek, sehingga respons terputus dan UI hanya menampilkan "Gagal".
+export const maxDuration = 60;
+
 /**
  * Perbarui data lokasi listing: baca metadata.maps_url -> koordinat -> fasilitas umum sekitar
  * (OpenStreetMap) -> simpan ke metadata.geo. Diamankan sesi login; RLS listings_owner_or_admin
@@ -52,7 +56,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const fetched = await fetchNearbyFacilities(coords);
+  // Daerah pinggiran biasanya jarang terdata di OSM: kalau dalam 2 km terlalu sedikit, perluas ke 4 km.
+  let fetched = await fetchNearbyFacilities(coords, 2000);
+  if (fetched !== null && fetched.length < 3) {
+    const wider = await fetchNearbyFacilities(coords, 4000);
+    if (wider !== null && wider.length > fetched.length) fetched = wider;
+  }
   // Server peta sibuk (null): simpan koordinat, pertahankan fasilitas lama kalau ada.
   const previousGeo = typeof metadata.geo === "object" && metadata.geo !== null && !Array.isArray(metadata.geo) ? (metadata.geo as Record<string, Json>) : {};
   const nearby = fetched ?? (Array.isArray(previousGeo.nearby) ? previousGeo.nearby : []);

@@ -86,7 +86,7 @@ export function PropertyGeoCard({ listingId, mapsUrl, geo }: PropertyGeoCardProp
             <p className="text-sm text-muted-foreground">Belum ada fasilitas umum terdata di sekitar titik ini (data OpenStreetMap).</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Fasilitas dari OpenStreetMap, bisa belum lengkap. Jarak adalah garis lurus dari titik listing.
+            Fasilitas dari OpenStreetMap (radius 2-4 km), bisa belum lengkap. Jarak adalah garis lurus dari titik listing.
           </p>
         </div>
       ) : (
