@@ -68,6 +68,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nurture_sends: {
+        Row: {
+          id: string
+          lead_id: string
+          conversation_id: string | null
+          step: number
+          template_name: string
+          status: string
+          wa_message_id: string | null
+          error: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          conversation_id?: string | null
+          step: number
+          template_name: string
+          status: string
+          wa_message_id?: string | null
+          error?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          conversation_id?: string | null
+          step?: number
+          template_name?: string
+          status?: string
+          wa_message_id?: string | null
+          error?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       follow_up_queue: {
         Row: {
           id: string

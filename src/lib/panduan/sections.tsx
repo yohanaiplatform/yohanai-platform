@@ -615,6 +615,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           balasan itu ikut diproses otomatis. Template baru hanya bisa dipakai setelah disetujui, dan pesan
           template bisa dikenai biaya per pesan.
         </GuideP>
+        <GuideHeading>Follow-up otomatis (nurturing)</GuideHeading>
+        <GuideP>
+          Lead yang sempat chat lalu diam 48 jam bisa otomatis dikirimi template follow-up (dan sekali lagi 5 hari
+          kemudian), maksimal 2 kali, hanya antara pukul 08.00 dan 20.00. Pengiriman berhenti kalau lead membalas
+          atau menolak (mis. &quot;Belum saat ini&quot;), dan tidak berlaku untuk lead Hot, Closing, atau Batal. Fitur ini
+          baru tahap percobaan dan hanya berjalan setelah admin mengaktifkannya.
+        </GuideP>
         <GuideNote>
           <strong>Status saat ini: nomor WhatsApp produksi sudah aktif</strong> (sejak 2 Oktober 2026) -- bukan
           nomor uji coba lagi, balasan AI Agent terkirim ke lead/customer sungguhan.

@@ -80,6 +80,8 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 
 **Kalkulator KPR sudah SELESAI (4 Oktober 2026)** — `src/lib/kpr/calculator.ts` (fungsi murni: subsidi = faktor skala tabel Bank BSN, non-subsidi = anuitas 7%), dipakai AI Agent (disuntik ke prompt kalau lead menyebut DP; jangan suruh LLM berhitung) dan `KprSimulator.tsx` di halaman listing. Jangan bangun ulang. Sisa homework: nurturing otomatis (aturan konservatif: 48 jam, maks 2x, 08-20 WIB) dan Knowledge Loop (status.mdx item 00 & 00d).
 
+**Nurturing otomatis v1 DIBANGUN, masih DRY-RUN (4 Oktober 2026)** — `src/lib/nurture/runNurture.ts` dari `/api/cron/hourly`, tabel `ai.nurture_sends` (migration `060`). Tidak ada pesan terkirim sampai env `NURTURE_ENABLED=true` diisi di Vercel; cek dulu daftar "eligible" di respons cron sebelum menyalakan. Detail aturan: status.mdx item 00j. Belum ada UI Template/aturan.
+
 **Kerjaan sekarang (lihat Task 037 di `docs/status.mdx` untuk checklist lengkap):**
 0. Live-test perubahan AI Agent Task 030 (deflect survey/nego/maps, konfirmasi nama) lewat WhatsApp sandbox Kapso sungguhan.
 1. Integrasikan Cloudflare AI Crawl Control ke Platform Report — perlu API token Cloudflare baru (scope belum dicek), belum ada kode.

@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { GET as flushFollowUps } from "@/app/api/ai/flush-follow-ups/route";
 import { GET as sendDigest } from "@/app/api/ai/send-digest/route";
 import { GET as sendDailyReport } from "@/app/api/reports/daily/route";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { runNurture } from "@/lib/nurture/runNurture";
 
 const WIB_OFFSET_HOURS = 7;
 const DIGEST_HOURS_WIB = [8, 13, 21];
@@ -18,6 +20,7 @@ const DAILY_REPORT_HOUR_WIB = 7;
  * - tiap jam: flush antrean follow-up AI (notifikasi in-app)
  * - jam 08/13/21 WIB: rangkuman chat ke WhatsApp agen
  * - jam 07 WIB: Daily Report + Platform Report
+ * - tiap jam (08-20 WIB): nurturing template ke lead diam (dry-run kecuali NURTURE_ENABLED=true)
  *
  * Handler lain dipanggil langsung (bukan lewat HTTP), dengan secret masing-
  * masing dibaca dari env server -- DAILY_REPORT_SECRET tidak perlu diketahui
@@ -60,6 +63,13 @@ export async function GET(request: Request) {
         new Request(url, { headers: { "x-report-secret": process.env.DAILY_REPORT_SECRET ?? "" } })
       )
     );
+  }
+
+  // Nurturing otomatis (DRY-RUN kecuali env NURTURE_ENABLED=true; hanya jam 08-20 WIB).
+  try {
+    results.nurture = await runNurture(createAdminClient());
+  } catch (error) {
+    results.nurture = { error: error instanceof Error ? error.message : "gagal" };
   }
 
   return NextResponse.json(results);
