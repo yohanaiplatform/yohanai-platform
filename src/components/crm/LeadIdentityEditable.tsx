@@ -31,6 +31,8 @@ export function LeadIdentityEditable({ leadId, firstName, lastName, email, phone
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const [formFirstName, setFormFirstName] = useState(firstName);
   const [formLastName, setFormLastName] = useState(lastName);
@@ -75,7 +77,31 @@ export function LeadIdentityEditable({ leadId, firstName, lastName, email, phone
     }
 
     setIsEditing(false);
+    // Perubahan nama/telepon/email ikut diperbarui di Google Contacts (diam-diam).
+    fetch(`/api/leads/${leadId}/sync-contact`, { method: "POST" }).catch(() => {});
     router.refresh();
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch(`/api/leads/${leadId}/sync-contact`, { method: "POST" });
+      const data = await res.json();
+      const messages: Record<string, string> = {
+        created: "Kontak dibuat di Google Contacts.",
+        updated: "Kontak diperbarui di Google Contacts.",
+        unchanged: "Kontak sudah sinkron.",
+        no_connection: "Akun Google Contacts belum terhubung. Hubungkan dulu di Settings.",
+        no_phone: "Lead ini belum punya nomor telepon.",
+        not_found: "Lead tidak ditemukan.",
+        error: "Gagal sinkron. Coba lagi nanti.",
+      };
+      setSyncMessage(messages[data.status] ?? "Gagal sinkron. Coba lagi nanti.");
+    } catch {
+      setSyncMessage("Gagal sinkron. Coba lagi nanti.");
+    }
+    setSyncing(false);
   }
 
   async function handleDelete() {
@@ -112,6 +138,10 @@ export function LeadIdentityEditable({ leadId, firstName, lastName, email, phone
     return (
       <div className="flex flex-wrap items-center justify-end gap-2">
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {syncMessage && <p className="text-sm text-muted-foreground">{syncMessage}</p>}
+        <Button type="button" size="sm" variant="outline" onClick={handleSync} disabled={deleting || syncing}>
+          {syncing ? "Menyinkronkan..." : "Sinkronkan ke Google Contacts"}
+        </Button>
         <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)} disabled={deleting}>
           Edit Nama/Kontak
         </Button>

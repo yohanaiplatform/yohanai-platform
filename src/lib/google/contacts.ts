@@ -140,3 +140,44 @@ export async function createGoogleContact(
   const data = await res.json();
   return { resourceName: data.resourceName ?? null, error: null };
 }
+
+/**
+ * Perbarui kontak yang sudah pernah dibuat (nama/telepon/email). People API
+ * mewajibkan etag terbaru, jadi kontak dibaca dulu. Mengembalikan notFound
+ * kalau kontaknya sudah dihapus pemiliknya di Google (pemanggil lalu buat baru).
+ */
+export async function updateGoogleContact(
+  refreshToken: string,
+  resourceName: string,
+  input: ContactInput
+): Promise<{ notFound: boolean; error: string | null }> {
+  let accessToken: string;
+  try {
+    accessToken = await getAccessTokenFromRefreshToken(refreshToken);
+  } catch (err) {
+    return { notFound: false, error: err instanceof Error ? err.message : "Gagal ambil access token" };
+  }
+
+  const getRes = await fetch(`${PEOPLE_API_BASE}/${resourceName}?personFields=names`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (getRes.status === 404) return { notFound: true, error: null };
+  if (!getRes.ok) return { notFound: false, error: `Google People API error: ${await getRes.text()}` };
+  const existing = await getRes.json();
+
+  const res = await fetch(
+    `${PEOPLE_API_BASE}/${resourceName}:updateContact?updatePersonFields=names,phoneNumbers,emailAddresses`,
+    {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        etag: existing.etag,
+        names: [{ givenName: input.name }],
+        phoneNumbers: [{ value: input.phone, type: "mobile" }],
+        emailAddresses: input.email ? [{ value: input.email }] : [],
+      }),
+    }
+  );
+  if (!res.ok) return { notFound: false, error: `Google People API error: ${await res.text()}` };
+  return { notFound: false, error: null };
+}

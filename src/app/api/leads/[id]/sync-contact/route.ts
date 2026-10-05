@@ -2,20 +2,17 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { syncLeadToGoogleContacts } from "@/lib/google/syncLeadContact";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { syncLeadById } from "@/lib/google/syncLeadContact";
 
 /**
- * Sync satu lead ke Google Contacts MILIK USER YANG LOGIN, dipanggil dari
- * AddLeadForm.tsx setelah createLead() sukses -- createLead.ts jalan di
- * browser (butuh RLS session client), sementara token Google (refresh
- * token) tidak boleh sampai ke browser, jadi perlu route terpisah ini.
- *
- * Personal per user (29 September 2026) -- no-op diam-diam kalau user ini
- * belum sambungkan akun Google-nya sendiri lewat halaman Settings
- * (auth_ext.google_contacts_connections belum ada baris untuk dia).
- *
- * Sesi login biasa (bukan admin-only) -- RLS `leads_owner_or_admin` di
- * bawahnya sudah membatasi lead mana saja yang bisa dibaca pemanggil.
+ * Sinkronkan satu lead ke Google Contacts. Dipanggil dari AddLeadForm,
+ * simpan "Edit Nama/Kontak", dan tombol "Sinkronkan ke Google Contacts" di
+ * Lead Detail. Token Google tidak boleh sampai ke browser, jadi sinkron
+ * berjalan di sini lewat service-role; sesi login hanya dipakai untuk
+ * memastikan pemanggil memang boleh melihat lead itu (RLS
+ * `leads_owner_or_admin`). Kontak masuk ke akun Google agen yang ditugaskan
+ * ke lead (fallback: akun pemanggil bila lead belum punya agen).
  */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,30 +26,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: connection } = await supabase
-    .schema("auth_ext")
-    .from("google_contacts_connections")
-    .select("refresh_token")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!connection) {
-    // Belum sambungkan Google Contacts sama sekali -- bukan error, cuma belum aktif.
-    return NextResponse.json({ success: true, synced: false });
-  }
-
-  const { data: lead, error } = await supabase
-    .schema("customer")
-    .from("leads")
-    .select("first_name, last_name, phone, email")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error || !lead || !lead.phone) {
+  const { data: visible } = await supabase.schema("customer").from("leads").select("id").eq("id", id).maybeSingle();
+  if (!visible) {
     return NextResponse.json({ error: "Lead tidak ditemukan" }, { status: 404 });
   }
 
-  await syncLeadToGoogleContacts(connection.refresh_token, { ...lead, phone: lead.phone });
+  const result = await syncLeadById(createAdminClient(), id, user.id);
 
-  return NextResponse.json({ success: true, synced: true });
+  return NextResponse.json({
+    success: result.status !== "error",
+    status: result.status,
+    synced: result.status === "created" || result.status === "updated" || result.status === "unchanged",
+    ...(result.status === "error" ? { error: result.message } : {}),
+  });
 }

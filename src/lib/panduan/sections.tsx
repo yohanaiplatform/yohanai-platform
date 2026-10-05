@@ -255,9 +255,11 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         </GuideP>
         <GuideHeading>Kenapa hubungkan Google Contacts</GuideHeading>
         <GuideP>
-          Begitu terhubung, lead yang Anda tambah manual lewat &quot;Add Lead&quot; di CRM otomatis tersimpan
-          juga sebagai kontak di Google Contacts/HP Anda sendiri -- jadi nomor lead langsung ada di kontak HP
-          tanpa input dua kali.
+          Begitu terhubung, setiap lead baru yang ditugaskan ke Anda -- baik yang Anda tambah manual lewat
+          &quot;Add Lead&quot; maupun yang masuk sendiri dari WhatsApp -- otomatis tersimpan juga sebagai kontak
+          di Google Contacts/HP Anda. Saat nama lead berubah (misalnya setelah ia menyebut namanya), kontaknya
+          ikut diperbarui. Untuk lead lama, buka halaman lead lalu klik &quot;Sinkronkan ke Google Contacts&quot;.
+          Nomor disimpan dalam format +62 supaya dikenali WhatsApp.
         </GuideP>
         <GuideHeading>Kalau gagal connect</GuideHeading>
         <GuideP>

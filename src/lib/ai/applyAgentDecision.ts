@@ -1,5 +1,6 @@
 // src/lib/ai/applyAgentDecision.ts
 
+import { syncLeadById } from "@/lib/google/syncLeadContact";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 import { sendWhatsAppText, sendWhatsAppImage } from "@/lib/whatsapp/kapso";
@@ -109,6 +110,9 @@ export async function applyAgentDecision(
       .from("leads")
       .update({ first_name: decision.confirmedName })
       .eq("id", input.leadId);
+
+    // Nama kontak di Google Contacts ikut diganti dari "(NN)" ke nama asli.
+    await syncLeadById(supabaseAdmin, input.leadId);
   }
 
   // Refresh ringkasan percakapan -- soft-delete note ringkasan lama (kalau

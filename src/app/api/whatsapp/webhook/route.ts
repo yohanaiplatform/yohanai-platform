@@ -1,5 +1,6 @@
 // src/app/api/whatsapp/webhook/route.ts
 
+import { syncLeadById } from '@/lib/google/syncLeadContact'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -371,6 +372,10 @@ async function handleMessageReceived(
     if (leadId && orphanConversationId) {
       await supabase.schema('chat').from('conversations').update({ lead_id: leadId }).eq('id', orphanConversationId)
     }
+
+    // Lead baru -> kontaknya langsung masuk Google Contacts agen yang ditugaskan
+    // (gagal sinkron tidak menghentikan alur; syncLeadById tidak pernah melempar).
+    if (leadId) await syncLeadById(supabase, leadId)
   }
 
   if (leadId) {
