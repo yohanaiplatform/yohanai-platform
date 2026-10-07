@@ -81,7 +81,33 @@ export async function applyAgentDecision(
   // atau mengubah metadata; pakai versi segar supaya jeda tidak tertimpa dan balasan tidak terkirim di atas jawaban manusia.
   const { data: freshLead } = await supabaseAdmin.schema("customer").from("leads").select("metadata").eq("id", input.leadId).maybeSingle();
   const freshMetadata = freshLead?.metadata ?? input.currentMetadata;
-  const aiPausedNow = getAiPausedUntil(freshMetadata) !== null;
+  let aiPausedNow = getAiPausedUntil(freshMetadata) !== null;
+
+  // Pengaman balapan: manusia (bukan AI, bukan template otomatis) sudah membalas di percakapan ini SETELAH
+  // pesan lead yang memicu run ini -> AI tidak boleh menimpa/menyela, walau penanda jeda belum sempat tertulis
+  // (ketemu 7 Okt: balasan agen dan balasan AI terkirim berselang 2 detik).
+  if (!aiPausedNow) {
+    const { data: trigger } = await supabaseAdmin
+      .schema("chat")
+      .from("messages")
+      .select("created_at")
+      .eq("id", input.triggerMessageId)
+      .maybeSingle();
+    if (trigger) {
+      const { data: later } = await supabaseAdmin
+        .schema("chat")
+        .from("messages")
+        .select("metadata")
+        .eq("conversation_id", input.conversationId)
+        .eq("sender_type", "agent")
+        .gt("created_at", trigger.created_at)
+        .limit(10);
+      aiPausedNow = (later ?? []).some((m) => {
+        const meta = (m.metadata ?? {}) as Record<string, unknown>;
+        return meta.ai_generated !== true && meta.message_type !== "template";
+      });
+    }
+  }
 
   // Update metadata lead sekali jalan: Temperature (status_funnel_awal) dan/atau
   // Minat Unit/Lokasi (minat_unit_lokasi) dari percakapan.
