@@ -324,9 +324,10 @@ export async function interpretLeadReply(
   // ambigu -- jangan ubah kode, cukup ganti ANTHROPIC_EFFORT di Vercel.
   const effort = process.env.ANTHROPIC_EFFORT || "low";
 
-  let res: Response;
-  try {
-    res = await fetch("https://api.anthropic.com/v1/messages", {
+  const userPrompt = buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext);
+
+  const call = (withCache: boolean) =>
+    fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -336,11 +337,29 @@ export async function interpretLeadReply(
       body: JSON.stringify({
         model,
         max_tokens: 1024,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: buildUserPrompt(lead, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext) }],
+        // Prompt sistem (~6 ribu token, statis) di-cache 1 jam: dipakai bersama SEMUA lead, jadi tiap pesan
+        // berikutnya membaca dari cache (0,1x harga) alih-alih membayar penuh. Bagian yang berubah-ubah
+        // (data lead, riwayat, listing, peta) sengaja ada di pesan user, SETELAH prefix yang di-cache.
+        // Jangan menaruh apa pun yang berubah per permintaan (tanggal, ID) di SYSTEM_PROMPT -- cache langsung tidak terpakai.
+        system: withCache
+          ? [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral", ttl: "1h" } }]
+          : SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userPrompt }],
         output_config: { effort },
       }),
     });
+
+  let res: Response;
+  try {
+    res = await call(true);
+    // Pengaman: kalau API menolak parameter cache (400), ulangi tanpa cache -- balasan ke lead tidak boleh gagal gara-gara optimasi biaya.
+    if (res.status === 400) {
+      const body = await res.clone().text();
+      if (/cache_control|ttl/i.test(body)) {
+        console.error(`[ai] cache_control ditolak, ulangi tanpa cache: ${body.slice(0, 200)}`);
+        res = await call(false);
+      }
+    }
   } catch (err) {
     return { decision: null, rawResponse: null, error: `Gagal menghubungi Anthropic API: ${err}` };
   }

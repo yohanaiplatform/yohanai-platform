@@ -27,14 +27,29 @@ interface AgentRunRow {
   llm_raw_response: Json | null;
 }
 
-function extractUsage(raw: Json | null): { input: number; output: number } {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { input: 0, output: 0 };
+const num = (v: unknown) => (typeof v === "number" ? v : 0);
+
+/** Token + biaya satu respons. input_tokens TIDAK mencakup bagian prompt caching, jadi cache dihitung terpisah (baca 0,1x; tulis 5 menit 1,25x; tulis 1 jam 2x). */
+function extractUsage(raw: Json | null): { input: number; output: number; costUsd: number } {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { input: 0, output: 0, costUsd: 0 };
   const usage = (raw as Record<string, unknown>).usage;
-  if (!usage || typeof usage !== "object") return { input: 0, output: 0 };
+  if (!usage || typeof usage !== "object") return { input: 0, output: 0, costUsd: 0 };
   const u = usage as Record<string, unknown>;
+  const creation = typeof u.cache_creation === "object" && u.cache_creation !== null ? (u.cache_creation as Record<string, unknown>) : {};
+  const plain = num(u.input_tokens);
+  const read = num(u.cache_read_input_tokens);
+  const write1h = num(creation.ephemeral_1h_input_tokens);
+  const write5m = num(creation.ephemeral_5m_input_tokens) + Math.max(0, num(u.cache_creation_input_tokens) - num(creation.ephemeral_5m_input_tokens) - write1h);
+  const output = num(u.output_tokens);
   return {
-    input: typeof u.input_tokens === "number" ? u.input_tokens : 0,
-    output: typeof u.output_tokens === "number" ? u.output_tokens : 0,
+    input: plain + read + write5m + write1h,
+    output,
+    costUsd:
+      plain * SONNET_55_INPUT_PER_TOKEN +
+      read * SONNET_55_INPUT_PER_TOKEN * 0.1 +
+      write5m * SONNET_55_INPUT_PER_TOKEN * 1.25 +
+      write1h * SONNET_55_INPUT_PER_TOKEN * 2 +
+      output * SONNET_55_OUTPUT_PER_TOKEN,
   };
 }
 
@@ -80,14 +95,16 @@ export async function getAiAgentUsage(
 
   let inputTokensToday = 0;
   let outputTokensToday = 0;
+  let costUsdToday = 0;
   let repliesSentToday = 0;
   const runsToday = scopedRuns.filter((r) => r.status === "success").length;
 
   for (const run of scopedRuns) {
     if (run.reply_sent) repliesSentToday += 1;
-    const { input, output } = extractUsage(run.llm_raw_response);
+    const { input, output, costUsd } = extractUsage(run.llm_raw_response);
     inputTokensToday += input;
     outputTokensToday += output;
+    costUsdToday += costUsd;
   }
 
   const { data: photoMessages } = await supabase
@@ -131,6 +148,6 @@ export async function getAiAgentUsage(
     needsFollowUpToday: needsFollowUpToday ?? 0,
     inputTokensToday,
     outputTokensToday,
-    estimatedCostUsd: inputTokensToday * SONNET_55_INPUT_PER_TOKEN + outputTokensToday * SONNET_55_OUTPUT_PER_TOKEN,
+    estimatedCostUsd: costUsdToday,
   };
 }

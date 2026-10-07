@@ -6,6 +6,10 @@ import type { Database, Json } from "@/types/database";
 /** Harga Sonnet 5.5 ($2/$10 per 1M token) -- estimasi, bukan invoice. Sama dengan getAiAgentUsage.ts. */
 const INPUT_PER_TOKEN = 2 / 1_000_000;
 const OUTPUT_PER_TOKEN = 10 / 1_000_000;
+/** Prompt caching: baca cache 0,1x; tulis cache 5 menit 1,25x, 1 jam 2x dari harga input. */
+const CACHE_READ_PER_TOKEN = INPUT_PER_TOKEN * 0.1;
+const CACHE_WRITE_5M_PER_TOKEN = INPUT_PER_TOKEN * 1.25;
+const CACHE_WRITE_1H_PER_TOKEN = INPUT_PER_TOKEN * 2;
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAGE = 1000;
@@ -38,12 +42,36 @@ interface UsageRow {
   usage: Json | null;
 }
 
-function tokensOf(usage: Json | null): { input: number; output: number } {
-  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return { input: 0, output: 0 };
+interface TokenUsage {
+  /** Total token masukan (biasa + dibaca dari cache + ditulis ke cache). */
+  input: number;
+  output: number;
+  costUsd: number;
+}
+
+const num = (v: unknown) => (typeof v === "number" ? v : 0);
+
+function tokensOf(usage: Json | null): TokenUsage {
+  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return { input: 0, output: 0, costUsd: 0 };
   const u = usage as Record<string, unknown>;
+  const plain = num(u.input_tokens);
+  const read = num(u.cache_read_input_tokens);
+  const creation = typeof u.cache_creation === "object" && u.cache_creation !== null ? (u.cache_creation as Record<string, unknown>) : {};
+  const write5m = num(creation.ephemeral_5m_input_tokens);
+  const write1h = num(creation.ephemeral_1h_input_tokens);
+  // Total penulisan cache; kalau rincian TTL tidak ada, anggap 5 menit.
+  const writeTotal = num(u.cache_creation_input_tokens);
+  const write5mFinal = write5m + Math.max(0, writeTotal - write5m - write1h);
+  const output = num(u.output_tokens);
   return {
-    input: typeof u.input_tokens === "number" ? u.input_tokens : 0,
-    output: typeof u.output_tokens === "number" ? u.output_tokens : 0,
+    input: plain + read + write5mFinal + write1h,
+    output,
+    costUsd:
+      plain * INPUT_PER_TOKEN +
+      read * CACHE_READ_PER_TOKEN +
+      write5mFinal * CACHE_WRITE_5M_PER_TOKEN +
+      write1h * CACHE_WRITE_1H_PER_TOKEN +
+      output * OUTPUT_PER_TOKEN,
   };
 }
 
@@ -137,8 +165,7 @@ export async function getAiUsageSummary(
   let monthCost = 0;
 
   for (const run of runs) {
-    const { input, output } = tokensOf(run.usage);
-    const c = cost(input, output);
+    const { input, output, costUsd: c } = tokensOf(run.usage);
     const isMessage = run.status === "success";
     for (const { p, from } of periods) {
       if (!inPeriod(run.created_at, from)) continue;
