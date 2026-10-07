@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessageList, toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
+import { AiPauseControl } from "@/components/shared/AiPauseControl";
 
 interface RecentChatThreadProps {
   conversationId: string;
@@ -90,6 +91,7 @@ export function RecentChatThread({ conversationId, leadId }: RecentChatThreadPro
 
   return (
     <div className="space-y-3 border-t border-border pt-3">
+      {leadId && <AiPauseControl leadId={leadId} />}
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>
       ) : (

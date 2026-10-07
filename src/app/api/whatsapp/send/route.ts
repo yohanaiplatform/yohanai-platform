@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
 import { findOrCreateLeadConversation } from "@/lib/chat/conversations";
 import { getPhoneNumberIdForUser } from "@/lib/whatsapp/whatsappNumbers";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { pauseAiForLead } from "@/lib/ai/aiPause";
 
 /**
  * Kirim balasan WhatsApp keluar dari Lead Detail. Diamankan lewat sesi
@@ -114,6 +116,9 @@ export async function POST(request: Request) {
       .update({ status: "active" })
       .eq("id", conversationId);
   }
+
+  // Manusia ikut membalas dari dashboard -> AI diam 2 jam supaya tidak menimpa/menyela jawaban agen.
+  await pauseAiForLead(createAdminClient(), leadId, "human_reply");
 
   return NextResponse.json({ success: true, conversationId, message: savedMessage });
 }

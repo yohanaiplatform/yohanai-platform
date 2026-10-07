@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatMessageList, toChatMessage, type ChatMessage } from "@/components/shared/ChatMessageList";
 import { FOLLOW_UP_TEMPLATES, DEFAULT_FOLLOW_UP_TEMPLATE } from "@/lib/whatsapp/followUpTemplates";
+import { AiPauseControl } from "@/components/shared/AiPauseControl";
 import type { CrmDictionary } from "@/lib/i18n/dictionaries";
 
 interface LeadWhatsAppProps {
@@ -139,6 +140,7 @@ export function LeadWhatsApp({
 
   return (
     <div className="space-y-4">
+      <AiPauseControl leadId={leadId} />
       <ChatMessageList messages={messages} emptyLabel={t.detail.whatsappEmpty} />
 
       <form onSubmit={handleSubmit} className="space-y-2 border-t border-border pt-3">

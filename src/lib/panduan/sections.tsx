@@ -675,6 +675,19 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           balasan itu ikut diproses otomatis. Template baru hanya bisa dipakai setelah disetujui, dan pesan
           template bisa dikenai biaya per pesan.
         </GuideP>
+        <GuideHeading>Ambil alih percakapan dari AI</GuideHeading>
+        <GuideP>
+          Di halaman lead (dan di Recent Chats di Dashboard) ada kotak status <strong>AI aktif</strong> atau{" "}
+          <strong>AI dijeda</strong>. Klik <strong>Ambil alih</strong> kalau Anda ingin menangani lead itu sendiri --
+          AI langsung diam dan tidak membalas, sementara pesan lead tetap tersimpan dan Anda tetap mendapat pemberitahuan.
+          Klik <strong>Kembalikan ke AI</strong> kapan saja untuk menyerahkannya lagi.
+        </GuideP>
+        <GuideP>
+          Jeda juga terjadi <strong>otomatis</strong> saat Anda ikut membalas lead -- baik lewat dashboard maupun lewat
+          aplikasi WhatsApp di HP atau WhatsApp Web. AI diam selama 2 jam sejak balasan Anda yang terakhir (setiap Anda
+          membalas lagi, 2 jam dihitung ulang), lalu kembali aktif sendiri. Balasan yang Anda ketik di WhatsApp HP atau Web
+          ikut tampil di riwayat percakapan.
+        </GuideP>
         <GuideHeading>Follow-up otomatis (nurturing)</GuideHeading>
         <GuideP>
           Lead yang sempat chat lalu diam bisa otomatis dikirimi template follow-up. Aturannya bisa Anda atur sendiri

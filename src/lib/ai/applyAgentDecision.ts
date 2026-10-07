@@ -1,5 +1,6 @@
 // src/lib/ai/applyAgentDecision.ts
 
+import { getAiPausedUntil } from "@/lib/ai/aiPause";
 import { syncLeadById } from "@/lib/google/syncLeadContact";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
@@ -76,6 +77,12 @@ export async function applyAgentDecision(
 ): Promise<void> {
   const { decision } = input;
 
+  // Metadata TERBARU dari database: selama AI memproses (beberapa detik) manusia bisa saja menjeda AI
+  // atau mengubah metadata; pakai versi segar supaya jeda tidak tertimpa dan balasan tidak terkirim di atas jawaban manusia.
+  const { data: freshLead } = await supabaseAdmin.schema("customer").from("leads").select("metadata").eq("id", input.leadId).maybeSingle();
+  const freshMetadata = freshLead?.metadata ?? input.currentMetadata;
+  const aiPausedNow = getAiPausedUntil(freshMetadata) !== null;
+
   // Update metadata lead sekali jalan: Temperature (status_funnel_awal) dan/atau
   // Minat Unit/Lokasi (minat_unit_lokasi) dari percakapan.
   const metadataUpdates: Record<string, Json> = {};
@@ -89,8 +96,8 @@ export async function applyAgentDecision(
 
   if (Object.keys(metadataUpdates).length > 0) {
     const baseMetadata =
-      typeof input.currentMetadata === "object" && input.currentMetadata !== null && !Array.isArray(input.currentMetadata)
-        ? (input.currentMetadata as Record<string, Json>)
+      typeof freshMetadata === "object" && freshMetadata !== null && !Array.isArray(freshMetadata)
+        ? (freshMetadata as Record<string, Json>)
         : {};
 
     await supabaseAdmin
@@ -141,7 +148,7 @@ export async function applyAgentDecision(
   let replySent = false;
   let replyMessageId: string | null = null;
 
-  if (decision.replyText && decision.confidence !== "low") {
+  if (!aiPausedNow && decision.replyText && decision.confidence !== "low") {
     const sendResult = await sendWhatsAppText(input.leadPhone, decision.replyText, input.phoneNumberId);
 
     if (sendResult.success) {
@@ -170,7 +177,7 @@ export async function applyAgentDecision(
   // cuma berisi URL yang benar-benar ada di data listing, tidak pernah
   // halusinasi LLM. Kirim satu per satu (WhatsApp/Kapso tidak punya endpoint
   // multi-image sekali kirim); satu foto gagal tidak menggagalkan yang lain.
-  for (const photoUrl of decision.sharePhotoUrls) {
+  for (const photoUrl of aiPausedNow ? [] : decision.sharePhotoUrls) {
     const sendResult = await sendWhatsAppImage(input.leadPhone, photoUrl, undefined, input.phoneNumberId);
 
     if (sendResult.success) {

@@ -1,6 +1,7 @@
 // src/app/api/whatsapp/webhook/route.ts
 
 import { syncLeadById } from '@/lib/google/syncLeadContact'
+import { getAiPausedUntil, pauseAiForLead } from '@/lib/ai/aiPause'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -59,8 +60,12 @@ interface KapsoMessage {
   type: string
   from?: string
   text?: { body?: string }
+  // origin "business_app" = pesan yang diketik manusia lewat aplikasi WhatsApp Business / WhatsApp Web
+  // (coexistence), diteruskan Kapso lewat event "received" dengan direction "outbound".
+  origin?: string
   kapso?: {
     direction?: string
+    origin?: string
     content?: string | null
     has_media?: boolean
   }
@@ -344,6 +349,41 @@ async function handleMessageReceived(
 
   let leadId = leads?.[0]?.id ?? null
 
+  // Pesan yang diketik MANUSIA dari WhatsApp Business app / WhatsApp Web (echo) -- BUKAN pesan lead.
+  // Dicatat sebagai pesan agen (supaya AI dan riwayat tahu manusia sudah menjawab) dan AI dijeda 2 jam.
+  // Tidak pernah membuat lead baru dan tidak pernah memicu AI.
+  const isHumanEcho =
+    payload.message.kapso?.direction === 'outbound' ||
+    payload.message.kapso?.origin === 'business_app' ||
+    payload.message.origin === 'business_app'
+  if (isHumanEcho) {
+    if (!leadId) return
+    const echoConversationId = await findOrCreateLeadConversation(
+      supabase,
+      leadId,
+      payload.conversation?.contact_name ?? phone,
+      phoneNumberId
+    )
+    if (!echoConversationId) return
+    await supabase
+      .schema('chat')
+      .from('messages')
+      .insert({
+        conversation_id: echoConversationId,
+        sender_type: 'agent',
+        content,
+        metadata: {
+          wa_message_id: waMessageId,
+          message_type: payload.message.type,
+          has_media: MEDIA_MESSAGE_TYPES.has(payload.message.type),
+          source: 'whatsapp_app',
+        },
+      })
+    await supabase.schema('chat').from('conversations').update({ status: 'active' }).eq('id', echoConversationId)
+    await pauseAiForLead(supabase, leadId, 'human_reply')
+    return
+  }
+
   let conversationId: string | null = null
 
   // Thread tanpa lead dari percakapan SEBELUMNYA di nomor yang sama (mis.
@@ -439,6 +479,23 @@ async function handleMessageReceived(
   // Balasan tombol quick-reply template (mis. "Sudah dapat rumah") datang
   // bertipe 'button'/'interactive', tapi isinya teks biasa -- harus diproses AI.
   const isTextMessage = ['text', 'button', 'interactive'].includes(payload.message.type) && Boolean(payload.message.text?.body ?? payload.message.kapso?.content)
+
+  // AI dijeda (agen mengambil alih / ikut membalas dalam 2 jam terakhir): pesan lead tetap tersimpan,
+  // AI DIAM, dan agen diberi tahu lewat antrean follow-up (dirangkum, bukan per pesan).
+  if (leadId && isTextMessage) {
+    const { data: pauseLead } = await supabase.schema('customer').from('leads').select('metadata').eq('id', leadId).maybeSingle()
+    if (getAiPausedUntil(pauseLead?.metadata)) {
+      await supabase
+        .schema('ai')
+        .from('follow_up_queue')
+        .insert({
+          lead_id: leadId,
+          conversation_id: conversationId,
+          note: `Lead membalas saat AI dijeda (ditangani manual): "${content.slice(0, 120)}"`,
+        })
+      return
+    }
+  }
 
   if (leadId && isTextMessage && process.env.ANTHROPIC_API_KEY) {
     // Best-effort -- indikator "mengetik" cuma UX, jangan sampai gagal
