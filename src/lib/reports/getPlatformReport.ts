@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
+import { getAiUsageSummary, type AiUsageSummary } from "@/lib/reports/getAiUsageSummary";
 import { getReportDayWindow } from "@/lib/reports/getDailyReport";
 
 export interface PlatformReport {
@@ -33,6 +34,7 @@ export interface PlatformReport {
   integrations: IntegrationStatus[];
   googleContactsAccessRequests: { count: number; emails: string[] };
   aiAgent: AiAgentUsage;
+  aiUsage: AiUsageSummary;
 }
 
 export type IntegrationStatusValue = "aktif" | "error" | "belum_dikonfigurasi";
@@ -206,6 +208,7 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     vercelStatus,
     pendingAccessRequests,
     aiAgent,
+    aiUsage,
   ] = await Promise.all([
     supabase.auth.admin.listUsers(),
     supabase.schema("customer").from("leads").select("id", { count: "exact", head: true }).is("deleted_at", null),
@@ -227,6 +230,7 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     getVercelStatus(),
     supabase.schema("auth_ext").from("google_contacts_access_requests").select("user_id").eq("status", "pending"),
     getAiAgentUsage(supabase, dayStart, dayEnd, null),
+    getAiUsageSummary(supabase, dayStart, dayEnd),
   ]);
 
   const stats = platformStats.data?.[0];
@@ -249,5 +253,6 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     integrations: getIntegrationsStatus(vercelStatus),
     googleContactsAccessRequests: { count: pendingEmails.length, emails: pendingEmails },
     aiAgent,
+    aiUsage,
   };
 }

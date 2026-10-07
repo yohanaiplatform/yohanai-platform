@@ -68,6 +68,33 @@ export type Database = {
         }
         Relationships: []
       }
+      llm_usage: {
+        Row: {
+          id: string
+          feature: string
+          model: string | null
+          input_tokens: number
+          output_tokens: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          feature: string
+          model?: string | null
+          input_tokens?: number
+          output_tokens?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          feature?: string
+          model?: string | null
+          input_tokens?: number
+          output_tokens?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
       nurture_sends: {
         Row: {
           id: string

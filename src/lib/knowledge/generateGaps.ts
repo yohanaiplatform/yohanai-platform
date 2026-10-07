@@ -88,6 +88,15 @@ export async function generateKnowledgeGaps(supabase: SupabaseClient<Database>):
   if (!res.ok) return { created: 0, skippedReason: `Anthropic API ${res.status}` };
 
   const json = await res.json();
+  await supabase
+    .schema("ai")
+    .from("llm_usage")
+    .insert({
+      feature: "knowledge_gaps",
+      model,
+      input_tokens: json.usage?.input_tokens ?? 0,
+      output_tokens: json.usage?.output_tokens ?? 0,
+    });
   const text: string = json.content?.find((b: { type: string }) => b.type === "text")?.text ?? "";
   const arrayMatch = text.match(/\[[\s\S]*\]/);
   if (!arrayMatch) return { created: 0, skippedReason: "respons AI bukan JSON array" };

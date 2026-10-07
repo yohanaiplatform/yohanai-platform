@@ -143,6 +143,40 @@ function costRow(service: string, href: string | null, tier: string, limit: stri
   </tr>`;
 }
 
+function renderAiUsageHtml(u: PlatformReport["aiUsage"]): string {
+  const th = "padding:6px 8px;font-size:11px;font-weight:700;color:#6B7280;text-align:right;";
+  const td = "padding:6px 8px;font-size:12px;color:#111827;text-align:right;border-bottom:1px solid #F3F4F6;";
+  const row = (p: PlatformReport["aiUsage"]["daily"]) =>
+    `<tr>
+      <td style="${td}text-align:left;font-weight:600;">${p.label}</td>
+      <td style="${td}">${fmt(p.messages)}</td>
+      <td style="${td}">${fmt(p.inputTokens)} / ${fmt(p.outputTokens)}</td>
+      <td style="${td}font-weight:700;">${formatUsd(p.costUsd)}</td>
+      <td style="${td}">${fmt(p.nurtureSent)}</td>
+    </tr>`;
+  const top = u.topLeads.length
+    ? `<div style="margin-top:10px;font-size:12px;color:#374151;"><strong>Lead dengan biaya AI terbesar bulan ini:</strong><br/>${u.topLeads
+        .map((l) => `${l.name} -- ${fmt(l.messages)} pesan, ${formatUsd(l.costUsd)}`)
+        .join("<br/>")}</div>`
+    : "";
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+      <tr style="background:#F9FAFB;">
+        <td style="${th}text-align:left;">Periode</td>
+        <td style="${th}">Pesan AI</td>
+        <td style="${th}">Token in / out</td>
+        <td style="${th}">Biaya AI</td>
+        <td style="${th}">Template WA nurturing</td>
+      </tr>
+      ${row(u.daily)}${row(u.weekly)}${row(u.monthly)}
+    </table>
+    <div style="margin-top:10px;font-size:12px;color:#374151;">
+      Proyeksi biaya AI bulan ini: <strong>${formatUsd(u.monthlyProjectionUsd)}</strong>
+      &nbsp;&middot;&nbsp; Rata-rata per pesan: <strong>${formatUsd(u.avgCostPerMessageUsd)}</strong>
+    </div>
+    ${top}
+    <p style="font-size:11px;color:#9CA3AF;margin:8px 0 0;">Estimasi dari token yang tercatat di aplikasi (harga Sonnet 5.5, $2/$10 per 1M token), termasuk Celah Pengetahuan harian. Bukan angka invoice -- biaya template WhatsApp berbayar dihitung Kapso/Meta, di sini hanya jumlah yang terkirim. Cek Anthropic Console untuk tagihan asli.</p>`;
+}
+
 function formatUsd(n: number): string {
   return `$${n.toFixed(n < 1 ? 4 : 2)}`;
 }
@@ -277,6 +311,14 @@ function renderHtml(report: PlatformReport): string {
                    Estimasi biaya: <strong>${formatUsd(aiAgent.estimatedCostUsd)}</strong>
                  </div>
                  <p style="font-size:11px;color:#9CA3AF;margin:6px 0 0;">Estimasi berbasis harga Sonnet 5.5 ($2/$10 per 1M token) dari ai.agent_runs.llm_raw_response.usage -- bukan angka invoice asli, cek Anthropic Console untuk itu.</p>`
+              )}
+            </td></tr>
+
+            <tr><td>
+              ${sectionCard(
+                "Pemakaian &amp; Biaya AI (Estimasi)",
+                "https://console.anthropic.com/settings/usage",
+                renderAiUsageHtml(report.aiUsage)
               )}
             </td></tr>
 
