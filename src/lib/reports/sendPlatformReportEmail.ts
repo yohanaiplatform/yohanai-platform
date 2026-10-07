@@ -143,7 +143,27 @@ function costRow(service: string, href: string | null, tier: string, limit: stri
   </tr>`;
 }
 
-function renderAiUsageHtml(u: PlatformReport["aiUsage"]): string {
+function renderBillingHtml(b: PlatformReport["anthropicBilling"], estimateMonthUsd: number): string {
+  if (!b.available) {
+    return `<div style="margin-top:12px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:12px;color:#92400E;">Tagihan asli Anthropic belum bisa dibaca: ${b.error ?? "tidak diketahui"}</div>`;
+  }
+  const diff = b.monthUsd - estimateMonthUsd;
+  const lines = b.monthLines
+    .map((l) => `<tr><td style="padding:3px 0;font-size:12px;color:#374151;">${l.description}</td><td style="padding:3px 0;font-size:12px;color:#111827;text-align:right;">${formatUsd(l.usd)}</td></tr>`)
+    .join("");
+  return `<div style="margin-top:12px;padding:10px;background:#ECFDF5;border-radius:6px;">
+      <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:6px;">Tagihan ASLI Anthropic (Claude Console, seluruh organisasi)</div>
+      <div style="font-size:12px;color:#064E3B;">
+        Hari ${b.lastDayLabel ?? "-"} (UTC): <strong>${formatUsd(b.lastDayUsd)}</strong>
+        &nbsp;&middot;&nbsp; 7 hari: <strong>${formatUsd(b.weekUsd)}</strong>
+        &nbsp;&middot;&nbsp; Bulan ini: <strong>${formatUsd(b.monthUsd)}</strong>
+      </div>
+      <div style="font-size:11px;color:#065F46;margin-top:4px;">Selisih dengan estimasi aplikasi bulan ini: ${diff >= 0 ? "+" : "-"}${formatUsd(Math.abs(diff))} (tagihan asli mencakup semua pemakaian di akun Console dan dipotong per hari UTC).</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">${lines}</table>
+    </div>`;
+}
+
+function renderAiUsageHtml(u: PlatformReport["aiUsage"], billing: PlatformReport["anthropicBilling"]): string {
   const th = "padding:6px 8px;font-size:11px;font-weight:700;color:#6B7280;text-align:right;";
   const td = "padding:6px 8px;font-size:12px;color:#111827;text-align:right;border-bottom:1px solid #F3F4F6;";
   const row = (p: PlatformReport["aiUsage"]["daily"]) =>
@@ -174,6 +194,7 @@ function renderAiUsageHtml(u: PlatformReport["aiUsage"]): string {
       &nbsp;&middot;&nbsp; Rata-rata per pesan: <strong>${formatUsd(u.avgCostPerMessageUsd)}</strong>
     </div>
     ${top}
+    ${renderBillingHtml(billing, u.monthly.costUsd)}
     <p style="font-size:11px;color:#9CA3AF;margin:8px 0 0;">Estimasi dari token yang tercatat di aplikasi (harga Sonnet 5.5, $2/$10 per 1M token), termasuk Celah Pengetahuan harian. Bukan angka invoice -- biaya template WhatsApp berbayar dihitung Kapso/Meta, di sini hanya jumlah yang terkirim. Cek Anthropic Console untuk tagihan asli.</p>`;
 }
 
@@ -318,7 +339,7 @@ function renderHtml(report: PlatformReport): string {
               ${sectionCard(
                 "Pemakaian &amp; Biaya AI (Estimasi)",
                 "https://console.anthropic.com/settings/usage",
-                renderAiUsageHtml(report.aiUsage)
+                renderAiUsageHtml(report.aiUsage, report.anthropicBilling)
               )}
             </td></tr>
 
