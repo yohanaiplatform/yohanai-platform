@@ -528,12 +528,6 @@ export type Database = {
         }
         Relationships: []
       }
-      webhook_debug: {
-        Row: { id: string; created_at: string; event: string | null; info: Json }
-        Insert: { id?: string; created_at?: string; event?: string | null; info?: Json }
-        Update: { id?: string; created_at?: string; event?: string | null; info?: Json }
-        Relationships: []
-      }
       whatsapp_number_requests: {
         Row: {
           id: string

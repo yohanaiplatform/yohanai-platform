@@ -686,44 +686,6 @@ export async function POST(request: Request) {
   const event = request.headers.get('x-webhook-event')
   const payloads = isBatch(body) ? body.data : [body]
 
-  // SEMENTARA (diagnostik echo WhatsApp Web/HP, 7 Okt 2026): catat ringkasan event TANPA isi pesan/nomor.
-  // Hapus bersama tabel chat.webhook_debug (migration 070) setelah masalah echo selesai.
-  if (event !== 'whatsapp.message.delivered' && event !== 'whatsapp.message.read') {
-    try {
-      await supabase
-        .schema('chat')
-        .from('webhook_debug')
-        .insert(
-          payloads.slice(0, 5).map((p) => {
-            const m = (p?.message ?? {}) as unknown as Record<string, unknown>
-            const k = (m.kapso ?? {}) as Record<string, unknown>
-            return {
-              event,
-              info: {
-                batch: isBatch(body),
-                type: m.type ?? null,
-                direction: k.direction ?? null,
-                origin: k.origin ?? m.origin ?? null,
-                kapso_keys: Object.keys(k),
-                message_keys: Object.keys(m),
-                has_conversation_phone: Boolean(p?.conversation?.phone_number),
-                has_from: Boolean(m.from),
-              },
-            }
-          })
-        )
-      if (Math.random() < 0.02) {
-        await supabase
-          .schema('chat')
-          .from('webhook_debug')
-          .delete()
-          .lt('created_at', new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString())
-      }
-    } catch {
-      // diagnostik tidak boleh mengganggu pemrosesan webhook
-    }
-  }
-
   // Pesan yang diketik MANUSIA dari WhatsApp Business app / WhatsApp Web (echo) datang sebagai event
   // "whatsapp.message.sent" dengan kapso.origin = "business_app" (dibuktikan lewat log diagnostik 7 Okt 2026;
   // docs Kapso menyiratkan lewat "received" -- itu SALAH). Event "sent" biasa (balasan AI/dashboard lewat API)

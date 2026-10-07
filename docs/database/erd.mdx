@@ -87,6 +87,7 @@ marketing.templates
 
 ai.agent_runs (NYATA, sejak 049 -- lihat relasi di atas via customer.leads/chat.*)
 ai.follow_up_queue (NYATA, sejak 059) ──► customer.leads (lead_id), chat.conversations (conversation_id)
+chat.webhook_debug (SEMENTARA, sejak 070, berdiri sendiri -- diagnostik webhook, tidak dipakai lagi)
 ai.llm_usage (NYATA, sejak 068, berdiri sendiri -- log token panggilan Claude di luar chat)
 ai.nurture_settings (NYATA, sejak 069) ──► auth.users (user_id, satu baris per akun agen)
 ai.nurture_sends (NYATA, sejak 060) ──► customer.leads (lead_id), chat.conversations (conversation_id)

@@ -221,7 +221,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`069` secara berurutan (per 7 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`070` secara berurutan (per 7 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -262,6 +262,7 @@ Folder `supabase/migrations/` berisi `001`–`069` secara berurutan (per 7 Oktob
 | `066` | Kolom `auth_ext.profiles.geo_radius_km` (radius pencarian fasilitas per user, 1-10 km) + seed 7 kampus Pontianak ke `knowledge.places` |
 | `067` | GRANT SELECT `auth_ext.google_contacts_connections` ke `service_role` (sinkron kontak otomatis tanpa sesi login) |
 | `068` | Tabel `ai.llm_usage` (pemakaian token Claude di luar AI Agent chat, untuk laporan biaya; hanya `service_role`) |
+| `070` | Tabel `chat.webhook_debug` (diagnostik SEMENTARA event webhook untuk melacak echo WhatsApp Web; kodenya sudah dihapus, tabel kosong boleh di-DROP) |
 | `069` | Tabel `ai.nurture_settings` (aturan nurturing otomatis per akun agen; hanya `service_role`, diakses lewat `/api/nurture/settings`) |
 | `065` | Kolom `auth_ext.profiles.is_knowledge_curator` (+ trigger pelindung), `review_status`/`submitted_by` di `knowledge.entries` dan `knowledge.places` (alur kurator) |
 | `064` | Tabel `knowledge.places` (Kamus Kawasan: titik peta untuk jarak ke listing) |

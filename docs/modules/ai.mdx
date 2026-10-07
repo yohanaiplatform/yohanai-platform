@@ -347,6 +347,7 @@ Ringkasan kemampuan AI Agent WhatsApp per 4 Oktober 2026 (detail teknis di `docs
 - **Prompt caching:** prompt sistem (~8,8 ribu token, statis) di-cache 1 jam; biaya per pesan turun sekitar 50% saat cache aktif (dari ~US$0,035 ke ~US$0,017). Bagian dinamis (data lead, riwayat, listing, peta) sengaja di pesan user setelah prefix. Jangan taruh nilai berubah di prompt sistem. Pengaman: bila API menolak cache, diulang tanpa cache.
 - **Pemantauan biaya:** Platform Report (developer) menampilkan pemakaian harian/mingguan/bulanan, proyeksi, dan lead termahal dari `ai.agent_runs` + `ai.llm_usage`. Panggilan Claude baru wajib mencatat ke `ai.llm_usage`. Tagihan asli (Admin API) menunggu akun Console berstatus organisasi.
 - **Nurturing per akun:** aturan di Settings (`ai.nurture_settings`), saklar utama `NURTURE_ENABLED`; default lama berlaku bila akun belum menyimpan aturan.
+- **Ambil alih percakapan:** `metadata.ai_pause` per lead; AI diam 2 jam sejak aktivitas manusia terakhir (balasan dashboard atau pesan dari WhatsApp HP/Web) atau sampai tombol "Kembalikan ke AI"; pesan lead saat jeda tetap tersimpan dan masuk antrean follow-up. Pesan dari WhatsApp HP/Web datang sebagai event `message.sent` dengan origin `business_app` (terverifikasi nyata). `applyAgentDecision` tidak mengirim balasan/foto bila manusia sudah membalas setelah pesan pemicu.
 - **Jarak:** kampus, rumah sakit, belanja, dan patokan Kamus Kawasan memakai jarak lewat jalan + waktu tempuh (Google Routes, live, tidak disimpan).
 
 ## Phase 1
