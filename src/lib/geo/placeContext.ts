@@ -23,7 +23,7 @@ interface GeoListing {
 }
 
 const MAX_NEAREST = 3;
-const FACILITY_INTENT = /sekolah|rumah sakit|\brs\b|puskesmas|klinik|pasar|kampus|universitas|masjid|gereja|fasilitas|swalayan|supermarket|\bmall\b|spbu|terminal|dekat apa|sekitar(?:nya)?\s+(?:ada|apa)/i;
+const FACILITY_INTENT = /sekolah|rumah sakit|\brs\b|puskesmas|klinik|pasar|kampus|kuliah|mahasiswa|universitas|masjid|gereja|fasilitas|swalayan|supermarket|\bmall\b|spbu|terminal|dekat apa|sekitar(?:nya)?\s+(?:ada|apa)/i;
 
 /** Frasa jalan/kawasan eksplisit yang boleh di-geocode otomatis (daerah/sekitar/dekat umum TIDAK -- terlalu rawan keliru). */
 const EXPLICIT_PLACE_PATTERN = /\b(?:jl\.?|jalan|kawasan|komplek|kompleks)\s+([a-z0-9' ]{3,30}?)(?=[,.?!]|\s+(?:ada|apa|dekat|itu|ya|yg|yang|dari|ke|atau|dan|kah)\b|$)/i;
@@ -40,7 +40,8 @@ function findInDictionary(places: PlaceRow[], text: string): PlaceRow | null {
   for (const place of places) {
     for (const key of [place.name, ...place.aliases]) {
       const k = normalize(key);
-      if (k.length >= 3 && haystack.includes(k) && k.length > bestLength) {
+      // Batas kata: singkatan pendek ("ump", "iain") tidak boleh cocok di dalam kata lain ("jumpa", "rumpun").
+      if (k.length >= 3 && k.length > bestLength && ` ${haystack.replace(/[^a-z0-9]+/g, " ")} `.includes(` ${k.replace(/[^a-z0-9]+/g, " ")} `)) {
         best = place;
         bestLength = k.length;
       }
