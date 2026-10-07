@@ -86,14 +86,14 @@ export async function applyAgentDecision(
   // Pengaman balapan: manusia (bukan AI, bukan template otomatis) sudah membalas di percakapan ini SETELAH
   // pesan lead yang memicu run ini -> AI tidak boleh menimpa/menyela, walau penanda jeda belum sempat tertulis
   // (ketemu 7 Okt: balasan agen dan balasan AI terkirim berselang 2 detik).
-  if (!aiPausedNow) {
+  if (!aiPausedNow && input.triggerMessageId) {
     const { data: trigger } = await supabaseAdmin
       .schema("chat")
       .from("messages")
       .select("created_at")
       .eq("id", input.triggerMessageId)
       .maybeSingle();
-    if (trigger) {
+    if (trigger?.created_at) {
       const { data: later } = await supabaseAdmin
         .schema("chat")
         .from("messages")
