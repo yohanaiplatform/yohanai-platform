@@ -670,10 +670,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         </GuideP>
         <GuideHeading>Follow-up otomatis (nurturing)</GuideHeading>
         <GuideP>
-          Lead yang sempat chat lalu diam 48 jam bisa otomatis dikirimi template follow-up (dan sekali lagi 5 hari
-          kemudian), maksimal 2 kali, hanya antara pukul 08.00 dan 20.00. Pengiriman berhenti kalau lead membalas
-          atau menolak (mis. &quot;Belum saat ini&quot;), dan tidak berlaku untuk lead Hot, Closing, atau Batal. Fitur ini
-          baru tahap percobaan dan hanya berjalan setelah admin mengaktifkannya.
+          Lead yang sempat chat lalu diam bisa otomatis dikirimi template follow-up. Aturannya bisa Anda atur sendiri
+          di <strong>Settings, Follow-up Otomatis</strong>: setelah berapa jam lead dianggap diam (standar 48 jam),
+          jeda ke follow-up berikutnya (standar 5 hari), maksimal berapa kali (standar 2), jam kirim (standar 08.00
+          sampai 20.00), Temperature mana yang di-follow-up, dan template mana untuk kategori lead tertentu (mis.
+          lead Kapur Mas memakai template Kapur Mas). Ada juga tombol aktif/nonaktif untuk lead Anda. Pengiriman
+          berhenti kalau lead membalas atau menolak (mis. &quot;Belum saat ini&quot;), dan tidak pernah berlaku untuk
+          lead Hot, Closing, atau Batal. Di bawahnya, <strong>Template &amp; Riwayat Follow-up</strong> menampilkan
+          template yang tersedia dan hasil kirim 30 hari terakhir. Setiap follow-up memakai template berbayar.
         </GuideP>
         <GuideNote>
           <strong>Status saat ini: nomor WhatsApp produksi sudah aktif</strong> (sejak 2 Oktober 2026) -- bukan

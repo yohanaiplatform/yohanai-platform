@@ -7,6 +7,8 @@ import { KnowledgeGapsManager } from "@/components/settings/KnowledgeGapsManager
 import { KnowledgePlacesManager } from "@/components/settings/KnowledgePlacesManager";
 import { KnowledgeReviewQueue } from "@/components/settings/KnowledgeReviewQueue";
 import { GeoRadiusSetting } from "@/components/settings/GeoRadiusSetting";
+import { NurtureSettingsForm } from "@/components/settings/NurtureSettingsForm";
+import { NurtureOverview } from "@/components/settings/NurtureOverview";
 
 export default function SettingsPage() {
   return (
@@ -14,6 +16,19 @@ export default function SettingsPage() {
       <SectionCard title="Pengaturan Peta" description="Radius pencarian fasilitas umum di sekitar listing, khusus akun Anda.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GeoRadiusSetting />
+        </Suspense>
+      </SectionCard>
+
+      <SectionCard
+        title="Follow-up Otomatis (Nurturing)"
+        description="Atur kapan lead yang diam di-follow-up otomatis lewat template WhatsApp -- khusus lead di akun Anda."
+      >
+        <NurtureSettingsForm />
+      </SectionCard>
+
+      <SectionCard title="Template &amp; Riwayat Follow-up" description="Template WhatsApp yang tersedia dan hasil follow-up otomatis 30 hari terakhir.">
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
+          <NurtureOverview />
         </Suspense>
       </SectionCard>
 

@@ -95,6 +95,48 @@ export type Database = {
         }
         Relationships: []
       }
+      nurture_settings: {
+        Row: {
+          user_id: string
+          enabled: boolean
+          silence_hours: number
+          step_gap_days: number
+          max_steps: number
+          send_hour_start: number
+          send_hour_end: number
+          allowed_temperatures: string[]
+          default_template: string
+          template_rules: Json
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          enabled?: boolean
+          silence_hours?: number
+          step_gap_days?: number
+          max_steps?: number
+          send_hour_start?: number
+          send_hour_end?: number
+          allowed_temperatures?: string[]
+          default_template?: string
+          template_rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          enabled?: boolean
+          silence_hours?: number
+          step_gap_days?: number
+          max_steps?: number
+          send_hour_start?: number
+          send_hour_end?: number
+          allowed_temperatures?: string[]
+          default_template?: string
+          template_rules?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nurture_sends: {
         Row: {
           id: string

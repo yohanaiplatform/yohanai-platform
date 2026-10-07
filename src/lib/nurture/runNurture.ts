@@ -5,9 +5,13 @@ import type { Database } from "@/types/database";
 import { sendWhatsAppTemplate } from "@/lib/whatsapp/kapso";
 import { getPhoneNumberIdForUser } from "@/lib/whatsapp/whatsappNumbers";
 import { FOLLOW_UP_TEMPLATES } from "@/lib/whatsapp/followUpTemplates";
+import { DEFAULT_NURTURE_SETTINGS, pickNurtureTemplate, settingsFromRow, type NurtureSettings } from "@/lib/nurture/settings";
 
 /**
  * Nurturing otomatis -- aturan KONSERVATIF (dipilih Yohan 4 Okt 2026):
+ * Angka di bawah adalah DEFAULT; tiap akun agen bisa mengubahnya di Settings (ai.nurture_settings,
+ * lihat src/lib/nurture/settings.ts) -- jeda diam, jeda antar langkah, maks langkah, jam kirim,
+ * Temperature yang di-nurture, template per kata kunci, dan saklar aktif per akun.
  * - Step 1: lead diam >= 48 jam (tanpa aktivitas pesan APA PUN, termasuk balasan AI/agen).
  * - Step 2: >= 5 hari setelah step 1, dan lead belum membalas sejak step 1. Maksimal 2 step.
  * - Hanya jam 08.00-19.59 WIB; maksimal MAX_SENDS_PER_RUN kirim per panggilan (dipanggil tiap jam).
@@ -17,20 +21,16 @@ import { FOLLOW_UP_TEMPLATES } from "@/lib/whatsapp/followUpTemplates";
  * - Berhenti kalau lead membalas, atau pesan terakhirnya berisi penolakan ("belum saat ini", dst).
  * - DRY-RUN kecuali env NURTURE_ENABLED=true (jaring pengaman -- tidak ada pesan terkirim sebelum diaktifkan).
  */
-const STEP1_SILENCE_HOURS = 48;
-const STEP2_GAP_DAYS = 5;
-const MAX_STEPS = 2;
+/** Batas terlonggar yang mungkin diatur akun (settings.ts) -- dipakai untuk menyaring kandidat sebelum aturan akun masing-masing diperiksa. */
+const MIN_SILENCE_HOURS = 24;
+const EARLIEST_SEND_HOUR_WIB = 6;
+const LATEST_SEND_HOUR_WIB = 22;
 const LOOKBACK_DAYS = 14;
 const MAX_SENDS_PER_RUN = 10;
 const FAILED_RETRY_HOURS = 6;
-const SEND_HOUR_START_WIB = 8;
-const SEND_HOUR_END_WIB = 20;
 const WIB_OFFSET_HOURS = 7;
-const ALLOWED_TEMPERATURES: (string | null)[] = [null, "Cold", "Warm"];
 const STOP_PATTERN =
   /belum saat ini|sudah dapat rumah|sudah dapet rumah|tidak jadi|gak jadi|ga jadi|batal|jangan (?:hubungi|chat|kirim)|stop/i;
-const DEFAULT_TEMPLATE = "yohan_griya";
-const KAPUR_MAS_TEMPLATE = "follow_up_kapur_mas_t2";
 
 const HOUR_MS = 3600 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -44,17 +44,12 @@ export interface NurtureResult {
   failed: number;
 }
 
-function pickTemplate(metadata: Record<string, unknown>): string {
-  const text = `${metadata.kategori ?? ""} ${metadata.minat_unit_lokasi ?? ""}`.toLowerCase();
-  return text.includes("kapur mas") ? KAPUR_MAS_TEMPLATE : DEFAULT_TEMPLATE;
-}
-
 export async function runNurture(supabase: SupabaseClient<Database>, now = new Date()): Promise<NurtureResult> {
   const enabled = process.env.NURTURE_ENABLED === "true";
   const wibHour = (now.getUTCHours() + WIB_OFFSET_HOURS) % 24;
 
-  if (wibHour < SEND_HOUR_START_WIB || wibHour >= SEND_HOUR_END_WIB) {
-    return { enabled, skippedReason: "di luar jam kirim (08.00-20.00 WIB)", candidates: 0, eligible: [], sent: 0, failed: 0 };
+  if (wibHour < EARLIEST_SEND_HOUR_WIB || wibHour >= LATEST_SEND_HOUR_WIB) {
+    return { enabled, skippedReason: "di luar jam kirim (06.00-22.00 WIB)", candidates: 0, eligible: [], sent: 0, failed: 0 };
   }
 
   const since = new Date(now.getTime() - LOOKBACK_DAYS * DAY_MS).toISOString();
@@ -79,7 +74,7 @@ export async function runNurture(supabase: SupabaseClient<Database>, now = new D
     }
   }
 
-  const silentCutoff = now.getTime() - STEP1_SILENCE_HOURS * HOUR_MS;
+  const silentCutoff = now.getTime() - MIN_SILENCE_HOURS * HOUR_MS;
   const candidateConversationIds = Array.from(lastInbound.keys()).filter(
     (id) => (lastAny.get(id) ?? Infinity) <= silentCutoff
   );
@@ -114,6 +109,15 @@ export async function runNurture(supabase: SupabaseClient<Database>, now = new D
   ]);
 
   const leadById = new Map((leads ?? []).map((l) => [l.id, l]));
+
+  // Aturan per akun agen pemilik lead; akun tanpa baris memakai default.
+  const ownerIds = Array.from(new Set((leads ?? []).map((l) => l.assigned_to).filter((id): id is string => Boolean(id))));
+  const { data: settingRows } = ownerIds.length
+    ? await supabase.schema("ai").from("nurture_settings").select("*").in("user_id", ownerIds)
+    : { data: [] };
+  const settingsByUser = new Map<string, NurtureSettings>(
+    (settingRows ?? []).map((row) => [row.user_id, settingsFromRow(row)])
+  );
   const result: NurtureResult = { enabled, candidates: candidateConversationIds.length, eligible: [], sent: 0, failed: 0 };
   const handledLeads = new Set<string>();
 
@@ -125,9 +129,14 @@ export async function runNurture(supabase: SupabaseClient<Database>, now = new D
     const lead = leadById.get(leadId);
     if (!lead || !lead.phone || !lead.assigned_to) continue;
 
+    const settings = settingsByUser.get(lead.assigned_to) ?? DEFAULT_NURTURE_SETTINGS;
+    if (!settings.enabled) continue;
+    if (wibHour < settings.sendHourStart || wibHour >= settings.sendHourEnd) continue;
+    if ((lastAny.get(conversation.id) ?? Infinity) > now.getTime() - settings.silenceHours * HOUR_MS) continue;
+
     const metadata = (lead.metadata ?? {}) as Record<string, unknown>;
-    const temperature = (metadata.status_funnel_awal as string | undefined) ?? null;
-    if (!ALLOWED_TEMPERATURES.includes(temperature)) continue;
+    const temperature = (metadata.status_funnel_awal as string | undefined) || "Belum ada";
+    if (!settings.allowedTemperatures.includes(temperature)) continue;
 
     const inbound = lastInbound.get(conversation.id);
     if (!inbound || STOP_PATTERN.test(inbound.content)) continue;
@@ -138,15 +147,15 @@ export async function runNurture(supabase: SupabaseClient<Database>, now = new D
     if (lastFailed && now.getTime() - new Date(lastFailed.created_at).getTime() < FAILED_RETRY_HOURS * HOUR_MS) continue;
 
     const step = sentRows.length + 1;
-    if (step > MAX_STEPS) continue;
+    if (step > settings.maxSteps) continue;
 
-    if (step === 2) {
+    if (step >= 2) {
       const lastSentAt = new Date(sentRows[0].created_at).getTime();
-      if (now.getTime() - lastSentAt < STEP2_GAP_DAYS * DAY_MS) continue;
-      if (inbound.at > lastSentAt) continue; // lead sudah membalas sejak step 1 -- percakapan hidup lagi
+      if (now.getTime() - lastSentAt < settings.stepGapDays * DAY_MS) continue;
+      if (inbound.at > lastSentAt) continue; // lead sudah membalas sejak step sebelumnya -- percakapan hidup lagi
     }
 
-    const templateName = pickTemplate(metadata);
+    const templateName = pickNurtureTemplate(metadata, settings);
     const template = FOLLOW_UP_TEMPLATES.find((t) => t.name === templateName);
     if (!template) continue;
 
