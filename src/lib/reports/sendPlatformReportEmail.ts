@@ -145,7 +145,12 @@ function costRow(service: string, href: string | null, tier: string, limit: stri
 
 function renderBillingHtml(b: PlatformReport["anthropicBilling"], estimateMonthUsd: number): string {
   if (!b.available) {
-    return `<div style="margin-top:12px;padding:10px;background:#FEF3C7;border-radius:6px;font-size:12px;color:#92400E;">Tagihan asli Anthropic belum bisa dibaca: ${b.error ?? "tidak diketahui"}</div>`;
+    const needsOrg = !b.error || b.error.includes("belum dikonfigurasi") || /Anthropic Admin API (401|403)/.test(b.error);
+    return `<div style="margin-top:12px;padding:10px;background:#F3F4F6;border-radius:6px;font-size:12px;color:#374151;">${
+      needsOrg
+        ? 'Tagihan asli belum tersedia: butuh akun organisasi Claude Console (Admin API). Untuk angka resmi, lihat halaman <strong>Billing</strong> dan <strong>Usage</strong> di Claude Console, dan cek saldo kredit di sana.'
+        : `Tagihan asli Anthropic belum bisa dibaca: ${b.error}`
+    }</div>`;
   }
   const diff = b.monthUsd - estimateMonthUsd;
   const lines = b.monthLines
