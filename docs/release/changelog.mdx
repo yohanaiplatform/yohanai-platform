@@ -51,6 +51,28 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
+## 5-7 Oktober 2026 — Sinkron Kontak, Nurturing per Akun, Laporan Biaya AI, Prompt Caching
+
+### Added
+
+- **Sinkron Google Contacts otomatis**: lead baru (termasuk yang masuk dari WhatsApp) otomatis jadi kontak di akun Google agen yang ditugaskan; nama kontak ikut diperbarui saat nama lead dikonfirmasi atau diubah; tombol **Sinkronkan ke Google Contacts** di Lead Detail untuk lead lama; nomor disimpan format +62 (migration `067`)
+- **Follow-up Otomatis (Nurturing) per akun** di Settings: jam diam, jeda antar langkah, maksimal kirim, jam kirim, Temperature yang di-follow-up, template standar + aturan template per kata kunci, dan saklar aktif per akun; plus **Template & Riwayat Follow-up** (daftar template dan hasil kirim 30 hari; migration `069`)
+- **Pemakaian & Biaya AI** di laporan developer (Platform Report): kemarin, 7 hari, bulan ini, proyeksi akhir bulan, rata-rata per pesan, lead dengan biaya terbesar, jumlah template nurturing terkirim; pencatat pemakaian panggilan Claude di luar chat (migration `068`); endpoint admin `/api/admin/ai-usage`
+- **Jarak lewat jalan + waktu tempuh** juga untuk kampus, rumah sakit, dan tempat belanja terdekat dari listing, serta patokan Kamus Kawasan
+
+### Changed
+
+- **Prompt caching** untuk AI Agent: biaya per pesan turun sekitar 50% saat cache aktif (prompt sistem di-cache 1 jam); perhitungan biaya laporan memperhitungkan cache
+- Kode nurturing membaca aturan per akun; akun yang belum menyimpan aturan memakai angka standar yang sama seperti sebelumnya
+
+### Fixed
+
+- Pencocokan Kamus Kawasan memakai batas kata (singkatan seperti "UMP" tidak lagi cocok di dalam kata lain); kata "kuliah" dan "mahasiswa" kini memicu data kampus
+
+### Ditunda
+
+- Tagihan asli Anthropic di laporan: butuh akun Console berstatus organisasi (Admin API); sementara memakai estimasi
+
 ## 3 Oktober 2026 — Hapus Lead, Nama (NN), Auto-isi Detail Lead
 
 ### Added

@@ -361,6 +361,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
               nomor HP lead (mis. kalau nama aslinya baru diketahui dari percakapan WhatsApp).
             </>,
             <>
+              <strong>Sinkronkan ke Google Contacts</strong> -- tombol untuk menyimpan lead ini sebagai kontak di
+              Google Contacts/HP agen yang ditugaskan (perlu Google Contacts sudah terhubung di Settings). Lead baru
+              otomatis tersimpan; tombol ini berguna untuk lead lama. Menekannya lagi tidak membuat kontak ganda, hanya
+              memperbarui nama/nomor yang berubah.
+            </>,
+            <>
               <strong>Hapus Lead</strong> -- tombol di sebelah Edit Nama/Kontak untuk membuang lead yang tidak
               relevan (mis. pesan otomatis atau salah nomor). Selalu ada konfirmasi dulu. Lead hilang dari
               daftar, tapi datanya tidak dihapus permanen sehingga masih bisa dipulihkan lewat database kalau

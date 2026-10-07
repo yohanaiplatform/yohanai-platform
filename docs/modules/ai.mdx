@@ -342,6 +342,13 @@ Ringkasan kemampuan AI Agent WhatsApp per 4 Oktober 2026 (detail teknis di `docs
 - **Nurturing otomatis (dry-run):** template follow-up 48 jam / 5 hari setelahnya, maks 2, jam 08-20 WIB.
 - **Belum:** pencarian web, analisis pola lanjutan (pertanyaan -> Hot), Meta Ads Analytics, Listing Hunter.
 
+## Update 7 Oktober 2026 -- biaya, caching, nurturing per akun
+
+- **Prompt caching:** prompt sistem (~8,8 ribu token, statis) di-cache 1 jam; biaya per pesan turun sekitar 50% saat cache aktif (dari ~US$0,035 ke ~US$0,017). Bagian dinamis (data lead, riwayat, listing, peta) sengaja di pesan user setelah prefix. Jangan taruh nilai berubah di prompt sistem. Pengaman: bila API menolak cache, diulang tanpa cache.
+- **Pemantauan biaya:** Platform Report (developer) menampilkan pemakaian harian/mingguan/bulanan, proyeksi, dan lead termahal dari `ai.agent_runs` + `ai.llm_usage`. Panggilan Claude baru wajib mencatat ke `ai.llm_usage`. Tagihan asli (Admin API) menunggu akun Console berstatus organisasi.
+- **Nurturing per akun:** aturan di Settings (`ai.nurture_settings`), saklar utama `NURTURE_ENABLED`; default lama berlaku bila akun belum menyimpan aturan.
+- **Jarak:** kampus, rumah sakit, belanja, dan patokan Kamus Kawasan memakai jarak lewat jalan + waktu tempuh (Google Routes, live, tidak disimpan).
+
 ## Phase 1
 
 AI Foundation
@@ -376,6 +383,6 @@ Continuous Learning Engine
 
 # Last Updated
 
-29 September 2026 (malam)
+7 Oktober 2026
 
 Sprint 011
