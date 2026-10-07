@@ -48,7 +48,8 @@ function extractSearchTerms(message: string): string[] {
  * login -- pemanggilnya server Kapso, bukan browser. Route ini harus tetap
  * bisa diakses selama platform lock aktif, lihat src/lib/platform-lock.ts.
  *
- * Fase ini cuma menangani whatsapp.message.received (pesan masuk -> simpan
+ * Menangani whatsapp.message.received (pesan masuk) dan whatsapp.message.sent yang origin-nya business_app
+ * (pesan manusia dari WhatsApp HP/Web, lihat isAppEchoEvent). Dulu: cuma whatsapp.message.received (pesan masuk -> simpan
  * ke chat.conversations/chat.messages, dicocokkan ke customer.leads lewat
  * nomor HP). Event lain (message.sent/delivered/read/failed,
  * conversation.*, contact.*) diterima dan di-ack 200 tanpa diproses --
@@ -59,6 +60,7 @@ interface KapsoMessage {
   id: string
   type: string
   from?: string
+  to?: string
   text?: { body?: string }
   // origin "business_app" = pesan yang diketik manusia lewat aplikasi WhatsApp Business / WhatsApp Web
   // (coexistence), diteruskan Kapso lewat event "received" dengan direction "outbound".
@@ -312,7 +314,12 @@ async function handleMessageReceived(
   // benar-benar mengetik itu.
   if (payload.message.type === 'unsupported') return
 
-  const rawPhone = payload.conversation?.phone_number ?? payload.message.from
+  const isEchoPayload =
+    payload.message.kapso?.direction === 'outbound' ||
+    payload.message.kapso?.origin === 'business_app' ||
+    payload.message.origin === 'business_app'
+  // Untuk echo, message.from = nomor bisnis kita dan message.to = pelanggan; conversation.phone_number = pelanggan.
+  const rawPhone = payload.conversation?.phone_number ?? (isEchoPayload ? payload.message.to : payload.message.from)
   if (!rawPhone) return
 
   const phone = normalizePhone(rawPhone)
@@ -717,11 +724,20 @@ export async function POST(request: Request) {
     }
   }
 
-  if (event !== 'whatsapp.message.received') {
+  // Pesan yang diketik MANUSIA dari WhatsApp Business app / WhatsApp Web (echo) datang sebagai event
+  // "whatsapp.message.sent" dengan kapso.origin = "business_app" (dibuktikan lewat log diagnostik 7 Okt 2026;
+  // docs Kapso menyiratkan lewat "received" -- itu SALAH). Event "sent" biasa (balasan AI/dashboard lewat API)
+  // sudah kita simpan sendiri, jadi HANYA yang origin-nya business_app yang diproses sebagai echo.
+  const isAppEchoEvent = event === 'whatsapp.message.sent'
+  if (event !== 'whatsapp.message.received' && !isAppEchoEvent) {
     return NextResponse.json({ success: true })
   }
 
   for (const payload of payloads) {
+    if (isAppEchoEvent) {
+      const origin = payload.message?.kapso?.origin ?? payload.message?.origin
+      if (origin !== 'business_app') continue
+    }
     await handleMessageReceived(supabase, payload)
   }
 
