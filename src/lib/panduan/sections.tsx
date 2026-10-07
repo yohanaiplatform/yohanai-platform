@@ -518,8 +518,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           koordinatnya dan mencatat fasilitas umum terdekat (sekolah, kampus, rumah sakit, pasar/swalayan, tempat
           ibadah, SPBU). Asisten otomatis memakai data ini untuk menjawab jarak dan fasilitas sekitar. Klik lagi
           setiap kali link Maps diganti. Data fasilitas berasal dari peta digital dan bisa belum lengkap. Saat konsumen bertanya jarak dari suatu lokasi,
-          asisten menyebut jarak lewat jalan dan perkiraan waktu tempuh naik mobil (tanpa kemacetan); jika data rute
-          belum tersedia, ia menyebut jarak garis lurus dan menjelaskan bahwa jarak tempuh bisa lebih jauh.
+          asisten menyebut jarak lewat jalan dan perkiraan waktu tempuh naik mobil (tanpa kemacetan). Hal yang sama berlaku
+          untuk kampus, rumah sakit, dan tempat belanja terdekat dari listing; jika data rute belum tersedia, ia
+          menyebut jarak garis lurus dan menjelaskan bahwa jarak tempuh bisa lebih jauh.
         </GuideP>
         <GuideHeading>Simulasi KPR</GuideHeading>
         <GuideP>

@@ -76,6 +76,8 @@ const PLACE_GROUPS: { category: string; types: string[]; radiusM: number; limit:
   { category: "Transportasi", types: ["bus_station", "transit_station"], radiusM: 5_000, limit: 1 },
 ];
 
+const ROUTED_CATEGORIES = ["Kampus", "Kesehatan", "Belanja/Pasar"];
+
 async function searchGroup(center: LatLng, group: (typeof PLACE_GROUPS)[number], key: string): Promise<NearbyFacility[]> {
   try {
     const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
@@ -103,7 +105,9 @@ async function searchGroup(center: LatLng, group: (typeof PLACE_GROUPS)[number],
       const name = place.displayName?.text;
       if (!name || !place.location) continue;
       const distanceM = Math.round(haversineMeters(center, { lat: place.location.latitude, lng: place.location.longitude }));
-      if (distanceM <= group.radiusM) result.push({ category: group.category, name, distanceM });
+      if (distanceM <= group.radiusM) {
+        result.push({ category: group.category, name, distanceM, point: { lat: place.location.latitude, lng: place.location.longitude } });
+      }
     }
     return result.sort((a, b) => a.distanceM - b.distanceM).slice(0, group.limit);
   } catch {
@@ -120,5 +124,18 @@ export async function fetchNearbyFacilitiesGoogle(center: LatLng): Promise<Nearb
   if (!key) return null;
   const groups = await Promise.all(PLACE_GROUPS.map((group) => searchGroup(center, group, key)));
   const all = groups.flat();
-  return all.length > 0 ? all : null;
+  if (all.length === 0) return null;
+
+  // Jarak lewat jalan + waktu tempuh hanya untuk kategori yang penting bagi pembeli (hemat biaya Routes);
+  // sekolah, tempat ibadah, SPBU, transportasi cukup garis lurus.
+  const routeable = all.filter((f) => ROUTED_CATEGORIES.includes(f.category) && f.point);
+  const routes = routeable.length > 0 ? await computeDrivingRoutes(center, routeable.map((f) => f.point as LatLng)) : null;
+  routeable.forEach((f, i) => {
+    const route = routes?.[i];
+    if (route) {
+      f.routeDistanceM = route.distanceM;
+      f.durationMin = route.durationMin;
+    }
+  });
+  return all;
 }

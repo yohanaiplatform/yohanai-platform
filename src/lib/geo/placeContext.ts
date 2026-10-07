@@ -153,7 +153,7 @@ export async function buildGeoContext(
       // Google Places live hanya untuk listing paling relevan (hemat biaya); sisanya data OpenStreetMap tersimpan.
       const live = index === 0 ? await fetchNearbyFacilitiesGoogle(target.point) : null;
       if (live) {
-        lines.push(`FASILITAS SEKITAR "${target.title}" (Google Maps, jarak garis lurus): ${formatNearbyForAi(live)}`);
+        lines.push(`FASILITAS SEKITAR "${target.title}" (Google Maps; kampus/kesehatan/belanja dengan jarak LEWAT JALAN + waktu tempuh dihitung sistem, lainnya garis lurus): ${formatNearbyForAi(live)}`);
       } else {
         lines.push(`FASILITAS SEKITAR "${target.title}" (data OpenStreetMap, bisa tidak lengkap; jarak garis lurus): ${formatNearbyForAi(target.nearby)}`);
       }
@@ -162,12 +162,25 @@ export async function buildGeoContext(
     // Patokan penting dari Kamus Kawasan (kampus ternama, dll.) dalam 10 km dari listing.
     for (const target of geoListings.filter((l) => relevantListingTitles.includes(l.title)).slice(0, 2)) {
       const landmarks = places
-        .map((p) => ({ name: p.name, distance: haversineMeters(target.point, { lat: p.lat, lng: p.lng }) }))
+        .map((p) => ({ name: p.name, point: { lat: p.lat, lng: p.lng }, distance: haversineMeters(target.point, { lat: p.lat, lng: p.lng }) }))
         .filter((p) => p.distance <= 10_000)
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 6);
       if (landmarks.length > 0) {
-        lines.push(`PATOKAN PENTING DEKAT "${target.title}" (Kamus Kawasan, jarak garis lurus): ${landmarks.map((p) => `${p.name} (${formatDistance(p.distance)})`).join(", ")}`);
+        // 4 terdekat dihitung lewat jalan (Google Routes, live, tidak disimpan); sisanya garis lurus.
+        const routes = await computeDrivingRoutes(
+          target.point,
+          landmarks.slice(0, 4).map((p) => p.point)
+        );
+        const text = landmarks
+          .map((p, i) => {
+            const route = routes?.[i];
+            return route
+              ? `${p.name} (lewat jalan ${formatDistance(route.distanceM)}, kira-kira ${route.durationMin} menit naik mobil tanpa macet)`
+              : `${p.name} (${formatDistance(p.distance)} garis lurus)`;
+          })
+          .join(", ");
+        lines.push(`PATOKAN PENTING DEKAT "${target.title}" (Kamus Kawasan; jarak lewat jalan dihitung sistem bila tertulis, selain itu garis lurus): ${text}`);
       }
     }
   }

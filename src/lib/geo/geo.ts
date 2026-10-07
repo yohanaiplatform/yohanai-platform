@@ -20,7 +20,13 @@ export interface LatLng {
 export interface NearbyFacility {
   category: string;
   name: string;
+  /** Jarak garis lurus (meter). */
   distanceM: number;
+  /** Hanya terisi untuk hasil Google live (tidak disimpan): jarak lewat jalan + waktu tempuh mobil tanpa macet. */
+  routeDistanceM?: number;
+  durationMin?: number;
+  /** Koordinat hasil Google live, dipakai menghitung rute; tidak disimpan. */
+  point?: { lat: number; lng: number };
 }
 
 const EARTH_RADIUS_M = 6_371_000;
@@ -255,7 +261,11 @@ export function formatNearbyForAi(nearby: NearbyFacility[]): string {
   const byCategory = new Map<string, string[]>();
   for (const f of nearby) {
     const list = byCategory.get(f.category) ?? [];
-    list.push(`${f.name} (${formatDistance(f.distanceM)})`);
+    list.push(
+      f.routeDistanceM !== undefined && f.durationMin !== undefined
+        ? `${f.name} (lewat jalan ${formatDistance(f.routeDistanceM)}, kira-kira ${f.durationMin} menit naik mobil tanpa macet)`
+        : `${f.name} (${formatDistance(f.distanceM)} garis lurus)`
+    );
     byCategory.set(f.category, list);
   }
   return Array.from(byCategory.entries())
