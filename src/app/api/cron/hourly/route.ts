@@ -7,6 +7,7 @@ import { GET as sendDailyReport } from "@/app/api/reports/daily/route";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runNurture } from "@/lib/nurture/runNurture";
 import { generateKnowledgeGaps } from "@/lib/knowledge/generateGaps";
+import { resumeUnansweredAfterPause } from "@/lib/ai/resumeSweep";
 
 const WIB_OFFSET_HOURS = 7;
 const DIGEST_HOURS_WIB = [8, 13, 21];
@@ -65,6 +66,13 @@ export async function GET(request: Request) {
         new Request(url, { headers: { "x-report-secret": process.env.DAILY_REPORT_SECRET ?? "" } })
       )
     );
+  }
+
+  // Jeda AI yang baru berakhir: jawab pesan lead yang tertinggal selama jeda dan belum dibalas siapa pun.
+  try {
+    results.resumeSweep = await resumeUnansweredAfterPause(createAdminClient());
+  } catch (error) {
+    results.resumeSweep = { error: error instanceof Error ? error.message : "gagal" };
   }
 
   // Nurturing otomatis (DRY-RUN kecuali env NURTURE_ENABLED=true; hanya jam 08-20 WIB).

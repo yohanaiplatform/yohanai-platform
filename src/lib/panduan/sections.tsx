@@ -685,7 +685,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideP>
           Jeda juga terjadi <strong>otomatis</strong> saat Anda ikut membalas lead -- baik lewat dashboard maupun lewat
           aplikasi WhatsApp di HP atau WhatsApp Web. AI diam selama 2 jam sejak balasan Anda yang terakhir (setiap Anda
-          membalas lagi, 2 jam dihitung ulang), lalu kembali aktif sendiri. Balasan yang Anda ketik di WhatsApp HP atau Web
+          membalas lagi, 2 jam dihitung ulang), lalu kembali aktif sendiri. Kalau selama jeda ada pesan lead yang belum
+          dibalas siapa pun, AI menjawabnya begitu jeda berakhir. Pesan sambutan otomatis dari aplikasi WhatsApp Business
+          tidak dihitung sebagai balasan Anda, jadi tidak menjeda AI. Balasan yang Anda ketik di WhatsApp HP atau Web
           ikut tampil di riwayat percakapan.
         </GuideP>
         <GuideHeading>Follow-up otomatis (nurturing)</GuideHeading>
