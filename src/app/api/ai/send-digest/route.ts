@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppText } from "@/lib/whatsapp/kapso";
 import { AI_SUMMARY_NOTE_AUTHOR_LABEL } from "@/lib/ai/applyAgentDecision";
+import { sendDigestEmail } from "@/lib/reports/sendDigestEmail";
+import { getDailyReportRecipients } from "@/lib/reports/getDailyReportRecipients";
 
 const APP_URL = "https://yohanai.id";
 const MAX_LEADS_PER_DIGEST = 15;
@@ -127,10 +129,16 @@ export async function GET(request: Request) {
     .select("user_id, notification_whatsapp_number")
     .in("user_id", Array.from(leadsByAgent.keys()));
 
+  // Email tujuan per agen (sama dengan Daily Report: menghormati preferensi laporan dan override alamat).
+  const recipients = await getDailyReportRecipients(supabase);
+  const emailByUser = new Map(recipients.map((r) => [r.userId, r.email]));
+
   let sentCount = 0;
+  let emailCount = 0;
+  const failures: string[] = [];
+  const slotLabel = `${String(wibHour).padStart(2, "0")}.00 WIB`;
 
   for (const profile of profiles ?? []) {
-    if (!profile.notification_whatsapp_number) continue;
     const agentLeads = leadsByAgent.get(profile.user_id) ?? [];
     if (agentLeads.length === 0) continue;
 
@@ -158,9 +166,25 @@ export async function GET(request: Request) {
       `${APP_URL}/crm`,
     ].join("\n");
 
-    const result = await sendWhatsAppText(profile.notification_whatsapp_number, message).catch(() => null);
-    if (result?.success) sentCount += 1;
+    // WhatsApp teks bebas hanya sampai bila agen berkirim pesan ke nomor bisnis dalam 24 jam terakhir, dan
+    // kegagalan dari Meta tidak terlihat di sini -- jadi jalur utama yang pasti sampai adalah EMAIL.
+    if (profile.notification_whatsapp_number) {
+      const result = await sendWhatsAppText(profile.notification_whatsapp_number, message).catch(() => null);
+      if (result?.success) sentCount += 1;
+      else failures.push("whatsapp");
+    }
+
+    const email = emailByUser.get(profile.user_id);
+    if (email) {
+      const mail = await sendDigestEmail(
+        email,
+        `Rangkuman chat ${slotLabel} -- ${agentLeads.length} konsumen`,
+        [...lines, ...(more > 0 ? [`+${more} lainnya`] : []), "", "⚠️ = perlu follow-up Anda", `${APP_URL}/crm`]
+      );
+      if (mail.error) failures.push(`email: ${mail.error}`);
+      else emailCount += 1;
+    }
   }
 
-  return NextResponse.json({ sent: sentCount, leads: leadIds.length });
+  return NextResponse.json({ sent: sentCount, emailed: emailCount, leads: leadIds.length, ...(failures.length ? { failures } : {}) });
 }

@@ -68,6 +68,7 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 ### Fixed
 
+- **Rangkuman chat 3x sehari sering tidak sampai**: versi WhatsApp teks bebas hanya sampai bila agen berkirim pesan ke nomor bisnis dalam 24 jam terakhir (aturan Meta), dan kegagalannya tidak terlihat. Rangkuman kini JUGA dikirim lewat email (08/13/21 WIB), dan respons cron mencatat kegagalan
 - **AI diam 2 jam di lead baru**: pesan sambutan otomatis dari aplikasi WhatsApp Business (yang juga datang sebagai echo) salah dibaca sebagai balasan manusia dan menjeda AI; kini dikenali sebagai pesan otomatis dan tidak menjeda. Pesan lead yang masuk selama jeda dan belum dibalas kini dijawab AI begitu jeda berakhir
 - **Pesan yang diketik manusia di WhatsApp Web/HP sebelumnya tidak tercatat sama sekali**: Kapso mengirimnya sebagai event "sent" (origin business_app) yang dulu diabaikan; kini dicatat sebagai pesan agen dan menjeda AI. AI juga tidak lagi menimpa balasan manusia yang masuk saat AI masih menyusun jawaban
 - Pencocokan Kamus Kawasan memakai batas kata (singkatan seperti "UMP" tidak lagi cocok di dalam kata lain); kata "kuliah" dan "mahasiswa" kini memicu data kampus

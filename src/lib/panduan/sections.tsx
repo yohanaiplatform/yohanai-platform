@@ -804,13 +804,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Permintaan nomor WhatsApp baru dari user lain, dan kabar nomor Anda sudah aktif setelah diajukan -- lihat panduan Pengaturan.",
           ]}
         />
-        <GuideHeading>Rangkuman chat 3x sehari di WhatsApp</GuideHeading>
+        <GuideHeading>Rangkuman chat 3x sehari (email dan WhatsApp)</GuideHeading>
         <GuideP>
-          Kalau Nomor WhatsApp untuk Notifikasi sudah diisi di Profil, Anda menerima satu pesan rangkuman pada
-          pukul 08.00, 13.00, dan 21.00 WIB. Isinya semua konsumen yang chat di jendela waktu itu, satu baris
-          per konsumen (nama, nomor, inti singkat). Tanda ⚠️ berarti perlu tindak lanjut Anda. Pesan tidak
-          dikirim kalau tidak ada chat baru. Catatan: pesan ini baru sampai kalau Anda sudah berkirim pesan
-          ke nomor WhatsApp bisnis dalam 24 jam terakhir.
+          Anda menerima rangkuman pada pukul 08.00, 13.00, dan 21.00 WIB lewat <strong>email</strong>, dan juga lewat
+          WhatsApp kalau Nomor WhatsApp untuk Notifikasi sudah diisi di Profil. Isinya semua konsumen yang chat di
+          jendela waktu itu, satu baris per konsumen (nama, nomor, inti singkat). Tanda ⚠️ berarti perlu tindak
+          lanjut Anda. Rangkuman tidak dikirim kalau tidak ada chat baru. Catatan: versi WhatsApp baru sampai kalau
+          Anda sudah berkirim pesan ke nomor WhatsApp bisnis dalam 24 jam terakhir; email tidak punya batasan itu,
+          jadi email adalah jalur yang pasti sampai.
         </GuideP>
       </>
     ),
