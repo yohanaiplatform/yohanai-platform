@@ -36,8 +36,8 @@ trend?.direction === "up"
 ? "text-red-500 dark:text-red-400"
 : "text-muted-foreground"
 return (
-<Card className={cn("rounded-2xl p-6 shadow-sm", className)}>
-<CardContent className="p-0 space-y-4">
+<Card className={cn("rounded-2xl p-6 shadow-sm print:rounded-lg print:p-3 print:shadow-none", className)}>
+<CardContent className="p-0 space-y-4 print:space-y-1.5">
 <div className="flex items-start justify-between">
 <span className="text-sm text-muted-foreground">
 {title}
@@ -48,7 +48,7 @@ return (
 </div>
 )}
 </div>
-    <div className="text-2xl md:text-3xl font-bold tracking-tight">
+    <div className="text-2xl md:text-3xl font-bold tracking-tight print:text-xl">
       {value}
     </div>
 

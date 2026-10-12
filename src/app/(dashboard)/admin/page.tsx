@@ -115,14 +115,18 @@ export default async function AdminDashboardPage() {
 
       <PrintSection id="ai">
       <SectionCard title="Biaya & pemakaian AI" description="AI Agent WhatsApp dan panggilan Claude lain. Sumber: riwayat pemakaian di aplikasi.">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print-avoid-break">
-          <StatCard title="Saldo kredit (taksiran)" value={creditText} description={credit.recordedAt ? "dari catatan saldo terakhir" : "catat di Settings"} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print:gap-2 print-avoid-break">
+          <StatCard
+            title="Saldo kredit (taksiran)"
+            value={credit.estimatedRemainingUsd === null ? "Belum dicatat" : usd(credit.estimatedRemainingUsd)}
+            description={credit.daysLeft !== null ? `~${Math.floor(credit.daysLeft)} hari lagi` : credit.recordedAt ? "dari catatan terakhir" : "catat di Settings"}
+          />
           <StatCard title="Biaya bulan ini" value={usd(summary.monthly.costUsd)} description={`proyeksi akhir bulan ${usd(summary.monthlyProjectionUsd)}`} />
           <StatCard title="Biaya 7 hari" value={usd(summary.weekly.costUsd)} description={`${num(summary.weekly.messages)} pesan`} />
           <StatCard title="Rata-rata per pesan" value={`$${summary.avgCostPerMessageUsd.toFixed(4)}`} description="bulan ini" />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:mt-3 print:grid-cols-2 print:gap-4 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Biaya per hari (30 hari)</h3>
             <MiniBars points={series.map((p) => ({ label: p.date.slice(8, 10) + "/" + p.date.slice(5, 7), value: p.costUsd }))} format={(n) => `$${n.toFixed(2)}`} barClassName="bg-amber-500" />
@@ -133,7 +137,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-md border border-border print-avoid-break">
+        <div className="mt-6 overflow-x-auto rounded-md border border-border print:mt-3 print-avoid-break">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
               <tr>
@@ -177,13 +181,13 @@ export default async function AdminDashboardPage() {
 
       <PrintSection id="leads">
       <SectionCard title="Pertumbuhan lead" description="Semua agen, lead yang tidak dihapus. Tanggal mengikuti waktu WIB.">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 print:grid-cols-3 print-avoid-break">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 print:grid-cols-3 print:gap-2 print-avoid-break">
           <StatCard title="Total lead" value={num(growth.total)} />
           <StatCard title="Lead baru 7 hari" value={num(growth.last7)} trend={trend(growth.last7, growth.prev7)} />
           <StatCard title="Lead baru 30 hari" value={num(growth.last30)} />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:mt-3 print:grid-cols-2 print:gap-4 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Lead baru per hari (30 hari)</h3>
             <MiniBars points={growth.perDay} />
@@ -194,7 +198,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:mt-3 print:grid-cols-2 print:gap-4 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Lead baru per bulan (sejak data pertama)</h3>
             <MiniBars points={growth.perMonth} barClassName="bg-sky-500" />

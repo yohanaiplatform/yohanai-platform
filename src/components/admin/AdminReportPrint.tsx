@@ -111,7 +111,7 @@ export function PrintControls() {
 /** Bagian laporan: tampil di layar, dan disembunyikan saat cetak kalau tidak dicentang di panel pengaturan. */
 export function PrintSection({ id, children }: { id: PrintSectionId; children: React.ReactNode }) {
   const { sections } = usePrint();
-  return <div className={sections[id] ? "" : "print:hidden"}>{children}</div>;
+  return <div className={sections[id] ? "print-avoid-break" : "print:hidden"}>{children}</div>;
 }
 
 /** Catatan laporan: hanya tercetak (tampilan layar ada di panel pengaturan), tumbuh sesuai isi -- tanpa scrollbar. */

@@ -101,7 +101,19 @@
  */
 @page admin {
   size: A4;
-  margin: 14mm 12mm 18mm 12mm;
+  margin: 16mm 12mm 18mm 12mm;
+  /* Kosongkan header bawaan browser (tanggal + judul tab) dan ganti header berjalan kecil. */
+  @top-left {
+    content: "";
+  }
+  @top-center {
+    content: "";
+  }
+  @top-right {
+    content: "Laporan Platform -- Rahasia, untuk internal";
+    font-size: 8pt;
+    color: #6b7280;
+  }
   @bottom-left {
     content: "Yohan.AI Platform -- Master Admin Report";
     font-size: 8pt;
