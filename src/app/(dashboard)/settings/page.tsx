@@ -9,6 +9,7 @@ import { KnowledgeReviewQueue } from "@/components/settings/KnowledgeReviewQueue
 import { GeoRadiusSetting } from "@/components/settings/GeoRadiusSetting";
 import { NurtureSettingsForm } from "@/components/settings/NurtureSettingsForm";
 import { NurtureOverview } from "@/components/settings/NurtureOverview";
+import { AiCreditCard } from "@/components/settings/AiCreditCard";
 
 export default function SettingsPage() {
   return (
@@ -31,6 +32,10 @@ export default function SettingsPage() {
           <NurtureOverview />
         </Suspense>
       </SectionCard>
+
+      <Suspense fallback={null}>
+        <AiCreditCard />
+      </Suspense>
 
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>

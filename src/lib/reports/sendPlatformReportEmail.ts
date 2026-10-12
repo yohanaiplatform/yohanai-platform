@@ -168,7 +168,26 @@ function renderBillingHtml(b: PlatformReport["anthropicBilling"], estimateMonthU
     </div>`;
 }
 
-function renderAiUsageHtml(u: PlatformReport["aiUsage"], billing: PlatformReport["anthropicBilling"]): string {
+function renderCreditBanner(c: PlatformReport["aiCredit"]): string {
+  const dateLabel = c.recordedAt ? formatDateID(c.recordedAt) : "";
+  if (c.level === "unknown") {
+    return `<div style="margin-bottom:12px;padding:10px 12px;background:#F3F4F6;border-radius:8px;font-size:12px;color:#374151;">Saldo kredit AI belum dicatat -- catat di <strong>Settings, Saldo Kredit AI</strong> supaya pengingat saldo bekerja.</div>`;
+  }
+  const remaining = formatUsd(c.estimatedRemainingUsd ?? 0);
+  const days = c.daysLeft !== null ? `sekitar ${Math.floor(c.daysLeft)} hari` : "belum bisa dihitung";
+  const stale = c.stale ? ` <em>(catatan saldo terakhir ${dateLabel}, sudah lama -- catat ulang saldo asli di Settings.)</em>` : "";
+  if (c.level === "critical") {
+    return `<div style="margin-bottom:12px;padding:12px;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;font-size:13px;color:#991B1B;"><strong>Saldo kredit Claude hampir habis.</strong> Taksiran sisa <strong>${remaining}</strong> (${days} pada laju pemakaian sekarang). Kalau habis, AI Agent berhenti membalas lead. Isi saldo atau aktifkan auto-reload di Claude Console, Billing.${stale}</div>`;
+  }
+  if (c.level === "warn") {
+    return `<div style="margin-bottom:12px;padding:12px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;font-size:13px;color:#92400E;"><strong>Saldo kredit Claude diperkirakan habis dalam seminggu.</strong> Taksiran sisa <strong>${remaining}</strong> (${days}). Siapkan top-up atau aktifkan auto-reload di Claude Console, Billing.${stale}</div>`;
+  }
+  return c.stale
+    ? `<div style="margin-bottom:12px;padding:10px 12px;background:#F3F4F6;border-radius:8px;font-size:12px;color:#374151;">Saldo kredit AI: taksiran sisa <strong>${remaining}</strong> (${days}). Catatan saldo terakhir ${dateLabel} -- catat ulang saldo asli di Settings supaya akurat.</div>`
+    : "";
+}
+
+function renderAiUsageHtml(u: PlatformReport["aiUsage"], billing: PlatformReport["anthropicBilling"], credit: PlatformReport["aiCredit"]): string {
   const th = "padding:6px 8px;font-size:11px;font-weight:700;color:#6B7280;text-align:right;";
   const td = "padding:6px 8px;font-size:12px;color:#111827;text-align:right;border-bottom:1px solid #F3F4F6;";
   const row = (p: PlatformReport["aiUsage"]["daily"]) =>
@@ -195,7 +214,8 @@ function renderAiUsageHtml(u: PlatformReport["aiUsage"], billing: PlatformReport
       ${row(u.daily)}${row(u.weekly)}${row(u.monthly)}
     </table>
     <div style="margin-top:10px;font-size:12px;color:#374151;">
-      Proyeksi biaya AI bulan ini: <strong>${formatUsd(u.monthlyProjectionUsd)}</strong>
+      Saldo kredit (taksiran): <strong>${credit.estimatedRemainingUsd !== null ? formatUsd(credit.estimatedRemainingUsd) : "belum dicatat"}</strong>${credit.daysLeft !== null ? ` (~${Math.floor(credit.daysLeft)} hari)` : ""}
+      &nbsp;&middot;&nbsp; Proyeksi biaya AI bulan ini: <strong>${formatUsd(u.monthlyProjectionUsd)}</strong>
       &nbsp;&middot;&nbsp; Rata-rata per pesan: <strong>${formatUsd(u.avgCostPerMessageUsd)}</strong>
     </div>
     ${top}
@@ -257,6 +277,8 @@ function renderHtml(report: PlatformReport): string {
               </table>
               <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">Untuk pengembang -- kesehatan infrastruktur &amp; pertumbuhan platform, bukan laporan bisnis.</div>
             </td></tr>
+
+            ${report.aiCredit.level === "ok" && !report.aiCredit.stale ? "" : `<tr><td style="padding-top:12px;">${renderCreditBanner(report.aiCredit)}</td></tr>`}
 
             <tr><td style="padding:14px 0;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -344,7 +366,7 @@ function renderHtml(report: PlatformReport): string {
               ${sectionCard(
                 "Pemakaian &amp; Biaya AI (Estimasi)",
                 "https://console.anthropic.com/settings/usage",
-                renderAiUsageHtml(report.aiUsage, report.anthropicBilling)
+                renderAiUsageHtml(report.aiUsage, report.anthropicBilling, report.aiCredit)
               )}
             </td></tr>
 
@@ -413,7 +435,7 @@ export async function sendPlatformReportEmail(report: PlatformReport): Promise<{
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `Yohan.AI Platform Report -- ${formatDateID(report.generatedAt)}`,
+      subject: `${report.aiCredit.level === "critical" ? "[SALDO AI MENIPIS] " : ""}Yohan.AI Platform Report -- ${formatDateID(report.generatedAt)}`,
       html: renderHtml(report),
     }),
   });

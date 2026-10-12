@@ -5,6 +5,7 @@ import type { Database } from "@/types/database";
 import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
 import { getAiUsageSummary, type AiUsageSummary } from "@/lib/reports/getAiUsageSummary";
 import { getAnthropicBilling, type AnthropicBilling } from "@/lib/reports/getAnthropicBilling";
+import { getAiCreditStatus, type AiCreditStatus } from "@/lib/reports/getAiCreditStatus";
 import { getReportDayWindow } from "@/lib/reports/getDailyReport";
 
 export interface PlatformReport {
@@ -37,6 +38,7 @@ export interface PlatformReport {
   aiAgent: AiAgentUsage;
   aiUsage: AiUsageSummary;
   anthropicBilling: AnthropicBilling;
+  aiCredit: AiCreditStatus;
 }
 
 export type IntegrationStatusValue = "aktif" | "error" | "belum_dikonfigurasi";
@@ -237,6 +239,8 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     getAnthropicBilling(),
   ]);
 
+  const aiCredit = await getAiCreditStatus(supabase, aiUsage.weekly.costUsd / 7);
+
   const stats = platformStats.data?.[0];
 
   const userEmailById = new Map((usersResult.data?.users ?? []).map((u) => [u.id, u.email ?? u.id]));
@@ -259,5 +263,6 @@ export async function getPlatformReport(supabase: SupabaseClient<Database>): Pro
     aiAgent,
     aiUsage,
     anthropicBilling,
+    aiCredit,
   };
 }

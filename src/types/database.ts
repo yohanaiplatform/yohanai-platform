@@ -68,6 +68,12 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_balance: {
+        Row: { id: string; balance_usd: number; recorded_at: string; recorded_by: string | null }
+        Insert: { id?: string; balance_usd: number; recorded_at?: string; recorded_by?: string | null }
+        Update: { id?: string; balance_usd?: number; recorded_at?: string; recorded_by?: string | null }
+        Relationships: []
+      }
       llm_usage: {
         Row: {
           id: string

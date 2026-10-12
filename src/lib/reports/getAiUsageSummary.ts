@@ -229,3 +229,35 @@ export async function getAiUsageSummary(
     })),
   };
 }
+
+/**
+ * Taksiran biaya AI aplikasi sejak waktu tertentu sampai sekarang (chat + panggilan Claude lain), memakai
+ * rumus yang sama dengan ringkasan di atas (termasuk cache). Dipakai menaksir sisa saldo kredit.
+ */
+export async function getAiSpendSince(supabase: SupabaseClient<Database>, sinceISO: string): Promise<number> {
+  const [runs, others] = await Promise.all([
+    fetchAll<{ usage: Json | null }>((from, to) =>
+      supabase
+        .schema("ai")
+        .from("agent_runs")
+        .select("usage:llm_raw_response->usage")
+        .gte("created_at", sinceISO)
+        .order("created_at")
+        .range(from, to) as unknown as PromiseLike<{ data: { usage: Json | null }[] | null }>
+    ),
+    fetchAll<{ input_tokens: number; output_tokens: number }>((from, to) =>
+      supabase
+        .schema("ai")
+        .from("llm_usage")
+        .select("input_tokens, output_tokens")
+        .gte("created_at", sinceISO)
+        .order("created_at")
+        .range(from, to)
+    ),
+  ]);
+
+  let total = 0;
+  for (const run of runs) total += tokensOf(run.usage).costUsd;
+  for (const row of others) total += cost(row.input_tokens, row.output_tokens);
+  return total;
+}
