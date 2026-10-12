@@ -10,6 +10,8 @@ import { getAiCreditStatus } from "@/lib/reports/getAiCreditStatus";
 import { SectionCard } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { MiniBars } from "@/components/admin/MiniBars";
+import { Logo } from "@/components/layout/Logo";
+import { PrintSettingsProvider, PrintControls, PrintSection, PrintNote } from "@/components/admin/AdminReportPrint";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,18 @@ function trend(current: number, previous: number): { value: string; direction: "
   if (previous === 0) return { value: current > 0 ? "baru" : "-", direction: current > 0 ? "up" : "neutral" };
   const pct = Math.round(((current - previous) / previous) * 100);
   return { value: `${pct > 0 ? "+" : ""}${pct}% vs 7 hari sebelumnya`, direction: pct > 0 ? "up" : pct < 0 ? "down" : "neutral" };
+}
+
+function printedAtWib(): string {
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  }).format(new Date());
 }
 
 /** Master Admin: ringkasan AI/biaya, pertumbuhan lead, dan tren sistem. Admin atau akun dengan penanda laporan platform. */
@@ -55,8 +69,9 @@ export default async function AdminDashboardPage() {
       : `${usd(credit.estimatedRemainingUsd)}${credit.daysLeft !== null ? ` (~${Math.floor(credit.daysLeft)} hari)` : ""}`;
 
   return (
-    <div className="space-y-6 p-6">
-      <header className="flex flex-col space-y-2">
+    <PrintSettingsProvider>
+    <div className="admin-report space-y-6 p-6">
+      <header className="no-print flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Master Admin</h1>
         <p className="text-muted-foreground">
           Ringkasan platform untuk pemilik: biaya dan pemakaian AI, pertumbuhan lead, dan tren sistem. Angka biaya adalah taksiran dari
@@ -64,9 +79,32 @@ export default async function AdminDashboardPage() {
         </p>
       </header>
 
+      <PrintControls />
+
+      <div className="print-area space-y-6">
+      <div className="hidden print:block print-avoid-break">
+        <div className="flex items-start justify-between border-b-2 border-foreground pb-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">LAPORAN PLATFORM</h1>
+            <p className="text-sm italic text-muted-foreground">Master Admin Report</p>
+          </div>
+          <div className="text-right">
+            <Logo variant="light" className="ml-auto h-10" />
+            <p className="mt-1 text-xs text-muted-foreground">yohanai.id</p>
+          </div>
+        </div>
+        <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
+          <span>Dicetak: {printedAtWib()} WIB</span>
+          <span>Oleh: {user.email}</span>
+          <span>Biaya AI = taksiran dari token tercatat (bukan tagihan resmi) -- Rahasia, untuk internal</span>
+        </div>
+      </div>
+
+      <PrintNote />
+
       {(credit.level === "critical" || credit.level === "warn") && (
         <div
-          className={`rounded-xl border p-4 text-sm ${
+          className={`print-avoid-break rounded-xl border p-4 text-sm ${
             credit.level === "critical" ? "border-red-300 bg-red-50 text-red-900" : "border-amber-300 bg-amber-50 text-amber-900"
           }`}
         >
@@ -75,15 +113,16 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
+      <PrintSection id="ai">
       <SectionCard title="Biaya & pemakaian AI" description="AI Agent WhatsApp dan panggilan Claude lain. Sumber: riwayat pemakaian di aplikasi.">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 print:grid-cols-4 print-avoid-break">
           <StatCard title="Saldo kredit (taksiran)" value={creditText} description={credit.recordedAt ? "dari catatan saldo terakhir" : "catat di Settings"} />
           <StatCard title="Biaya bulan ini" value={usd(summary.monthly.costUsd)} description={`proyeksi akhir bulan ${usd(summary.monthlyProjectionUsd)}`} />
           <StatCard title="Biaya 7 hari" value={usd(summary.weekly.costUsd)} description={`${num(summary.weekly.messages)} pesan`} />
           <StatCard title="Rata-rata per pesan" value={`$${summary.avgCostPerMessageUsd.toFixed(4)}`} description="bulan ini" />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Biaya per hari (30 hari)</h3>
             <MiniBars points={series.map((p) => ({ label: p.date.slice(8, 10) + "/" + p.date.slice(5, 7), value: p.costUsd }))} format={(n) => `$${n.toFixed(2)}`} barClassName="bg-amber-500" />
@@ -94,7 +133,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto rounded-md border border-border">
+        <div className="mt-6 overflow-x-auto rounded-md border border-border print-avoid-break">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
               <tr>
@@ -122,7 +161,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {summary.topLeads.length > 0 && (
-          <div className="mt-4 text-sm">
+          <div className="mt-4 text-sm print-avoid-break">
             <h3 className="mb-1 font-semibold">Lead dengan biaya AI terbesar bulan ini</h3>
             <ul className="space-y-0.5 text-muted-foreground">
               {summary.topLeads.map((l) => (
@@ -134,15 +173,17 @@ export default async function AdminDashboardPage() {
           </div>
         )}
       </SectionCard>
+      </PrintSection>
 
+      <PrintSection id="leads">
       <SectionCard title="Pertumbuhan lead" description="Semua agen, lead yang tidak dihapus. Tanggal mengikuti waktu WIB.">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 print:grid-cols-3 print-avoid-break">
           <StatCard title="Total lead" value={num(growth.total)} />
           <StatCard title="Lead baru 7 hari" value={num(growth.last7)} trend={trend(growth.last7, growth.prev7)} />
           <StatCard title="Lead baru 30 hari" value={num(growth.last30)} />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Lead baru per hari (30 hari)</h3>
             <MiniBars points={growth.perDay} />
@@ -153,7 +194,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
           <div>
             <h3 className="mb-2 text-sm font-semibold">Lead baru per bulan (sejak data pertama)</h3>
             <MiniBars points={growth.perMonth} barClassName="bg-sky-500" />
@@ -175,14 +216,16 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
       </SectionCard>
+      </PrintSection>
 
+      <PrintSection id="system">
       <SectionCard title="Tren sistem" description="Potret harian ukuran database dan storage. Mulai terkumpul sejak 12 Oktober 2026.">
         {snapshots.length < 2 ? (
           <p className="text-sm text-muted-foreground">
             Baru {snapshots.length} potret harian -- grafik muncul setelah minimal 2 hari data. Tren mingguan, bulanan, dan tahunan terisi seiring waktu.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 print:grid-cols-2 print-avoid-break">
             <div>
               <h3 className="mb-2 text-sm font-semibold">Ukuran database (MB)</h3>
               <MiniBars
@@ -202,6 +245,9 @@ export default async function AdminDashboardPage() {
           </div>
         )}
       </SectionCard>
+      </PrintSection>
+      </div>
     </div>
+    </PrintSettingsProvider>
   );
 }

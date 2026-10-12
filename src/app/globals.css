@@ -93,3 +93,48 @@
     display: none !important;
   }
 }
+
+/*
+ * Laporan Master Admin (/admin) -- halaman cetak A4 yang rapi. Bernama "admin" supaya TIDAK mengubah margin laporan lain
+ * (Laporan Pemasaran memakai halaman default). Nomor halaman + label di margin bawah (didukung browser berbasis Chrome
+ * 131+; browser lain mengabaikannya tanpa efek samping). Cetak dari panel "Pengaturan cetak" di halaman.
+ */
+@page admin {
+  size: A4;
+  margin: 14mm 12mm 18mm 12mm;
+  @bottom-left {
+    content: "Yohan.AI Platform -- Master Admin Report";
+    font-size: 8pt;
+    color: #6b7280;
+  }
+  @bottom-right {
+    content: "Halaman " counter(page) " dari " counter(pages);
+    font-size: 8pt;
+    color: #6b7280;
+  }
+}
+
+@media print {
+  .admin-report {
+    page: admin;
+  }
+  .print-area {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: #ffffff;
+  }
+  .print-area * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Laporan Master Admin mengalir normal di halaman (bukan absolut) supaya nama halaman "admin" dan paginasi berlaku. */
+  .admin-report .print-area {
+    position: static;
+    width: auto;
+    font-size: 11px;
+  }
+}

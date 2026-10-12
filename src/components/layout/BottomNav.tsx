@@ -16,7 +16,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-6">
+    <nav className="no-print md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-6">
       <div className="flex h-16 items-center justify-around">
         {items.map((item) => {
           const Icon = LucideIcons[item.icon as keyof typeof LucideIcons] as React.ElementType;
