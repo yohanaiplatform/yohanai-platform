@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { runNurture } from "@/lib/nurture/runNurture";
 import { generateKnowledgeGaps } from "@/lib/knowledge/generateGaps";
 import { resumeUnansweredAfterPause } from "@/lib/ai/resumeSweep";
+import { recordPlatformSnapshot } from "@/lib/admin/recordPlatformSnapshot";
 
 const WIB_OFFSET_HOURS = 7;
 const DIGEST_HOURS_WIB = [8, 13, 21];
@@ -73,6 +74,11 @@ export async function GET(request: Request) {
     results.resumeSweep = await resumeUnansweredAfterPause(createAdminClient());
   } catch (error) {
     results.resumeSweep = { error: error instanceof Error ? error.message : "gagal" };
+  }
+
+  // Potret harian metrik platform (upsert tanggal WIB hari ini) -- dasar tren Master Admin. Nilai terakhir hari itu yang tersisa.
+  if (force === "snapshot" || [0, 6, 12, 18, 23].includes(wibHour)) {
+    results.snapshot = await recordPlatformSnapshot(createAdminClient());
   }
 
   // Nurturing otomatis (DRY-RUN kecuali env NURTURE_ENABLED=true; hanya jam 08-20 WIB).

@@ -417,10 +417,9 @@ function renderHtml(report: PlatformReport): string {
 </html>`;
 }
 
-export async function sendPlatformReportEmail(report: PlatformReport): Promise<{ error: string | null }> {
+export async function sendPlatformReportEmail(report: PlatformReport, to: string): Promise<{ error: string | null }> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  const to = process.env.PLATFORM_REPORT_RECIPIENT || "admin@yohanai.id";
 
   if (!apiKey || !from) {
     return { error: "RESEND_API_KEY/RESEND_FROM_EMAIL belum dikonfigurasi." };

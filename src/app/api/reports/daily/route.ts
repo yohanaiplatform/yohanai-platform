@@ -7,6 +7,7 @@ import { sendDailyReportEmail } from "@/lib/reports/sendDailyReportEmail";
 import { getDailyReportRecipients } from "@/lib/reports/getDailyReportRecipients";
 import { getPlatformReport } from "@/lib/reports/getPlatformReport";
 import { sendPlatformReportEmail } from "@/lib/reports/sendPlatformReportEmail";
+import { getPlatformReportRecipients } from "@/lib/reports/getPlatformReportRecipients";
 
 /**
  * Dipanggil GitHub Actions cron (.github/workflows/daily-report.yml), bukan
@@ -46,7 +47,10 @@ export async function GET(request: Request) {
   // PLATFORM_REPORT_RECIPIENT kalau di-override), tidak lewat preferensi
   // notifikasi user manapun karena ini bukan laporan bisnis.
   const platformReport = await getPlatformReport(supabase);
-  const { error: platformError } = await sendPlatformReportEmail(platformReport);
+  // Penerima: alamat tetap pengembang + akun dengan penanda "penerima laporan platform" (satu email per penerima).
+  const platformRecipients = await getPlatformReportRecipients(supabase);
+  const platformResults = await Promise.all(platformRecipients.map((to) => sendPlatformReportEmail(platformReport, to)));
+  const platformError = platformResults.find((r) => r.error)?.error ?? null;
 
   const success = failed.length === 0 && !platformError;
 

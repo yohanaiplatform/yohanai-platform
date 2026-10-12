@@ -261,3 +261,61 @@ export async function getAiSpendSince(supabase: SupabaseClient<Database>, sinceI
   for (const row of others) total += cost(row.input_tokens, row.output_tokens);
   return total;
 }
+
+export interface AiDailyPoint {
+  /** Tanggal WIB YYYY-MM-DD. */
+  date: string;
+  messages: number;
+  costUsd: number;
+}
+
+/**
+ * Deret harian (tanggal WIB) pemakaian AI `days` hari terakhir termasuk hari ini: jumlah pesan sukses dan taksiran
+ * biaya (chat + panggilan Claude lain). Dipakai grafik halaman Master Admin.
+ */
+export async function getAiDailySeries(supabase: SupabaseClient<Database>, days = 30, now = Date.now()): Promise<AiDailyPoint[]> {
+  const todayWib = new Date(now + WIB_OFFSET_MS).toISOString().slice(0, 10);
+  const startMs = new Date(`${todayWib}T00:00:00Z`).getTime() - (days - 1) * DAY_MS - WIB_OFFSET_MS;
+  const sinceISO = new Date(startMs).toISOString();
+
+  const [runs, others] = await Promise.all([
+    fetchAll<{ created_at: string; status: string; usage: Json | null }>((from, to) =>
+      supabase
+        .schema("ai")
+        .from("agent_runs")
+        .select("created_at, status, usage:llm_raw_response->usage")
+        .gte("created_at", sinceISO)
+        .order("created_at")
+        .range(from, to) as unknown as PromiseLike<{ data: { created_at: string; status: string; usage: Json | null }[] | null }>
+    ),
+    fetchAll<{ created_at: string; input_tokens: number; output_tokens: number }>((from, to) =>
+      supabase
+        .schema("ai")
+        .from("llm_usage")
+        .select("created_at, input_tokens, output_tokens")
+        .gte("created_at", sinceISO)
+        .order("created_at")
+        .range(from, to)
+    ),
+  ]);
+
+  const byDate = new Map<string, AiDailyPoint>();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(startMs + WIB_OFFSET_MS + i * DAY_MS).toISOString().slice(0, 10);
+    byDate.set(d, { date: d, messages: 0, costUsd: 0 });
+  }
+  const bucket = (iso: string) => byDate.get(new Date(new Date(iso).getTime() + WIB_OFFSET_MS).toISOString().slice(0, 10));
+
+  for (const run of runs) {
+    const b = bucket(run.created_at);
+    if (!b) continue;
+    if (run.status === "success") b.messages += 1;
+    b.costUsd += tokensOf(run.usage).costUsd;
+  }
+  for (const row of others) {
+    const b = bucket(row.created_at);
+    if (b) b.costUsd += cost(row.input_tokens, row.output_tokens);
+  }
+
+  return Array.from(byDate.values());
+}

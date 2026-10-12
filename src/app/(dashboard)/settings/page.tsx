@@ -10,6 +10,7 @@ import { GeoRadiusSetting } from "@/components/settings/GeoRadiusSetting";
 import { NurtureSettingsForm } from "@/components/settings/NurtureSettingsForm";
 import { NurtureOverview } from "@/components/settings/NurtureOverview";
 import { AiCreditCard } from "@/components/settings/AiCreditCard";
+import { PlatformAccessCard } from "@/components/settings/PlatformAccessCard";
 
 export default function SettingsPage() {
   return (
@@ -35,6 +36,10 @@ export default function SettingsPage() {
 
       <Suspense fallback={null}>
         <AiCreditCard />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <PlatformAccessCard />
       </Suspense>
 
       <SectionCard title="Integrasi" description="Sambungkan akun pribadi Anda ke layanan luar.">

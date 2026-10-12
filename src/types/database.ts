@@ -329,6 +329,7 @@ export type Database = {
           linkedin_url: string | null
           notification_whatsapp_number: string | null
           is_knowledge_curator: boolean
+          can_view_platform_reports: boolean
           geo_radius_km: number
           role_details: Json
           role_id: string | null
@@ -356,6 +357,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
           is_knowledge_curator?: boolean
+          can_view_platform_reports?: boolean
           geo_radius_km?: number
           role_details?: Json
           role_id?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_whatsapp_number?: string | null
           is_knowledge_curator?: boolean
+          can_view_platform_reports?: boolean
           geo_radius_km?: number
           role_details?: Json
           role_id?: string | null
@@ -619,6 +622,42 @@ export type Database = {
           table_name?: string
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      platform_snapshots: {
+        Row: {
+          snapshot_date: string
+          users_total: number | null
+          leads_total: number | null
+          listings_total: number | null
+          db_size_bytes: number | null
+          storage_size_bytes: number | null
+          ai_messages: number | null
+          ai_cost_usd: number | null
+          updated_at: string
+        }
+        Insert: {
+          snapshot_date: string
+          users_total?: number | null
+          leads_total?: number | null
+          listings_total?: number | null
+          db_size_bytes?: number | null
+          storage_size_bytes?: number | null
+          ai_messages?: number | null
+          ai_cost_usd?: number | null
+          updated_at?: string
+        }
+        Update: {
+          snapshot_date?: string
+          users_total?: number | null
+          leads_total?: number | null
+          listings_total?: number | null
+          db_size_bytes?: number | null
+          storage_size_bytes?: number | null
+          ai_messages?: number | null
+          ai_cost_usd?: number | null
+          updated_at?: string
         }
         Relationships: []
       }

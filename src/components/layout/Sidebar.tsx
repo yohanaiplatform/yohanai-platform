@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -12,6 +12,7 @@ import {
   Share2,
   Settings,
   BookOpen,
+  ShieldCheck,
   LogOut,
 } from "lucide-react";
 
@@ -44,6 +45,26 @@ export function Sidebar({
   const supabase = createClient();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  // Menu Master Admin hanya untuk admin / akun dengan penanda laporan platform.
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/admin/access", { cache: "no-store" });
+        if (res.ok && active) setShowAdmin(Boolean((await res.json()).allowed));
+      } catch {
+        // menu tambahan; kegagalan baca tidak mengganggu navigasi
+      }
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const items = showAdmin ? [...navigation, { name: "Master Admin", href: "/admin", icon: ShieldCheck }] : navigation;
 
   async function handleLogout() {
     try {
@@ -65,7 +86,7 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
-        {navigation.map((item) => {
+        {items.map((item) => {
           const isActive = pathname === item.href;
 
           return (
