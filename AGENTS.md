@@ -105,7 +105,7 @@ Jangan menghapus komponen landing page atau form register selama hold. Keduanya 
 **Pelajaran 7 Oktober:** perilaku webhook vendor harus diverifikasi dengan payload NYATA (log diagnostik tanpa isi pesan), bukan percaya docs -- docs Kapso keliru soal event echo. Gerbang commit: jangan merangkai `tsc`/`build` dengan `;` sebelum `git commit` (pernah meloloskan commit dengan error tipe); pakai `&&`.
 
 **Kerjaan sekarang (7 Oktober 2026 malam -- lihat item 0000 "WRAP-UP SESI 5-7 OKTOBER" di `docs/status.mdx`):**
-0. **Pantau:** biaya AI 3-5 hari setelah caching (Platform Report) dan saldo kredit Console (auto-reload); jawaban AI untuk pertanyaan kampus nyata belum teramati.
+0. **Pantau:** saldo kredit Console (US$3,63 per 12 Okt, auto-reload MATI, ~US$0,43/hari -> habis sekitar 19-20 Okt; spend bulanan US$11,04 dari batas US$30) -- ingatkan Yohan; hemat caching nyata ~22% (bukan 50%), TTL 1 jam dipertahankan (simulasi 5 menit hampir sama); jawaban AI untuk pertanyaan kampus dan "lokasi umum" belum teramati di percakapan nyata.
 1. **Meta Ads Analytics Agent** -- Yohan cek akses Marketing API dulu (catatan homework, belum ada kode).
 2. **Data Analysis Agent** -- persiapan, memakai riwayat Temperature. **Lead Hunter:** hanya versi semi-manual (tempel teks postingan -> AI cocokkan listing -> draf balasan, manusia yang kirim); JANGAN bot komentar/scraping Facebook (melanggar aturan Meta, Facebook Login sudah dibatalkan permanen).
 3. Template Utility notifikasi WA ke agen -- hanya bila rangkuman 3x sehari ternyata tidak sampai di hari tanpa kontak ke nomor bisnis.
