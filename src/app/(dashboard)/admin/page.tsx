@@ -193,7 +193,7 @@ export default async function AdminDashboardPage() {
               <p className="text-sm text-muted-foreground">Belum ada data.</p>
             ) : (
               <ul className="space-y-1.5 text-sm">
-                {growth.bySourceAll.map((x) => (
+                {growth.bySourceAll.slice(0, 5).map((x) => (
                   <li key={x.label}>
                     <div className="flex items-center justify-between gap-3">
                       <span className="truncate">{x.label}</span>

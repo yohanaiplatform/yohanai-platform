@@ -31,7 +31,7 @@ export function SectionCard({
         </div>
         {action && <div className="flex items-center">{action}</div>}
       </CardHeader>
-      <div className="mx-6 border-t border-border" />
+      <div className="section-divider mx-6 border-t border-border" />
       <CardContent className="pt-4 print:pt-1">
         {children}
       </CardContent>

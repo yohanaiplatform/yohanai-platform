@@ -163,4 +163,12 @@
   .admin-report h3 {
     break-after: avoid;
   }
+  /* Padatkan kartu saat cetak: deskripsi dan garis pemisah dibuang supaya satu halaman memuat lebih banyak. */
+  .admin-report [data-slot="card-description"],
+  .admin-report .section-divider {
+    display: none;
+  }
+  .admin-report [data-slot="card-header"] {
+    padding-bottom: 0;
+  }
 }
