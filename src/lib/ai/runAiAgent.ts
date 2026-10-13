@@ -34,6 +34,11 @@ function extractSearchTerms(message: string): string[] {
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
     .filter((w) => w.length >= 4 && !STOPWORDS.has(w))
+    .flatMap((w) => {
+      // Typo spasi yang umum: "diserdam" (di serdam), "kekotabaru" -> tambahkan juga kata tanpa awalan di/ke.
+      const stripped = /^(di|ke)([a-z]{4,})$/.exec(w)?.[2]
+      return stripped && !STOPWORDS.has(stripped) ? [w, stripped] : [w]
+    })
 }
 
 export async function runAiAgent(
@@ -105,7 +110,7 @@ export async function runAiAgent(
     ...extractSearchTerms(recentHistoryText),
     ...knowledge.flatMap((k) => k.relatedListingTerms),
   ]
-  const listings = await findRelevantListings(supabase, listingSearchTerms)
+  const listings = await findRelevantListings(supabase, listingSearchTerms, { primaryText: newMessage, contextText: recentHistoryText })
 
   // Simulasi KPR dihitung di KODE (bukan oleh LLM) kalau lead menyebut nominal DP: pakai listing
   // paling relevan yang punya harga. Angka ini disuntik ke AI sebagai hasil final.

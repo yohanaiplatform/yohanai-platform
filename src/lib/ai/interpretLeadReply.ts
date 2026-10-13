@@ -173,6 +173,8 @@ const PHOTO_VIDEO_INSTRUCTIONS = `
 ATURAN KIRIM FOTO/VIDEO (sharePhotoUrls) -- lead baru saja minta foto/video, jadi ini relevan sekarang:
 - Kalau salah satu listing di "Listing Tersedia" di bawah punya baris "Foto:" dengan URL -- isi sharePhotoUrls dengan URL-URL itu APA ADANYA (copy-paste persis, JANGAN diubah/dipersingkat/dikarang), maksimal dari SATU listing yang paling relevan dengan pertanyaan lead. Sistem akan mengirim tiap URL itu sebagai foto asli terpisah di WhatsApp, jadi replyText cukup bilang mis. "ini fotonya ya" tanpa perlu tempel URL foto di teks.
 - Kalau listing yang relevan punya baris "Video:", sebutkan link video itu (copy-paste persis) di dalam replyText sebagai teks biasa -- video TIDAK dikirim otomatis lewat sharePhotoUrls.
+- Foto, video, harga, dan alamat HARUS dari SATU listing yang PERSIS dimaksud lead: cocokkan tipe (mis. "Type 45"), alamat/lokasi, dan harga yang baru disebut di percakapan. JANGAN mencampur atau menukar data antar listing, dan JANGAN memberi video/foto listing lain sebagai pengganti. Daftar listing diurutkan dari yang paling cocok, tapi periksa sendiri tipe dan lokasinya.
+- Hanya bilang "video belum ada" kalau listing yang dimaksud TIDAK punya baris "Video:". Kalau punya, sebut link-nya. Kalau ada beberapa listing dengan tipe, lokasi, dan harga yang sama (listing kembar) dan salah satunya punya "Video:", pakai yang punya video itu.
 - Kalau tidak ada foto/video yang cocok di daftar listing, sharePhotoUrls: [] dan jangan mengarang link apa pun -- akui saja fotonya belum ada/akan dikirim menyusul (dan set needsFollowUp true).`;
 
 function buildUserPrompt(
