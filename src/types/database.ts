@@ -1331,6 +1331,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           id: string
+          listing_code: string | null
           metadata: Json
           price: number
           slug: string
@@ -1347,6 +1348,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
+          listing_code?: string | null
           metadata?: Json
           price: number
           slug: string
@@ -1363,6 +1365,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           id?: string
+          listing_code?: string | null
           metadata?: Json
           price?: number
           slug?: string
@@ -1379,6 +1382,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      owner_identities: {
+        Row: {
+          address: string | null
+          birth_info: string | null
+          created_at: string
+          created_by: string | null
+          id_number: string | null
+          listing_id: string
+          occupation: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          id_number?: string | null
+          listing_id: string
+          occupation?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_info?: string | null
+          created_at?: string
+          created_by?: string | null
+          id_number?: string | null
+          listing_id?: string
+          occupation?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          deleted_at: string | null
+          doc_number: string | null
+          doc_type: string
+          id: string
+          listing_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          doc_number?: string | null
+          doc_type: string
+          id?: string
+          listing_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          deleted_at?: string | null
+          doc_number?: string | null
+          doc_type?: string
+          id?: string
+          listing_id?: string
+        }
+        Relationships: []
+      }
+      document_settings: {
+        Row: {
+          data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

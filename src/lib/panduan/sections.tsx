@@ -610,6 +610,37 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "dokumen-mou-pemasaran",
+    title: "Dokumen MoU Pemasaran",
+    description: "Buat surat perjanjian jasa pemasaran dari data listing, lalu simpan sebagai PDF.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Setelah listing diinput, Anda bisa membuat <strong>Surat Perjanjian Jasa Pemasaran</strong> langsung dari
+          halaman detail listing lewat tombol <strong>&quot;MoU Pemasaran&quot;</strong>. Sebagian besar isi sudah terisi
+          otomatis dari data listing (judul, lokasi, harga, spesifikasi, pemilik, komisi).
+        </GuideP>
+        <GuideHeading>Langkah membuat MoU</GuideHeading>
+        <GuideList
+          items={[
+            "Buka listing, klik \"MoU Pemasaran\".",
+            "Lengkapi data yang belum ada: identitas pemilik (tempat/tanggal lahir, alamat, pekerjaan, No. KTP), nomor sertifikat, komisi dan closing fee, jenis perjanjian (Eksklusif/Non-Eksklusif) dan masa berlakunya.",
+            "Isi data Pihak 2 (agen dan perusahaan, rekening, principal). Cukup sekali -- tersimpan untuk dokumen berikutnya di akun Anda.",
+            "Klik \"Simpan & Cetak / PDF\", lalu di jendela cetak pilih \"Simpan sebagai PDF\", ukuran A4.",
+          ]}
+        />
+        <GuideNote>
+          Setiap MoU yang disimpan masuk <strong>Riwayat dokumen</strong> listing itu, jadi bisa dibuka dan dicetak ulang. Listing
+          juga mendapat <strong>Listing ID</strong> otomatis (mis. GDI/2026/12) yang tercetak di setiap halaman.
+        </GuideNote>
+        <GuideNote>
+          Identitas pemilik (termasuk No. KTP) bersifat rahasia: hanya admin dan agen yang menangani listing tersebut yang bisa melihatnya.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
     slug: "tag-ai-dan-deskripsi",
     title: "Tag / Info AI & Deskripsi untuk AI Agent",
     description: "Supaya AI Agent bisa jawab pertanyaan lead dengan benar.",

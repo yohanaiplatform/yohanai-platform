@@ -155,7 +155,8 @@
     page-break-before: always;
   }
   html,
-  body:has(.admin-report) {
+  body:has(.admin-report),
+  body:has(.mou-doc) {
     display: block !important;
     height: auto !important;
     overflow: visible !important;
@@ -170,5 +171,41 @@
   }
   .admin-report [data-slot="card-header"] {
     padding-bottom: 0;
+  }
+}
+
+/*
+ * Dokumen perjanjian (MoU Pemasaran, nanti PPJB/Kwitansi): halaman A4 bernama "mou". Margin box bawah (Listing ID +
+ * nomor halaman) ditambahkan komponen editor lewat <style>, karena isinya dinamis. Header (logo perusahaan) memakai
+ * <thead> tabel yang berulang di tiap halaman cetak.
+ */
+@page mou {
+  size: A4;
+  margin: 14mm 16mm 18mm 16mm;
+}
+
+@media print {
+  .mou-doc {
+    page: mou;
+  }
+  .mou-doc .print-area {
+    position: static;
+    width: auto;
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    font-size: 11pt;
+  }
+  .mou-doc .mou-table thead {
+    display: table-header-group;
+  }
+  .mou-doc .mou-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+  .mou-doc .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
