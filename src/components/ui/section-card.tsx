@@ -23,8 +23,8 @@ export function SectionCard({
   className,
 }: SectionCardProps) {
   return (
-    <Card className={cn("rounded-2xl", className)}>
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between pb-4">
+    <Card className={cn("rounded-2xl print:[--card-spacing:--spacing(3)] print:shadow-none", className)}>
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between pb-4 print:pb-1">
         <div className="space-y-1">
           <CardTitle>{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
@@ -32,7 +32,7 @@ export function SectionCard({
         {action && <div className="flex items-center">{action}</div>}
       </CardHeader>
       <div className="mx-6 border-t border-border" />
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 print:pt-1">
         {children}
       </CardContent>
     </Card>

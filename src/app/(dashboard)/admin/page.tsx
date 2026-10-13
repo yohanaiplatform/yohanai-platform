@@ -54,12 +54,12 @@ const CAPABILITIES: { title: string; text: string }[] = [
 /** Header halaman cetak: logo + judul bagian. Hanya tampil saat cetak. */
 function PrintPageHeader({ title, subtitle, first }: { title: string; subtitle: string; first?: boolean }) {
   return (
-    <div className="mb-4 hidden items-center justify-between border-b-2 border-foreground pb-2 print:flex">
+    <div className="mb-2 hidden items-center justify-between border-b-2 border-foreground pb-2 print:flex">
       <div>
-        <h1 className={first ? "text-3xl font-bold tracking-tight" : "text-2xl font-bold tracking-tight"}>{title}</h1>
+        <h1 className={first ? "text-3xl font-bold tracking-tight" : "text-xl font-bold tracking-tight"}>{title}</h1>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
-      <Logo variant="light" className={first ? "h-14" : "h-10"} />
+      <Logo variant="light" className={first ? "h-14" : "h-8"} />
     </div>
   );
 }
@@ -125,7 +125,7 @@ export default async function AdminDashboardPage() {
       <PrintControls />
 
       <div className="print-area space-y-6">
-      <section className="space-y-4">
+      <section className="space-y-4 print:space-y-3 print:break-after-page">
         <PrintPageHeader first title="LAPORAN PLATFORM" subtitle="Yohan.AI -- Property Buyer Behavior Intelligence Platform" />
         <div className="hidden flex-wrap justify-between gap-2 text-xs text-muted-foreground print:flex">
           <span>Dicetak: {printedAtWib()} WIB</span>
@@ -158,12 +158,11 @@ export default async function AdminDashboardPage() {
               Closing.
             </li>
             <li>
-              Asisten AI telah membalas <strong>{num(overview.chat.aiRunsTotal)} pesan</strong> ({num(overview.chat.aiRuns30d)} dalam 30 hari) dengan biaya rata-rata sekitar{" "}
+              Asisten AI telah membalas <strong>{num(overview.chat.aiRunsTotal)} pesan</strong>{overview.chat.aiRunsTotal > overview.chat.aiRuns30d ? ` (${num(overview.chat.aiRuns30d)} dalam 30 hari)` : " sejak diaktifkan"} dengan biaya rata-rata sekitar{" "}
               <strong>${summary.avgCostPerMessageUsd.toFixed(3)} per pesan</strong> -- biaya bulan ini {usd(summary.monthly.costUsd)}.
             </li>
             <li>
-              Portofolio {num(overview.listings.total)} listing ({num(overview.listings.available)} tersedia, {num(overview.listings.booked)} dipesan, {num(overview.listings.sold)}{" "}
-              terjual), dilayani {num(overview.users)} akun pengguna.
+              Portofolio {num(overview.listings.total)} listing ({num(overview.listings.available)} tersedia{overview.listings.booked > 0 ? `, ${num(overview.listings.booked)} dipesan` : ""}{overview.listings.sold > 0 ? `, ${num(overview.listings.sold)} terjual` : ""}), dilayani {num(overview.users)} akun pengguna.
             </li>
           </ul>
         </SectionCard>
