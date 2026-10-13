@@ -16,7 +16,7 @@ export type PrintSectionId = "ai" | "leads" | "system";
 const SECTION_LABELS: Record<PrintSectionId, string> = {
   ai: "Biaya & pemakaian AI",
   leads: "Pertumbuhan lead",
-  system: "Tren sistem",
+  system: "Kapabilitas & infrastruktur",
 };
 
 interface PrintSettings {
@@ -101,7 +101,7 @@ export function PrintControls() {
         />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Di jendela cetak browser pilih tujuan &quot;Simpan sebagai PDF&quot;, ukuran A4, dan matikan opsi &quot;Header dan footer&quot; browser
+        Laporan dicetak sebagai 4 halaman A4: ringkasan eksekutif, pertumbuhan lead, AI & biaya, kapabilitas & infrastruktur. Nama lead dan saldo kredit tidak ikut tercetak. Di jendela cetak browser pilih tujuan &quot;Simpan sebagai PDF&quot;, ukuran A4, dan matikan opsi &quot;Header dan footer&quot; browser
         (nama platform dan nomor halaman sudah dicetak otomatis oleh laporan ini). Aktifkan &quot;Grafik latar belakang&quot; kalau grafik tampak pucat.
       </p>
     </div>
@@ -111,7 +111,7 @@ export function PrintControls() {
 /** Bagian laporan: tampil di layar, dan disembunyikan saat cetak kalau tidak dicentang di panel pengaturan. */
 export function PrintSection({ id, children }: { id: PrintSectionId; children: React.ReactNode }) {
   const { sections } = usePrint();
-  return <div className={sections[id] ? "print-avoid-break" : "print:hidden"}>{children}</div>;
+  return <div className={sections[id] ? "print-page space-y-4" : "print:hidden"}>{children}</div>;
 }
 
 /** Catatan laporan: hanya tercetak (tampilan layar ada di panel pengaturan), tumbuh sesuai isi -- tanpa scrollbar. */

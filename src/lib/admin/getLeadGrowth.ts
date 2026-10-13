@@ -21,6 +21,8 @@ export interface LeadGrowth {
   perWeek: GrowthPoint[];
   perMonth: GrowthPoint[];
   bySource30: GrowthPoint[];
+  /** Sumber lead sepanjang waktu (maks 8). */
+  bySourceAll: GrowthPoint[];
 }
 
 /** Tanggal kalender WIB (YYYY-MM-DD) dari timestamp. */
@@ -66,6 +68,7 @@ export async function getLeadGrowth(admin: SupabaseClient<Database>, now = Date.
   const perWeekMap = new Map<string, number>();
   const perMonthMap = new Map<string, number>();
   const sourceMap = new Map<string, number>();
+  const sourceAllMap = new Map<string, number>();
 
   let last7 = 0;
   let prev7 = 0;
@@ -81,6 +84,9 @@ export async function getLeadGrowth(admin: SupabaseClient<Database>, now = Date.
     perWeekMap.set(wk, (perWeekMap.get(wk) ?? 0) + 1);
     const mo = day.slice(0, 7);
     perMonthMap.set(mo, (perMonthMap.get(mo) ?? 0) + 1);
+
+    const allName = (row.lead_source_id && sourceName.get(row.lead_source_id)) || "Tanpa sumber";
+    sourceAllMap.set(allName, (sourceAllMap.get(allName) ?? 0) + 1);
 
     if (ageDays >= 0 && ageDays < 7) last7 += 1;
     else if (ageDays >= 7 && ageDays < 14) prev7 += 1;
@@ -113,5 +119,10 @@ export async function getLeadGrowth(admin: SupabaseClient<Database>, now = Date.
     .slice(0, 8)
     .map(([label, value]) => ({ label, value }));
 
-  return { total: rows.length, last7, prev7, last30, perDay, perWeek, perMonth, bySource30 };
+  const bySourceAll = [...sourceAllMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([label, value]) => ({ label, value }));
+
+  return { total: rows.length, last7, prev7, last30, perDay, perWeek, perMonth, bySource30, bySourceAll };
 }

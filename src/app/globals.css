@@ -110,7 +110,7 @@
     content: "";
   }
   @top-right {
-    content: "Laporan Platform -- Rahasia, untuk internal";
+    content: "Rahasia -- hanya untuk penerima yang dituju";
     font-size: 8pt;
     color: #6b7280;
   }
@@ -147,6 +147,20 @@
   .admin-report .print-area {
     position: static;
     width: auto;
-    font-size: 11px;
+    font-size: 12px;
+  }
+  /* Tiap bagian laporan mulai di halaman baru; ancestor tidak boleh memotong atau menjadi flex saat cetak. */
+  .admin-report .print-page {
+    break-before: page;
+    page-break-before: always;
+  }
+  html,
+  body:has(.admin-report) {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .admin-report h3 {
+    break-after: avoid;
   }
 }

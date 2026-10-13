@@ -8,7 +8,7 @@ export function PageContainer({ children, className, ...props }: PageContainerPr
   return (
     <div
       className={cn(
-        "flex-1 space-y-4 p-4 md:p-8 overflow-y-auto",
+        "flex-1 space-y-4 p-4 md:p-8 overflow-y-auto print:block print:overflow-visible print:p-0",
         className
       )}
       {...props}
