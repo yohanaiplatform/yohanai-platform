@@ -9,6 +9,7 @@ import { interpretLeadReply } from '@/lib/ai/interpretLeadReply'
 import { applyAgentDecision, logAgentRunFailure, AI_SUMMARY_NOTE_AUTHOR_LABEL } from '@/lib/ai/applyAgentDecision'
 import { findRelevantKnowledge } from '@/lib/ai/knowledgeBase'
 import { buildGeoContext } from '@/lib/geo/placeContext'
+import { resetGeoDiagnostics, takeGeoDiagnostics } from '@/lib/geo/google'
 import {
   buildKprSimulationText,
   isSubsidiListing,
@@ -139,12 +140,13 @@ export async function runAiAgent(
   // Gagal/kosong tidak boleh mengganggu balasan AI.
   let geoContext: string | null = null
   try {
-    geoContext = await buildGeoContext(supabase, newMessage, listings.map((l) => l.title))
+    resetGeoDiagnostics()
+    geoContext = await buildGeoContext(supabase, newMessage, listings.map((l) => l.title), recentHistoryText)
   } catch {
     geoContext = null
   }
 
-  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext } as unknown as Json
+  const inputSnapshot = { leadContext, history, newMessage, knowledge, listings, previousSummary, kprSimulation, geoContext, geoDiagnostics: takeGeoDiagnostics() } as unknown as Json
 
   const { decision, rawResponse, error } = await interpretLeadReply(
     leadContext,

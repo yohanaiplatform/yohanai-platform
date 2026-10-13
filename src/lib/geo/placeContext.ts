@@ -22,7 +22,7 @@ interface GeoListing {
   nearby: NearbyFacility[];
 }
 
-const MAX_NEAREST = 3;
+const MAX_NEAREST = 6;
 const FACILITY_INTENT = /sekolah|rumah sakit|\brs\b|puskesmas|klinik|pasar|kampus|kuliah|mahasiswa|universitas|masjid|gereja|fasilitas|swalayan|supermarket|\bmall\b|spbu|terminal|dekat apa|sekitar(?:nya)?\s+(?:ada|apa)/i;
 
 /** Frasa jalan/kawasan eksplisit yang boleh di-geocode otomatis (daerah/sekitar/dekat umum TIDAK -- terlalu rawan keliru). */
@@ -80,7 +80,8 @@ async function loadGeoListings(supabase: SupabaseClient<Database>): Promise<GeoL
 export async function buildGeoContext(
   supabase: SupabaseClient<Database>,
   message: string,
-  relevantListingTitles: string[]
+  relevantListingTitles: string[],
+  historyText = ""
 ): Promise<string | null> {
   const lines: string[] = [];
 
@@ -92,6 +93,9 @@ export async function buildGeoContext(
   const places = (placeRows ?? []) as PlaceRow[];
 
   let place = findInDictionary(places, message);
+  // Pertanyaan lanjutan ("semua perumahan?", "kalau tanray 2?") tidak menyebut ulang lokasinya -- pakai yang
+  // terakhir disebut di percakapan (hanya dari kamus kawasan, tidak men-geocode ulang dari riwayat).
+  if (!place && historyText) place = findInDictionary(places, historyText);
 
   if (!place) {
     const palMatch = message.match(PAL_PATTERN);
@@ -117,10 +121,15 @@ export async function buildGeoContext(
 
   if (place && geoListings.length > 0) {
     const origin = { lat: place.lat, lng: place.lng };
-    const nearest = geoListings
+    const byDistance = geoListings
       .map((l) => ({ listing: l, distance: haversineMeters(origin, l.point) }))
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, MAX_NEAREST);
+      .sort((a, b) => a.distance - b.distance);
+    // Listing yang sedang dibahas lead SELALU ikut (walau bukan yang terdekat), lalu dilengkapi yang terdekat.
+    const mentioned = byDistance.filter((x) => relevantListingTitles.includes(x.listing.title)).slice(0, 3);
+    const mentionedTitles = new Set(mentioned.map((x) => x.listing.title));
+    const nearest = [...mentioned, ...byDistance.filter((x) => !mentionedTitles.has(x.listing.title))]
+      .slice(0, MAX_NEAREST)
+      .sort((a, b) => a.distance - b.distance);
 
     const trust =
       place.source === "geocoded"

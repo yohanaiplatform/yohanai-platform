@@ -14,6 +14,22 @@ export interface RouteResult {
   durationMin: number;
 }
 
+/**
+ * Catatan kegagalan panggilan Google selama satu proses jawaban AI (dibaca runAiAgent dan disimpan di
+ * ai.agent_runs.input_snapshot.geoDiagnostics) -- log Vercel Hobby tidak bisa dibaca dari luar, jadi penyebab
+ * jatuh ke garis lurus dicatat di database supaya bisa dicek dengan SQL. Tidak berisi kunci/rahasia.
+ */
+let diagnostics: string[] = [];
+export function resetGeoDiagnostics(): void {
+  diagnostics = [];
+}
+export function takeGeoDiagnostics(): string[] {
+  return diagnostics.slice(0, 12);
+}
+function note(message: string): void {
+  if (diagnostics.length < 20) diagnostics.push(message);
+}
+
 function apiKey(): string | null {
   return process.env.GOOGLE_MAPS_API_KEY || null;
 }
@@ -30,9 +46,11 @@ async function googleFetch(label: string, url: string, init: RequestInit, timeou
       if (res.ok) return res;
       const body = (await res.text().catch(() => "")).slice(0, 300);
       console.error(`[google-geo] ${label} gagal HTTP ${res.status} (percobaan ${attempt}): ${body}`);
+      note(`${label}: HTTP ${res.status} (percobaan ${attempt}) ${body.slice(0, 160)}`);
       if (res.status !== 429 && res.status < 500) return null;
     } catch (error) {
       console.error(`[google-geo] ${label} error (percobaan ${attempt}): ${error instanceof Error ? error.message : String(error)}`);
+      note(`${label}: error (percobaan ${attempt}) ${error instanceof Error ? error.message : String(error)}`);
     }
     if (attempt === 1) await new Promise((resolve) => setTimeout(resolve, 600));
   }
@@ -45,6 +63,7 @@ async function googleFetch(label: string, url: string, init: RequestInit, timeou
  */
 export async function computeDrivingRoutes(origin: LatLng, destinations: LatLng[]): Promise<(RouteResult | null)[] | null> {
   const key = apiKey();
+  if (!key) note("GOOGLE_MAPS_API_KEY kosong di server");
   if (!key || destinations.length === 0) return null;
 
   const waypoint = (p: LatLng) => ({ waypoint: { location: { latLng: { latitude: p.lat, longitude: p.lng } } } });
@@ -79,6 +98,8 @@ export async function computeDrivingRoutes(origin: LatLng, destinations: LatLng[
     }[];
 
     const results: (RouteResult | null)[] = destinations.map(() => null);
+    if (!Array.isArray(rows) || rows.length === 0) note("Routes: respons kosong");
+    else if (!rows.some((r) => r.condition === "ROUTE_EXISTS")) note(`Routes: tidak ada rute (${[...new Set(rows.map((r) => r.condition ?? "?"))].join(",")}) dari ${origin.lat.toFixed(4)},${origin.lng.toFixed(4)}`);
     for (const row of rows) {
       if (row.destinationIndex === undefined || row.condition !== "ROUTE_EXISTS" || row.distanceMeters === undefined) continue;
       const seconds = Number((row.duration ?? "0s").replace("s", ""));
