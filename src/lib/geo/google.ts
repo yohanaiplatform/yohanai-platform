@@ -19,6 +19,27 @@ function apiKey(): string | null {
 }
 
 /**
+ * fetch ke Google dengan satu kali ulang untuk kegagalan sementara (jaringan/timeout, 429, 5xx) dan log penyebab
+ * kegagalan (status + pesan Google) ke log server -- sebelumnya semua kegagalan ditelan diam-diam sehingga jawaban AI
+ * jatuh ke garis lurus tanpa jejak. Return null kalau tetap gagal.
+ */
+async function googleFetch(label: string, url: string, init: RequestInit, timeoutMs: number): Promise<Response | null> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+      if (res.ok) return res;
+      const body = (await res.text().catch(() => "")).slice(0, 300);
+      console.error(`[google-geo] ${label} gagal HTTP ${res.status} (percobaan ${attempt}): ${body}`);
+      if (res.status !== 429 && res.status < 500) return null;
+    } catch (error) {
+      console.error(`[google-geo] ${label} error (percobaan ${attempt}): ${error instanceof Error ? error.message : String(error)}`);
+    }
+    if (attempt === 1) await new Promise((resolve) => setTimeout(resolve, 600));
+  }
+  return null;
+}
+
+/**
  * Jarak & waktu tempuh LEWAT JALAN (mobil) dari satu titik ke banyak tujuan -- satu panggilan matriks.
  * Waktu tempuh TANPA kondisi lalu lintas (TRAFFIC_UNAWARE, lebih murah). Index hasil = index destinations.
  */
@@ -29,22 +50,26 @@ export async function computeDrivingRoutes(origin: LatLng, destinations: LatLng[
   const waypoint = (p: LatLng) => ({ waypoint: { location: { latLng: { latitude: p.lat, longitude: p.lng } } } });
 
   try {
-    const res = await fetch("https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": "originIndex,destinationIndex,duration,distanceMeters,condition",
+    const res = await googleFetch(
+      "Routes",
+      "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": key,
+          "X-Goog-FieldMask": "originIndex,destinationIndex,duration,distanceMeters,condition",
+        },
+        body: JSON.stringify({
+          origins: [waypoint(origin)],
+          destinations: destinations.map(waypoint),
+          travelMode: "DRIVE",
+          routingPreference: "TRAFFIC_UNAWARE",
+        }),
       },
-      body: JSON.stringify({
-        origins: [waypoint(origin)],
-        destinations: destinations.map(waypoint),
-        travelMode: "DRIVE",
-        routingPreference: "TRAFFIC_UNAWARE",
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!res.ok) return null;
+      10_000
+    );
+    if (!res) return null;
 
     const rows = (await res.json()) as {
       destinationIndex?: number;
@@ -60,7 +85,8 @@ export async function computeDrivingRoutes(origin: LatLng, destinations: LatLng[
       results[row.destinationIndex] = { distanceM: row.distanceMeters, durationMin: Math.max(1, Math.round(seconds / 60)) };
     }
     return results;
-  } catch {
+  } catch (error) {
+    console.error(`[google-geo] Routes hasil tidak terbaca: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }
@@ -80,24 +106,28 @@ const ROUTED_CATEGORIES = ["Kampus", "Kesehatan", "Belanja/Pasar"];
 
 async function searchGroup(center: LatLng, group: (typeof PLACE_GROUPS)[number], key: string): Promise<NearbyFacility[]> {
   try {
-    const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": key,
-        "X-Goog-FieldMask": "places.displayName,places.location",
+    const res = await googleFetch(
+      `Places ${group.category}`,
+      "https://places.googleapis.com/v1/places:searchNearby",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": key,
+          "X-Goog-FieldMask": "places.displayName,places.location",
+        },
+        body: JSON.stringify({
+          includedTypes: group.types,
+          maxResultCount: 10,
+          rankPreference: "DISTANCE",
+          languageCode: "id",
+          regionCode: "ID",
+          locationRestriction: { circle: { center: { latitude: center.lat, longitude: center.lng }, radius: group.radiusM } },
+        }),
       },
-      body: JSON.stringify({
-        includedTypes: group.types,
-        maxResultCount: 10,
-        rankPreference: "DISTANCE",
-        languageCode: "id",
-        regionCode: "ID",
-        locationRestriction: { circle: { center: { latitude: center.lat, longitude: center.lng }, radius: group.radiusM } },
-      }),
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) return [];
+      8_000
+    );
+    if (!res) return [];
 
     const json = (await res.json()) as { places?: { displayName?: { text?: string }; location?: { latitude: number; longitude: number } }[] };
     const result: NearbyFacility[] = [];
