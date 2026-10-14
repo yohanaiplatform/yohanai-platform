@@ -111,6 +111,11 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 MoU Pemasaran
               </Button>
             </Link>
+            <Link href={`/properties/${listing.slug}/documents/kwitansi`}>
+              <Button type="button" variant="outline" size="sm">
+                Kwitansi Booking
+              </Button>
+            </Link>
             <PropertyExportButtons
               filenameBase={listing.slug}
               data={{

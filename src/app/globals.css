@@ -226,3 +226,10 @@
     page-break-inside: avoid;
   }
 }
+
+@media print {
+  .mou-doc .kw-doc {
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+}

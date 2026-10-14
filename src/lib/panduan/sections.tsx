@@ -641,6 +641,31 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "dokumen-kwitansi-booking",
+    title: "Kwitansi Booking Unit",
+    description: "Buat kwitansi uang booking dari data listing, lengkap dengan terbilang otomatis.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Dari halaman detail listing, klik <strong>&quot;Kwitansi Booking&quot;</strong>. Nama proyek dan harga unit sudah terisi dari listing;
+          Anda tinggal mengisi data pembeli, blok/nomor unit, dan nominal booking. Tulisan &quot;uang sejumlah&quot; dibuat otomatis dari nominal.
+        </GuideP>
+        <GuideList
+          items={[
+            "Isi nama pembeli, blok/nomor unit, dan nominal pembayaran.",
+            "Pilih cara pembayaran (Transfer, Tunai, atau Lainnya) dan tanggalnya. Untuk Transfer, rekening penerima ikut tercetak.",
+            "Nomor kwitansi dibuat otomatis berurutan (mis. KW/GDI/2026/001), atau isi sendiri.",
+            "Klik \"Simpan & Cetak / PDF\", lalu pilih \"Simpan sebagai PDF\", ukuran A4.",
+          ]}
+        />
+        <GuideNote>
+          Setiap kwitansi tersimpan di <strong>Riwayat kwitansi</strong> listing itu dan bisa dibuka lagi. Kolom Catatan diisi manual -- tulis ketentuan booking sesuai kesepakatan Anda dengan pembeli.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
     slug: "tag-ai-dan-deskripsi",
     title: "Tag / Info AI & Deskripsi untuk AI Agent",
     description: "Supaya AI Agent bisa jawab pertanyaan lead dengan benar.",
