@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/section-card";
 import { DocChoiceField, DocTextField } from "@/components/property/documentFields";
 import { KwitansiDocument } from "@/components/property/KwitansiDocument";
-import type { KwitansiForm, KwitansiListingInfo } from "@/lib/documents/kwitansiTypes";
+import { computeBookingBalance, PURCHASE_METHODS, type KwitansiForm, type KwitansiListingInfo } from "@/lib/documents/kwitansiTypes";
+import { rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
 
 interface KwitansiEditorProps {
@@ -77,6 +78,7 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
 
   const footer = `Kwitansi Booking ${docNumber || ""}`.trim().replace(/"/g, "");
   const words = terbilangRupiah(form.payment.amount);
+  const balance = computeBookingBalance(form.unit, form.payment.amount);
 
   return (
     <div className="mou-doc space-y-6">
@@ -96,13 +98,30 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
             <DocTextField label="Proyek / properti" value={form.unit.projectName} onChange={(v) => setUnit("projectName", v)} wide />
             <DocTextField label="Blok / No. unit" value={form.unit.unitLabel} onChange={(v) => setUnit("unitLabel", v)} placeholder="Blok A No. 12" />
             <DocTextField label="Tipe" value={form.unit.type} onChange={(v) => setUnit("type", v)} placeholder="36/117" />
-            <DocTextField label="Harga unit (angka, Rp) -- opsional" value={form.unit.price} onChange={(v) => setUnit("price", v)} />
+            <DocTextField label="Harga unit (angka, Rp)" value={form.unit.price} onChange={(v) => setUnit("price", v)} />
+            <DocChoiceField label="Metode pembayaran pembelian" value={form.unit.purchaseMethod} options={PURCHASE_METHODS} onChange={(v) => setUnit("purchaseMethod", v)} />
+            {balance.usesDp ? (
+              <div className="space-y-1 sm:col-span-2">
+                <DocTextField label="Total DP yang disepakati (angka, Rp)" value={form.unit.totalDp} onChange={(v) => setUnit("totalDp", v)} placeholder="10000000" />
+                <p className="text-xs text-muted-foreground">Untuk KPR dan Cash Bertahap: sisa pembayaran = Total DP dikurangi uang booking.</p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground sm:col-span-2">Untuk Cash: sisa pembayaran = harga unit dikurangi uang booking (Total DP tidak dipakai).</p>
+            )}
             <div className="space-y-1">
               <DocTextField label="Nominal pembayaran (angka, Rp)" value={form.payment.amount} onChange={(v) => setPayment("amount", v)} placeholder="5000000" />
               {words && <p className="text-xs text-muted-foreground">Terbilang: {words}</p>}
+              {balance.remaining !== null && (
+                <p className={`text-xs ${balance.overpaid ? "text-destructive" : "text-muted-foreground"}`}>
+                  {balance.overpaid ? "Nominal booking melebihi acuan. " : ""}Sisa pembayaran: {rupiah(balance.remaining)}
+                </p>
+              )}
+              {balance.remaining === null && (
+                <p className="text-xs text-amber-600">{balance.usesDp ? "Isi Total DP" : "Isi harga unit"} agar sisa pembayaran terhitung.</p>
+              )}
             </div>
             <DocTextField label="Untuk pembayaran" value={form.payment.purpose} onChange={(v) => setPayment("purpose", v)} />
-            <DocChoiceField label="Cara pembayaran" value={form.payment.method} options={["Transfer", "Tunai", "Lainnya"]} onChange={(v) => setPayment("method", v)} />
+            <DocChoiceField label="Cara bayar booking ini" value={form.payment.method} options={["Transfer", "Tunai", "Lainnya"]} onChange={(v) => setPayment("method", v)} />
             <DocTextField label="Tanggal pembayaran" type="date" value={form.payment.date} onChange={(v) => setPayment("date", v)} />
             <DocTextField label="Kota penandatanganan" value={form.signPlace} onChange={(v) => setForm((f) => ({ ...f, signPlace: v }))} placeholder="Pontianak" />
             <DocTextField label="Nomor kwitansi (kosongkan = otomatis, mis. KW/GDI/2026/001)" value={docNumber} onChange={(v) => setDocNumber(v.toUpperCase())} />

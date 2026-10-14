@@ -70,7 +70,7 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
 
   const initialForm: KwitansiForm = {
     buyer: { name: "", phone: "", address: "" },
-    unit: { projectName: listing.title, unitLabel: "", type: "", price: String(Math.round(listing.price)) },
+    unit: { projectName: listing.title, unitLabel: "", type: "", price: String(Math.round(listing.price)), purchaseMethod: "KPR", totalDp: "" },
     payment: {
       amount: "",
       purpose: "Booking unit (uang tanda jadi)",
@@ -89,7 +89,8 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
   if (chosen && saved?.form) {
     const f = saved.form;
     initialForm.buyer = { ...initialForm.buyer, ...(f.buyer ?? {}) };
-    initialForm.unit = { ...initialForm.unit, ...(f.unit ?? {}) };
+    // Kwitansi lama (sebelum ada metode pembelian) dihitung dari harga unit = Cash.
+    initialForm.unit = { ...initialForm.unit, purchaseMethod: "Cash", ...(f.unit ?? {}) };
     initialForm.payment = { ...initialForm.payment, ...(f.payment ?? {}) };
     initialForm.signPlace = f.signPlace ?? "";
     initialNumber = chosen.doc_number ?? "";

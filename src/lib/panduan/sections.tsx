@@ -653,7 +653,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         </GuideP>
         <GuideList
           items={[
-            "Isi nama pembeli, blok/nomor unit, dan nominal pembayaran.",
+            "Isi nama pembeli, blok/nomor unit, dan nominal uang booking.",
+            "Pilih Metode pembayaran pembelian: KPR, Cash, atau Cash Bertahap. Untuk KPR dan Cash Bertahap isi juga Total DP -- sisa pembayaran dihitung dari Total DP dikurangi uang booking (contoh: Total DP 10 juta, booking 2 juta, sisa 8 juta). Untuk Cash, sisa dihitung dari harga unit dikurangi booking.",
             "Pilih cara pembayaran (Transfer, Tunai, atau Lainnya) dan tanggalnya. Untuk Transfer, rekening penerima ikut tercetak.",
             "Nomor kwitansi dibuat otomatis berurutan (mis. KW/GDI/2026/001), atau isi sendiri.",
             "Klik \"Simpan & Cetak / PDF\", lalu pilih \"Simpan sebagai PDF\", ukuran A4.",

@@ -3,7 +3,7 @@
 // Isi dokumen Kwitansi Booking Unit (presentasional): pratinjau di layar dan isi cetak. Logo perusahaan (Griya Indonesia),
 // bukan logo Yohan.AI -- dokumen transaksi tidak bermerek platform.
 
-import type { KwitansiForm } from "@/lib/documents/kwitansiTypes";
+import { computeBookingBalance, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
 
@@ -23,7 +23,7 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
   const { buyer, unit, payment, party2 } = form;
   const amount = Number(String(payment.amount).replace(/[^0-9.-]/g, "")) || 0;
   const price = Number(String(unit.price).replace(/[^0-9.-]/g, "")) || 0;
-  const remaining = price > 0 ? price - amount : 0;
+  const balance = computeBookingBalance(unit, amount);
   const words = terbilangRupiah(amount);
 
   return (
@@ -57,10 +57,17 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
         <Row label="Blok / No. unit">{unit.unitLabel}</Row>
         <Row label="Tipe">{unit.type}</Row>
         {price > 0 && <Row label="Harga unit">{rupiah(price)}</Row>}
-        <Row label="Pembayaran ini">
+        <Row label="Metode pembayaran">{balance.method}</Row>
+        {balance.usesDp && balance.base > 0 && <Row label="Total DP">{rupiah(balance.base)}</Row>}
+        <Row label="Pembayaran ini (booking)">
           <strong>{rupiah(amount)}</strong>
         </Row>
-        {price > 0 && <Row label="Sisa pembayaran">{rupiah(remaining)}</Row>}
+        {balance.remaining !== null && (
+          <Row label="Sisa pembayaran">
+            {rupiah(balance.remaining)}
+            {balance.usesDp && <span className="font-normal text-[0.85em]"> (Total DP dikurangi booking)</span>}
+          </Row>
+        )}
         <Row label="Cara pembayaran">{payment.method}</Row>
         {payment.method === "Transfer" && party2.bankName && (
           <Row label="Rekening penerima">
