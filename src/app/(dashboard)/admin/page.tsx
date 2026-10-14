@@ -11,6 +11,7 @@ import { getAiCreditStatus } from "@/lib/reports/getAiCreditStatus";
 import { SectionCard } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { MiniBars } from "@/components/admin/MiniBars";
+import { WeeklyAnalysisCard, type WeeklyAnalysisRecord } from "@/components/admin/WeeklyAnalysisCard";
 import { Logo } from "@/components/layout/Logo";
 import { PrintSettingsProvider, PrintControls, PrintSection, PrintNote } from "@/components/admin/AdminReportPrint";
 
@@ -89,6 +90,15 @@ export default async function AdminDashboardPage() {
       .limit(60),
   ]);
   const credit = await getAiCreditStatus(admin, summary.weekly.costUsd / 7);
+  const { data: analysisRow } = await admin
+    .schema("ai")
+    .from("analysis_reports")
+    .select("period_start, period_end, headline, findings, metrics, created_at")
+    .eq("kind", "weekly")
+    .order("period_end", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const analysisReport = analysisRow as unknown as WeeklyAnalysisRecord | null;
   const snapshots = [...(snapshotsRes.data ?? [])].reverse();
   const cost30 = series.reduce((sum, p) => sum + p.costUsd, 0);
   const costPerNewLead = growth.last30 > 0 ? cost30 / growth.last30 : 0;
@@ -123,6 +133,10 @@ export default async function AdminDashboardPage() {
       </header>
 
       <PrintControls />
+
+      <div className="no-print">
+        <WeeklyAnalysisCard report={analysisReport} />
+      </div>
 
       <div className="print-area space-y-6">
       <section className="space-y-4 print:space-y-3 print:break-after-page">

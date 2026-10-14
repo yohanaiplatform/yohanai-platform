@@ -9,6 +9,7 @@ import { runNurture } from "@/lib/nurture/runNurture";
 import { generateKnowledgeGaps } from "@/lib/knowledge/generateGaps";
 import { resumeUnansweredAfterPause } from "@/lib/ai/resumeSweep";
 import { recordPlatformSnapshot } from "@/lib/admin/recordPlatformSnapshot";
+import { generateWeeklyAnalysis } from "@/lib/analysis/generateWeeklyAnalysis";
 
 const WIB_OFFSET_HOURS = 7;
 const DIGEST_HOURS_WIB = [8, 13, 21];
@@ -24,6 +25,7 @@ const DAILY_REPORT_HOUR_WIB = 7;
  * - jam 08/13/21 WIB: rangkuman chat ke WhatsApp agen
  * - jam 07 WIB: Daily Report + Platform Report
  * - jam 06 WIB: Knowledge Loop (rangkum celah pengetahuan AI -> Settings)
+ * - Senin jam 07 WIB: analisis mingguan Data Analysis Agent (email ke pemilik)
  * - tiap jam (08-20 WIB): nurturing template ke lead diam (dry-run kecuali NURTURE_ENABLED=true)
  *
  * Handler lain dipanggil langsung (bukan lewat HTTP), dengan secret masing-
@@ -94,6 +96,16 @@ export async function GET(request: Request) {
       results.gaps = await generateKnowledgeGaps(createAdminClient());
     } catch (error) {
       results.gaps = { error: error instanceof Error ? error.message : "gagal" };
+    }
+  }
+
+  // Data Analysis Agent: analisis mingguan tiap Senin jam 07 WIB (hanya baca; hasil ke ai.analysis_reports + email pemilik).
+  const wibWeekday = new Date(Date.now() + WIB_OFFSET_HOURS * 3600 * 1000).getUTCDay();
+  if (force === "analysis" || (wibWeekday === 1 && wibHour === 7)) {
+    try {
+      results.analysis = await generateWeeklyAnalysis(createAdminClient(), { force: force === "analysis" });
+    } catch (error) {
+      results.analysis = { error: error instanceof Error ? error.message : "gagal" };
     }
   }
 

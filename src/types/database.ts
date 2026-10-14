@@ -74,6 +74,42 @@ export type Database = {
         Update: { id?: string; balance_usd?: number; recorded_at?: string; recorded_by?: string | null }
         Relationships: []
       }
+      analysis_reports: {
+        Row: {
+          id: string
+          kind: string
+          period_start: string
+          period_end: string
+          metrics: Json
+          headline: string | null
+          findings: Json
+          emailed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          kind?: string
+          period_start: string
+          period_end: string
+          metrics?: Json
+          headline?: string | null
+          findings?: Json
+          emailed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          period_start?: string
+          period_end?: string
+          metrics?: Json
+          headline?: string | null
+          findings?: Json
+          emailed_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       llm_usage: {
         Row: {
           id: string
