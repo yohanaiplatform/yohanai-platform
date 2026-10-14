@@ -642,13 +642,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
   },
   {
     slug: "dokumen-kwitansi-booking",
-    title: "Kwitansi Booking Unit",
-    description: "Buat kwitansi uang booking dari data listing, lengkap dengan terbilang otomatis.",
+    title: "Kwitansi Pembayaran Unit",
+    description: "Buat kwitansi booking atau angsuran dari data listing, lengkap dengan terbilang otomatis.",
     status: "ready",
     Content: () => (
       <>
         <GuideP>
-          Dari halaman detail listing, klik <strong>&quot;Kwitansi Booking&quot;</strong>. Nama proyek dan harga unit sudah terisi dari listing;
+          Dari halaman detail listing, klik <strong>&quot;Kwitansi&quot;</strong>. Di kolom &quot;Untuk pembayaran&quot; pilih Booking, Angsuran Booking, Angsuran Cash, Angsuran Cash Bertahap, atau Lainnya -- judul di bawah tulisan KWITANSI mengikuti pilihan itu. Nama proyek dan harga unit sudah terisi dari listing;
           Anda tinggal mengisi data pembeli, blok/nomor unit, dan nominal booking. Tulisan &quot;uang sejumlah&quot; dibuat otomatis dari nominal.
         </GuideP>
         <GuideList

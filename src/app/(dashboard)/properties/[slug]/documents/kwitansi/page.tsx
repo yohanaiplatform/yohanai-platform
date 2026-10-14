@@ -9,7 +9,7 @@ import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { createClient } from "@/lib/supabase/server";
 import { parseParty2 } from "@/lib/documents/mouTypes";
-import type { KwitansiForm } from "@/lib/documents/kwitansiTypes";
+import { PAYMENT_PURPOSES, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 
 interface KwitansiPageProps {
   params: Promise<{ slug: string }>;
@@ -73,7 +73,9 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
     unit: { projectName: listing.title, unitLabel: "", type: "", price: String(Math.round(listing.price)), purchaseMethod: "KPR", totalDp: "" },
     payment: {
       amount: "",
-      purpose: "Booking unit (uang tanda jadi)",
+      purpose: "Booking",
+      purposeCustom: "",
+      previouslyPaid: "",
       method: "Transfer",
       date: new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10),
       notes: "",
@@ -92,6 +94,11 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
     // Kwitansi lama (sebelum ada metode pembelian) dihitung dari harga unit = Cash.
     initialForm.unit = { ...initialForm.unit, purchaseMethod: "Cash", ...(f.unit ?? {}) };
     initialForm.payment = { ...initialForm.payment, ...(f.payment ?? {}) };
+    // Kwitansi lama menyimpan "untuk pembayaran" sebagai teks bebas: tampilkan sebagai Lainnya agar teksnya tidak hilang.
+    if (!(PAYMENT_PURPOSES as readonly string[]).includes(initialForm.payment.purpose)) {
+      initialForm.payment.purposeCustom = initialForm.payment.purpose;
+      initialForm.payment.purpose = "Lainnya";
+    }
     initialForm.signPlace = f.signPlace ?? "";
     initialNumber = chosen.doc_number ?? "";
   } else if (saved?.form?.signPlace) {
@@ -105,9 +112,9 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
       <SetBreadcrumbLabel segment={listing.slug} label={listing.title} />
       <div className="no-print space-y-1">
         {backLink}
-        <h1 className="text-2xl font-bold tracking-tight">Kwitansi Booking Unit</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Kwitansi Pembayaran Unit</h1>
         <p className="text-sm text-muted-foreground">
-          {listing.title}. Isi data pembeli dan nominal booking; terbilang dan nomor kwitansi dibuat otomatis.
+          {listing.title}. Pilih tujuan pembayaran (Booking, Angsuran, dll), isi data pembeli dan nominal; terbilang dan nomor kwitansi dibuat otomatis.
         </p>
       </div>
       <KwitansiEditor

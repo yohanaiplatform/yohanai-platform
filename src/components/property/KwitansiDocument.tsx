@@ -3,7 +3,7 @@
 // Isi dokumen Kwitansi Booking Unit (presentasional): pratinjau di layar dan isi cetak. Logo perusahaan (Griya Indonesia),
 // bukan logo Yohan.AI -- dokumen transaksi tidak bermerek platform.
 
-import { computeBookingBalance, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
+import { computeBookingBalance, purposeLabel, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
 
@@ -23,7 +23,8 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
   const { buyer, unit, payment, party2 } = form;
   const amount = Number(String(payment.amount).replace(/[^0-9.-]/g, "")) || 0;
   const price = Number(String(unit.price).replace(/[^0-9.-]/g, "")) || 0;
-  const balance = computeBookingBalance(unit, amount);
+  const balance = computeBookingBalance(unit, amount, payment.previouslyPaid);
+  const purpose = purposeLabel(payment);
   const words = terbilangRupiah(amount);
 
   return (
@@ -33,7 +34,7 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
         <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto" />
         <div className="text-right">
           <h1 className="text-lg font-bold tracking-wide">KWITANSI</h1>
-          <p className="text-[0.9em]">Booking Unit</p>
+          <p className="text-[0.9em]">{purpose}</p>
         </div>
       </div>
 
@@ -48,7 +49,7 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
         <Row label="Uang sejumlah">
           <span className="italic">{words ? `${words}` : "-"}</span>
         </Row>
-        <Row label="Untuk pembayaran">{payment.purpose}</Row>
+        <Row label="Untuk pembayaran">{purpose}</Row>
       </div>
 
       <div className="mt-3 rounded border border-black/60 p-3 print-avoid-break">
@@ -59,13 +60,14 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
         {price > 0 && <Row label="Harga unit">{rupiah(price)}</Row>}
         <Row label="Metode pembayaran">{balance.method}</Row>
         {balance.usesDp && balance.base > 0 && <Row label="Total DP">{rupiah(balance.base)}</Row>}
-        <Row label="Pembayaran ini (booking)">
+        {balance.before > 0 && <Row label="Sudah dibayar sebelumnya">{rupiah(balance.before)}</Row>}
+        <Row label={`Pembayaran ini (${purpose})`}>
           <strong>{rupiah(amount)}</strong>
         </Row>
         {balance.remaining !== null && (
           <Row label="Sisa pembayaran">
             {rupiah(balance.remaining)}
-            {balance.usesDp && <span className="font-normal text-[0.85em]"> (Total DP dikurangi booking)</span>}
+            {balance.usesDp && <span className="font-normal text-[0.85em]"> (Total DP dikurangi pembayaran)</span>}
           </Row>
         )}
         <Row label="Cara pembayaran">{payment.method}</Row>

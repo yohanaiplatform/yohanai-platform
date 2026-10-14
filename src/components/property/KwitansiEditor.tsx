@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/section-card";
 import { DocChoiceField, DocTextField } from "@/components/property/documentFields";
 import { KwitansiDocument } from "@/components/property/KwitansiDocument";
-import { computeBookingBalance, PURCHASE_METHODS, type KwitansiForm, type KwitansiListingInfo } from "@/lib/documents/kwitansiTypes";
+import { computeBookingBalance, PAYMENT_PURPOSES, PURCHASE_METHODS, type KwitansiForm, type KwitansiListingInfo } from "@/lib/documents/kwitansiTypes";
 import { rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
 
@@ -76,9 +76,9 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
     setTimeout(() => window.print(), 300);
   }
 
-  const footer = `Kwitansi Booking ${docNumber || ""}`.trim().replace(/"/g, "");
+  const footer = `Kwitansi ${docNumber || ""}`.trim().replace(/"/g, "");
   const words = terbilangRupiah(form.payment.amount);
-  const balance = computeBookingBalance(form.unit, form.payment.amount);
+  const balance = computeBookingBalance(form.unit, form.payment.amount, form.payment.previouslyPaid);
 
   return (
     <div className="mou-doc space-y-6">
@@ -103,10 +103,10 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
             {balance.usesDp ? (
               <div className="space-y-1 sm:col-span-2">
                 <DocTextField label="Total DP yang disepakati (angka, Rp)" value={form.unit.totalDp} onChange={(v) => setUnit("totalDp", v)} placeholder="10000000" />
-                <p className="text-xs text-muted-foreground">Untuk KPR dan Cash Bertahap: sisa pembayaran = Total DP dikurangi uang booking.</p>
+                <p className="text-xs text-muted-foreground">Untuk KPR dan Cash Bertahap: sisa pembayaran = Total DP dikurangi uang booking/pembayaran.</p>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground sm:col-span-2">Untuk Cash: sisa pembayaran = harga unit dikurangi uang booking (Total DP tidak dipakai).</p>
+              <p className="text-xs text-muted-foreground sm:col-span-2">Untuk Cash: sisa pembayaran = harga unit dikurangi pembayaran (Total DP tidak dipakai).</p>
             )}
             <div className="space-y-1">
               <DocTextField label="Nominal pembayaran (angka, Rp)" value={form.payment.amount} onChange={(v) => setPayment("amount", v)} placeholder="5000000" />
@@ -120,7 +120,13 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
                 <p className="text-xs text-amber-600">{balance.usesDp ? "Isi Total DP" : "Isi harga unit"} agar sisa pembayaran terhitung.</p>
               )}
             </div>
-            <DocTextField label="Untuk pembayaran" value={form.payment.purpose} onChange={(v) => setPayment("purpose", v)} />
+            <DocChoiceField label="Untuk pembayaran" value={form.payment.purpose} options={[...PAYMENT_PURPOSES]} onChange={(v) => setPayment("purpose", v)} />
+            {form.payment.purpose === "Lainnya" && (
+              <DocTextField label="Tulis tujuan pembayaran" value={form.payment.purposeCustom} onChange={(v) => setPayment("purposeCustom", v)} placeholder="mis. Biaya KPR / Pelunasan" />
+            )}
+            {form.payment.purpose !== "Booking" && (
+              <DocTextField label="Sudah dibayar sebelumnya (angka, Rp) -- opsional" value={form.payment.previouslyPaid} onChange={(v) => setPayment("previouslyPaid", v)} placeholder="2000000" />
+            )}
             <DocChoiceField label="Cara bayar booking ini" value={form.payment.method} options={["Transfer", "Tunai", "Lainnya"]} onChange={(v) => setPayment("method", v)} />
             <DocTextField label="Tanggal pembayaran" type="date" value={form.payment.date} onChange={(v) => setPayment("date", v)} />
             <DocTextField label="Kota penandatanganan" value={form.signPlace} onChange={(v) => setForm((f) => ({ ...f, signPlace: v }))} placeholder="Pontianak" />
