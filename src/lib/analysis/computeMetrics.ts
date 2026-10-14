@@ -11,6 +11,8 @@ import {
   type SourceRow,
 } from "@/lib/analysis/types";
 import { computeTopicMetrics } from "@/lib/analysis/topics";
+import { computeObjectionMetrics } from "@/lib/analysis/objections";
+import { FOLLOW_UP_LIST_LIMIT, type FollowUpLead, type FollowUpList } from "@/lib/analysis/types";
 
 const PAGE = 1000;
 const SOURCE_COHORT_DAYS = 30;
@@ -72,6 +74,18 @@ function toCountItems(map: Map<string, number>, limit?: number): CountItem[] {
  * memeriksa hak akses.
  */
 export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new Date()): Promise<AnalysisMetrics> {
+  return (await computeAnalysisData(admin, days, now)).metrics;
+}
+
+/**
+ * Metrik agregat (aman untuk LLM) + daftar lead tindak lanjut (memuat nama lead: JANGAN dikirim ke LLM, hanya untuk
+ * ditampilkan ke pemilik). Satu kali ambil data untuk keduanya.
+ */
+export async function computeAnalysisData(
+  admin: Admin,
+  days = 7,
+  now = new Date()
+): Promise<{ metrics: AnalysisMetrics; followUps: FollowUpList }> {
   const periodEnd = now;
   const periodStart = new Date(now.getTime() - days * DAY_MS);
   const periodStartISO = periodStart.toISOString();
@@ -79,7 +93,13 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
 
   const [leads, history, runs, queueRes, messages, conversations, customerMessages] = await Promise.all([
     fetchAll((from, to) =>
-      admin.schema("customer").from("leads").select("id, created_at, metadata").is("deleted_at", null).order("created_at").range(from, to)
+      admin
+        .schema("customer")
+        .from("leads")
+        .select("id, created_at, metadata, first_name, last_name, slug")
+        .is("deleted_at", null)
+        .order("created_at")
+        .range(from, to)
     ),
     fetchAll((from, to) =>
       admin
@@ -125,12 +145,16 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
     ),
   ]);
 
-  const leadById = new Map<string, { createdAt: string; temperature: string; metadata: Record<string, unknown> }>();
+  const leadById = new Map<
+    string,
+    { createdAt: string; temperature: string; metadata: Record<string, unknown>; name: string; slug: string | null }
+  >();
   const currentCounts = new Map<string, number>();
   for (const lead of leads) {
     const metadata = asRecord(lead.metadata);
     const temperature = str(metadata.status_funnel_awal) ?? "Belum dinilai";
-    leadById.set(lead.id, { createdAt: lead.created_at, temperature, metadata });
+    const name = [lead.first_name, lead.last_name].filter(Boolean).join(" ").trim() || "(tanpa nama)";
+    leadById.set(lead.id, { createdAt: lead.created_at, temperature, metadata, name, slug: lead.slug ?? null });
     currentCounts.set(temperature, (currentCounts.get(temperature) ?? 0) + 1);
   }
 
@@ -174,13 +198,19 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
   let unanswered = 0;
   const stalledBefore = now.getTime() - STALLED_DAYS * DAY_MS;
   const unansweredBefore = now.getTime() - UNANSWERED_HOURS * 3600000;
+  const waitingLeads: { leadId: string; at: string }[] = [];
+  const stalledLeads: { leadId: string; at: string }[] = [];
   for (const [leadId, last] of lastByLead) {
     const temp = leadById.get(leadId)?.temperature;
     if (temp !== "Hot" && temp !== "Warm") continue;
     hotWarmWithChat += 1;
     const at = new Date(last.at).getTime();
+    const isWaiting = last.senderType === "customer" && at < unansweredBefore;
     if (at < stalledBefore) stalled += 1;
-    if (last.senderType === "customer" && at < unansweredBefore) unanswered += 1;
+    if (isWaiting) unanswered += 1;
+    // Satu lead hanya di satu daftar: "menunggu balasan" lebih mendesak daripada "sepi".
+    if (isWaiting) waitingLeads.push({ leadId, at: last.at });
+    else if (at < stalledBefore) stalledLeads.push({ leadId, at: last.at });
   }
 
   // Kualitas per sumber: lead yang dibuat 30 hari terakhir, Temperature saat ini.
@@ -227,16 +257,58 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
 
   const leadOfConversation = new Map<string, string>();
   for (const cv of conversations) if (cv.lead_id) leadOfConversation.set(cv.id, cv.lead_id);
+  const customerText = customerMessages.flatMap((m) => {
+    const leadId = leadOfConversation.get(m.conversation_id);
+    return leadId && m.content ? [{ leadId, at: m.created_at, content: m.content }] : [];
+  });
+  const temperatureByLead = new Map(Array.from(leadById.entries()).map(([id, l]) => [id, l.temperature]));
   const topics = computeTopicMetrics({
-    messages: customerMessages.flatMap((m) => {
-      const leadId = leadOfConversation.get(m.conversation_id);
-      return leadId && m.content ? [{ leadId, at: m.created_at, content: m.content }] : [];
-    }),
-    temperatureByLead: new Map(Array.from(leadById.entries()).map(([id, l]) => [id, l.temperature])),
+    messages: customerText,
+    temperatureByLead,
     hotTransitions: history.filter((h) => h.to_temperature === "Hot" && h.from_temperature).map((h) => ({ leadId: h.lead_id, at: h.created_at })),
   });
+  const objectionResult = computeObjectionMetrics({
+    messages: customerText,
+    temperatureByLead,
+    recentSince: periodStartISO,
+    silentBefore: new Date(stalledBefore).toISOString(),
+  });
 
-  return {
+  // Daftar tindak lanjut (memuat nama lead -- tidak ikut ke LLM). Hot didahulukan, lalu yang paling lama menunggu.
+  const toLead = (kind: FollowUpLead["kind"], leadId: string, at: string): FollowUpLead => {
+    const lead = leadById.get(leadId);
+    return {
+      leadId,
+      slug: lead?.slug ?? null,
+      name: lead?.name ?? "(tanpa nama)",
+      temperature: lead?.temperature ?? "-",
+      kind,
+      lastAt: at,
+      objection: objectionResult.lastObjectionByLead.get(leadId)?.label ?? null,
+    };
+  };
+  const byUrgency = (a: FollowUpLead, b: FollowUpLead) =>
+    (a.temperature === "Hot" ? 0 : 1) - (b.temperature === "Hot" ? 0 : 1) || a.lastAt.localeCompare(b.lastAt);
+  const waitingList = waitingLeads.map((l) => toLead("waiting", l.leadId, l.at)).sort(byUrgency);
+  const stalledList = stalledLeads.map((l) => toLead("stalled", l.leadId, l.at)).sort(byUrgency);
+  // Reaktivasi: berhenti setelah keberatan, Warm/Cold (Hot/Warm yang sepi sudah ada di daftar "sepi").
+  const inHotWarmLists = new Set([...waitingLeads, ...stalledLeads].map((l) => l.leadId));
+  const objectionList: FollowUpLead[] = [];
+  for (const [leadId, last] of objectionResult.lastObjectionByLead) {
+    const temp = temperatureByLead.get(leadId);
+    if (inHotWarmLists.has(leadId) || temp === "Hot" || temp?.startsWith("Closing") || temp === "Booking" || temp === "Batal") continue;
+    if (new Date(last.at).getTime() >= stalledBefore) continue;
+    objectionList.push(toLead("objection", leadId, last.at));
+  }
+  objectionList.sort((a, b) => b.lastAt.localeCompare(a.lastAt));
+  const followUps: FollowUpList = {
+    waiting: waitingList.slice(0, FOLLOW_UP_LIST_LIMIT),
+    stalled: stalledList.slice(0, FOLLOW_UP_LIST_LIMIT),
+    objection: objectionList.slice(0, FOLLOW_UP_LIST_LIMIT),
+    totals: { waiting: waitingList.length, stalled: stalledList.length, objection: objectionList.length },
+  };
+
+  const metrics: AnalysisMetrics = {
     periodStart: periodStartISO,
     periodEnd: periodEnd.toISOString(),
     days,
@@ -252,6 +324,7 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
       hotWarmWithChat,
     },
     topics,
+    objections: objectionResult.metrics,
     sources: { cohortDays: SOURCE_COHORT_DAYS, cohortLeads, minSample: MIN_SOURCE_SAMPLE, rows: sourceRows },
     ai: {
       runs: runs.length,
@@ -266,4 +339,5 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
       unansweredHotWarm: unanswered,
     },
   };
+  return { metrics, followUps };
 }

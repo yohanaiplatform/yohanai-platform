@@ -93,7 +93,7 @@ export default async function AdminDashboardPage() {
   const { data: analysisRow } = await admin
     .schema("ai")
     .from("analysis_reports")
-    .select("period_start, period_end, headline, findings, metrics, created_at")
+    .select("period_start, period_end, headline, findings, metrics, followups, created_at")
     .eq("kind", "weekly")
     .order("period_end", { ascending: false })
     .limit(1)

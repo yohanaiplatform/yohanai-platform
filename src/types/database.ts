@@ -83,6 +83,7 @@ export type Database = {
           metrics: Json
           headline: string | null
           findings: Json
+          followups: Json
           emailed_at: string | null
           created_at: string
         }
@@ -94,6 +95,7 @@ export type Database = {
           metrics?: Json
           headline?: string | null
           findings?: Json
+          followups?: Json
           emailed_at?: string | null
           created_at?: string
         }
@@ -105,6 +107,7 @@ export type Database = {
           metrics?: Json
           headline?: string | null
           findings?: Json
+          followups?: Json
           emailed_at?: string | null
           created_at?: string
         }

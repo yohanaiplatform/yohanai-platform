@@ -2,7 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
-import { computeAnalysisMetrics } from "@/lib/analysis/computeMetrics";
+import { computeAnalysisData } from "@/lib/analysis/computeMetrics";
 import { sendAnalysisEmail } from "@/lib/analysis/sendAnalysisEmail";
 import type { AnalysisFinding, AnalysisMetrics } from "@/lib/analysis/types";
 
@@ -22,6 +22,7 @@ KAMUS FIELD (baca sebelum menulis; salah menafsirkan = menyesatkan pemilik):
 - funnel.medianHoursToHot dihitung dari funnel.hotSample lead saja (sangat kecil); sebut sampelnya atau abaikan.
 - Sebagian besar dari ±2.000 lead adalah data lama hasil migrasi tanpa percakapan di platform; topics hanya mencakup lead yang pernah chat (topics.leadsAnalyzed), jadi jangan menyamakan jumlah lead Hot di funnel dengan di topics.
 - sources: Temperature adalah kondisi saat ini. Lead dari iklan yang baru berjalan belum sempat "matang", jadi proporsi Hot yang rendah pada sumber baru belum tentu berarti iklannya buruk; katakan itu bila sumber terbesar terlihat rendah.
+- objections = keberatan yang diucapkan calon pembeli (pencocokan kata kunci; jumlahnya kecil dan bisa meleset). rows[].leads = lead yang pernah menyatakannya, recent7d = dalam 7 hari terakhir, nowHot/nowColdBatal = kondisi mereka sekarang, stoppedAfter = lead yang pesan terakhirnya keberatan itu lalu sepi >5 hari dan belum Hot. Ini hitungan deskriptif, bukan perbandingan: sebut jumlah lead, jangan menyimpulkan penyebab, dan jika totalnya kecil katakan "baru sedikit contoh". Jangan menyebut nama atau mengutip pesan lead.
 - Hindari istilah Inggris dan nama field teknis di teks temuan.
 - Jangan membuat temuan sepele (mis. "ada 12 lead belum dinilai") bila ada hal yang lebih penting; utamakan yang bisa langsung ditindaklanjuti.
 
@@ -124,7 +125,8 @@ export async function generateWeeklyAnalysis(
   }
 
   try {
-    const metrics = await computeAnalysisMetrics(admin, 7, now);
+    // followUps memuat nama lead: disimpan dan diemailkan, TIDAK dikirim ke LLM (hanya `metrics` yang dikirim).
+    const { metrics, followUps } = await computeAnalysisData(admin, 7, now);
     const narrative = await writeNarrative(admin, metrics);
 
     const row = {
@@ -134,6 +136,7 @@ export async function generateWeeklyAnalysis(
       metrics: metrics as unknown as Json,
       headline: narrative?.headline ?? null,
       findings: (narrative?.findings ?? []) as unknown as Json,
+      followups: followUps as unknown as Json,
       emailed_at: null as string | null,
     };
     const { error } = await admin.schema("ai").from("analysis_reports").upsert(row, { onConflict: "kind,period_end" });
@@ -142,7 +145,7 @@ export async function generateWeeklyAnalysis(
     const recipient = (process.env.ANALYSIS_REPORT_RECIPIENT || process.env.PLATFORM_REPORT_RECIPIENT || "").trim();
     let emailed = false;
     if (recipient) {
-      const sent = await sendAnalysisEmail(recipient, { periodStart, periodEnd, metrics, headline: narrative?.headline ?? null, findings: narrative?.findings ?? [] });
+      const sent = await sendAnalysisEmail(recipient, { periodStart, periodEnd, metrics, headline: narrative?.headline ?? null, findings: narrative?.findings ?? [], followUps });
       emailed = !sent.error;
       if (emailed) {
         await admin.schema("ai").from("analysis_reports").update({ emailed_at: new Date().toISOString() }).eq("kind", "weekly").eq("period_end", periodEnd);

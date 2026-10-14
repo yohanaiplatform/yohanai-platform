@@ -63,6 +63,8 @@ export interface AnalysisMetrics {
   };
   /** Pemicu naik Hot dari isi percakapan; tidak ada di laporan lama. */
   topics?: TopicMetrics;
+  /** Keberatan calon pembeli; tidak ada di laporan lama. */
+  objections?: ObjectionMetrics;
   ai: {
     runs: number;
     success: number;
@@ -87,3 +89,46 @@ export interface AnalysisFinding {
 export const MIN_SOURCE_SAMPLE = 10;
 export const STALLED_DAYS = 5;
 export const UNANSWERED_HOURS = 2;
+
+export interface ObjectionRow {
+  label: string;
+  /** Lead yang pernah menyatakan keberatan ini (seluruh riwayat chat). */
+  leads: number;
+  /** Dari mereka, yang mengucapkannya dalam 7 hari terakhir. */
+  recent7d: number;
+  /** Dari mereka, yang kini Hot/Closing/Booking atau Cold/Batal. */
+  nowHot: number;
+  nowColdBatal: number;
+  /** Lead yang pesan terakhirnya memuat keberatan ini, lalu sepi > STALLED_DAYS hari dan belum Hot. */
+  stoppedAfter: number;
+}
+
+export interface ObjectionMetrics {
+  leadsAnalyzed: number;
+  rows: ObjectionRow[];
+}
+
+/**
+ * Lead yang layak ditindaklanjuti. SENGAJA terpisah dari AnalysisMetrics: memuat nama lead, jadi TIDAK PERNAH dikirim ke LLM;
+ * hanya ditampilkan di email pemilik dan Master Admin.
+ */
+export interface FollowUpLead {
+  leadId: string;
+  slug: string | null;
+  name: string;
+  temperature: string;
+  kind: "waiting" | "stalled" | "objection";
+  /** Waktu pesan terakhir (ISO). */
+  lastAt: string;
+  /** Keberatan pada pesan terakhir calon pembeli, bila ada. */
+  objection: string | null;
+}
+
+export interface FollowUpList {
+  waiting: FollowUpLead[];
+  stalled: FollowUpLead[];
+  objection: FollowUpLead[];
+  totals: { waiting: number; stalled: number; objection: number };
+}
+
+export const FOLLOW_UP_LIST_LIMIT = 12;
