@@ -57,14 +57,14 @@ function FollowUpTable({ title, hint, list, total }: { title: string; hint: stri
 const num = (n: number) => n.toLocaleString("id-ID");
 const pct = (a: number, b: number) => (b > 0 ? `${Math.round((a / b) * 100)}%` : "-");
 
-/** Hasil Data Analysis Agent (mingguan) untuk Master Admin. Hanya tampil di layar, tidak ikut laporan cetak. */
+/** Hasil Data Analysis Agent (berkala, tiap 3 hari) untuk Master Admin. Hanya tampil di layar, tidak ikut laporan cetak. */
 export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | null }) {
   if (!report) {
     return (
-      <SectionCard title="Analisis perilaku calon pembeli" description="Analisis mingguan otomatis oleh Data Analysis Agent.">
+      <SectionCard title="Analisis perilaku calon pembeli" description="Analisis otomatis tiap 3 hari oleh Data Analysis Agent.">
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Belum ada analisis. Analisis dibuat otomatis Senin pagi (07.00 WIB) dan dikirim ke email pemilik, atau buat sekarang.
+            Belum ada analisis. Analisis dibuat otomatis tiap 3 hari sekitar pukul 07.00 WIB dan dikirim ke email pemilik, atau buat sekarang.
           </p>
           <RunAnalysisButton />
         </div>
@@ -127,7 +127,7 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
                 <tr className="text-left text-muted-foreground">
                   <th className="py-1 pr-2 font-medium">Keberatan</th>
                   <th className="py-1 pr-2 font-medium">Lead</th>
-                  <th className="py-1 pr-2 font-medium">7 hari</th>
+                  <th className="py-1 pr-2 font-medium">{m.days} hari</th>
                   <th className="py-1 pr-2 font-medium">Kini Hot</th>
                   <th className="py-1 pr-2 font-medium">Kini Cold/Batal</th>
                   <th className="py-1 pr-2 font-medium">Berhenti setelahnya</th>

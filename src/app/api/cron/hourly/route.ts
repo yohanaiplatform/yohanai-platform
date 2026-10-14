@@ -25,7 +25,7 @@ const DAILY_REPORT_HOUR_WIB = 7;
  * - jam 08/13/21 WIB: rangkuman chat ke WhatsApp agen
  * - jam 07 WIB: Daily Report + Platform Report
  * - jam 06 WIB: Knowledge Loop (rangkum celah pengetahuan AI -> Settings)
- * - Senin jam 07 WIB: analisis mingguan Data Analysis Agent (email ke pemilik)
+ * - jam 07 WIB, tiap 3 hari: analisis berkala Data Analysis Agent (email ke pemilik; jatuh tempo diperiksa di generateWeeklyAnalysis)
  * - tiap jam (08-20 WIB): nurturing template ke lead diam (dry-run kecuali NURTURE_ENABLED=true)
  *
  * Handler lain dipanggil langsung (bukan lewat HTTP), dengan secret masing-
@@ -99,9 +99,8 @@ export async function GET(request: Request) {
     }
   }
 
-  // Data Analysis Agent: analisis mingguan tiap Senin jam 07 WIB (hanya baca; hasil ke ai.analysis_reports + email pemilik).
-  const wibWeekday = new Date(Date.now() + WIB_OFFSET_HOURS * 3600 * 1000).getUTCDay();
-  if (force === "analysis" || (wibWeekday === 1 && wibHour === 7)) {
+  // Data Analysis Agent: jam 07 WIB; hanya jalan bila laporan terakhir sudah lebih dari ~3 hari (hanya baca; hasil ke ai.analysis_reports + email pemilik).
+  if (force === "analysis" || wibHour === 7) {
     try {
       results.analysis = await generateWeeklyAnalysis(createAdminClient(), { force: force === "analysis" });
     } catch (error) {

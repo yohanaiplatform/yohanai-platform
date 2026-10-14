@@ -49,7 +49,7 @@ function objectionSection(m: AnalysisMetrics): string {
   const rows = ob.rows.map((r) => [r.label, num(r.leads), num(r.recent7d), num(r.nowHot), num(r.nowColdBatal), num(r.stoppedAfter)]);
   return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Keberatan calon pembeli</div>
     <div style="font-size:12px;color:#374151;margin-bottom:6px;">Dari ${num(ob.leadsAnalyzed)} lead yang pernah chat. Dikenali lewat kata kunci, jadi hanya perkiraan kasar dan bisa terlewat. Jumlah lead per keberatan masih kecil.</div>
-    ${table(["Keberatan", "Lead", "7 hari", "Kini Hot", "Kini Cold/Batal", "Berhenti setelahnya"], rows)}</div>`;
+    ${table(["Keberatan", "Lead", `${m.days} hari`, "Kini Hot", "Kini Cold/Batal", "Berhenti setelahnya"], rows)}</div>`;
 }
 
 function esc(text: string): string {
@@ -87,6 +87,12 @@ function topicSection(m: AnalysisMetrics): string {
     ${tp.beforeHotSample > 0 ? `<div style="font-size:11px;color:#6B7280;margin-top:4px;">Topik yang sudah disebut sebelum naik ke Hot (${num(tp.beforeHotSample)} lead, petunjuk awal): ${esc(before || "-")}.</div>` : ""}</div>`;
 }
 
+/** Subjek pendek dan tetap polanya (dibuat kode, bukan AI): tanggal + dua angka yang paling bisa ditindaklanjuti. */
+export function buildSubject(m: AnalysisMetrics, periodEnd: string): string {
+  const date = new Date(periodEnd + "T12:00:00+07:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "Asia/Jakarta" });
+  return `Analisis Yohan.AI ${date}: ${num(m.ai.unansweredHotWarm)} menunggu balasan, ${num(m.funnel.stalledHotWarm)} sepi`;
+}
+
 export function renderAnalysisHtml(input: {
   periodStart: string;
   periodEnd: string;
@@ -120,13 +126,13 @@ export function renderAnalysisHtml(input: {
     `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">${esc(title)}</div>${body}</div>`;
 
   return `<div style="background:#F9FAFB;padding:20px 0;font-family:Arial,sans-serif;"><div style="max-width:640px;margin:0 auto;padding:0 12px;">
-    <div style="font-size:11px;color:#6B7280;">Analisis Mingguan Yohan.AI &middot; ${esc(input.periodStart)} s/d ${esc(input.periodEnd)}</div>
+    <div style="font-size:11px;color:#6B7280;">Analisis Yohan.AI &middot; ${esc(input.periodStart)} s/d ${esc(input.periodEnd)}</div>
     <div style="font-size:20px;font-weight:700;color:#111827;margin:4px 0 14px;">${esc(input.headline ?? "Analisis perilaku calon pembeli")}</div>
     ${section("Temuan utama", findings)}
     ${followUpSection(input.followUps)}
     ${section(
       "Corong dan kecepatan",
-      `<div style="font-size:12px;color:#374151;margin-bottom:6px;">Perpindahan Temperature ${m.days} hari: ${num(m.funnel.transitionsAuto)} otomatis (AI), ${num(m.funnel.transitionsManual)} manual. ${
+      `<div style="font-size:12px;color:#374151;margin-bottom:6px;">Perpindahan Temperature ${m.days} hari terakhir: ${num(m.funnel.transitionsAuto)} otomatis (AI), ${num(m.funnel.transitionsManual)} manual. ${
         m.funnel.medianHoursToHot !== null
           ? `Median lead sampai pertama kali Hot: ${(m.funnel.medianHoursToHot / 24).toFixed(1)} hari (sampel ${num(m.funnel.hotSample)} lead, riwayat baru sejak 4 Okt).`
           : "Waktu sampai Hot belum bisa dihitung (belum ada riwayat)."
@@ -162,7 +168,7 @@ export async function sendAnalysisEmail(
         // Nama pengirim sendiri (alamat tetap dari RESEND_FROM_EMAIL), supaya tidak tampil sebagai "Daily Report".
         from: `Yohan.AI Analisis <${from.match(/<([^>]+)>/)?.[1] ?? from}>`,
         to,
-        subject: `Analisis Mingguan Yohan.AI: ${input.headline ?? "perilaku calon pembeli"}`.slice(0, 180),
+        subject: buildSubject(input.metrics, input.periodEnd),
         html: renderAnalysisHtml(input),
       }),
     });

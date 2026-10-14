@@ -7,8 +7,12 @@ import { sendAnalysisEmail } from "@/lib/analysis/sendAnalysisEmail";
 import type { AnalysisFinding, AnalysisMetrics } from "@/lib/analysis/types";
 
 const MAX_FINDINGS = 5;
+/** Periode analisis = jarak antar laporan otomatis (hari). */
+const PERIOD_DAYS = 3;
+/** Laporan otomatis dianggap jatuh tempo bila yang terakhir lebih tua dari ini (sedikit di bawah 3 hari agar jam 07 WIB tidak meleset sehari). */
+const DUE_AFTER_HOURS = 70;
 
-const SYSTEM_PROMPT = `Anda adalah analis data untuk platform CRM properti Yohan.AI (bisnis agen properti Pontianak). Anda menerima ANGKA AGREGAT mingguan yang sudah dihitung kode: sebaran Temperature lead (Cold/Warm/Hot/Closing/Batal), perpindahan Temperature, kualitas per sumber lead, "topics" (topik yang ditanyakan calon pembeli dibandingkan dengan proporsi lead yang mencapai Hot/Closing/Booking), dan kinerja asisten AI WhatsApp.
+const SYSTEM_PROMPT = `Anda adalah analis data untuk platform CRM properti Yohan.AI (bisnis agen properti Pontianak). Anda menerima ANGKA AGREGAT berkala (periode = metrics.days hari terakhir, saat ini 3 hari) yang sudah dihitung kode: sebaran Temperature lead (Cold/Warm/Hot/Closing/Batal), perpindahan Temperature, kualitas per sumber lead, "topics" (topik yang ditanyakan calon pembeli dibandingkan dengan proporsi lead yang mencapai Hot/Closing/Booking), dan kinerja asisten AI WhatsApp.
 
 Tugas: tulis temuan terpenting minggu ini untuk pemilik bisnis.
 
@@ -17,19 +21,19 @@ ATURAN KETAT:
 - Setiap temuan menyebut jumlah sampelnya. Sumber dengan "enough": false atau sampel kecil: tulis "belum cukup data untuk disimpulkan", jangan dibandingkan sebagai fakta.
 - Untuk "topics": ini KORELASI, bukan sebab-akibat; "survey" sengaja tidak dihitung karena itu penentu definisi Hot. Bandingkan hanya baris dengan "enough": true, selalu sebut jumlah lead (mis. 6 dari 38 vs 2 dari 75) dan bahwa jumlah lead Hot (topics.hotLeads) masih kecil sehingga selisih bisa kebetulan. "beforeHot" = topik sebelum naik Hot, sampel sangat kecil: sebut sebagai petunjuk awal saja.
 KAMUS FIELD (baca sebelum menulis; salah menafsirkan = menyesatkan pemilik):
-- funnel.current = kondisi SEMUA lead SAAT INI (bukan perubahan minggu ini). Jangan menulis "minggu ini ada 422 lead Hot". Yang terjadi minggu ini hanya funnel.transitions (perpindahan Temperature 7 hari terakhir).
+- funnel.current = kondisi SEMUA lead SAAT INI (bukan perubahan periode ini). Jangan menulis "periode ini ada 422 lead Hot". Yang terjadi dalam periode hanya funnel.transitions (perpindahan Temperature dalam metrics.days hari terakhir). Jangan menyebut "minggu ini"/"7 hari": sebut "periode ini" atau "N hari terakhir" sesuai metrics.days.
 - funnel.hotWarmWithChat = lead Hot/Warm yang punya percakapan WhatsApp. stalledHotWarm = dari mereka, yang TIDAK ada pesan sama sekali lebih dari 5 hari (tulis "sepi lebih dari 5 hari", bukan "macet"/"stalled"). ai.unansweredHotWarm = lead yang pesan terakhirnya dari calon pembeli dan belum dibalas lebih dari 2 jam (tulis "menunggu balasan", bukan "belum dibalas sama sekali").
 - funnel.medianHoursToHot dihitung dari funnel.hotSample lead saja (sangat kecil); sebut sampelnya atau abaikan.
 - Sebagian besar dari ±2.000 lead adalah data lama hasil migrasi tanpa percakapan di platform; topics hanya mencakup lead yang pernah chat (topics.leadsAnalyzed), jadi jangan menyamakan jumlah lead Hot di funnel dengan di topics.
 - sources: Temperature adalah kondisi saat ini. Lead dari iklan yang baru berjalan belum sempat "matang", jadi proporsi Hot yang rendah pada sumber baru belum tentu berarti iklannya buruk; katakan itu bila sumber terbesar terlihat rendah.
-- objections = keberatan yang diucapkan calon pembeli (pencocokan kata kunci; jumlahnya kecil dan bisa meleset). rows[].leads = lead yang pernah menyatakannya, recent7d = dalam 7 hari terakhir, nowHot/nowColdBatal = kondisi mereka sekarang, stoppedAfter = lead yang pesan terakhirnya keberatan itu lalu sepi >5 hari dan belum Hot. Ini hitungan deskriptif, bukan perbandingan: sebut jumlah lead, jangan menyimpulkan penyebab, dan jika totalnya kecil katakan "baru sedikit contoh". Jangan menyebut nama atau mengutip pesan lead.
+- objections = keberatan yang diucapkan calon pembeli (pencocokan kata kunci; jumlahnya kecil dan bisa meleset). rows[].leads = lead yang pernah menyatakannya, recent7d = dalam periode analisis (metrics.days hari terakhir), nowHot/nowColdBatal = kondisi mereka sekarang, stoppedAfter = lead yang pesan terakhirnya keberatan itu lalu sepi >5 hari dan belum Hot. Ini hitungan deskriptif, bukan perbandingan: sebut jumlah lead, jangan menyimpulkan penyebab, dan jika totalnya kecil katakan "baru sedikit contoh". Jangan menyebut nama atau mengutip pesan lead.
 - Hindari istilah Inggris dan nama field teknis di teks temuan.
 - Jangan membuat temuan sepele (mis. "ada 12 lead belum dinilai") bila ada hal yang lebih penting; utamakan yang bisa langsung ditindaklanjuti.
 
 - Jujur soal keterbatasan: riwayat Temperature baru terkumpul sejak 4 Oktober 2026, percakapan WhatsApp sejak 26 September 2026. Hindari kata "prediksi"; ini analisis deskriptif (apa yang terjadi).
 - Hanya saran tindakan yang realistis dan langsung terkait angka (mis. tindak lanjuti lead Hot yang belum dibalas). Jangan menyarankan menaikkan budget iklan atau top-up.
 - Bahasa Indonesia, singkat, jelas, tanpa istilah teknis database. Maksimal ${MAX_FINDINGS} temuan, urut dari yang paling penting.
-- Balas HANYA JSON valid: {"headline": string (maks 140 karakter), "findings": [{"title": string (maks 80), "detail": string (maks 280), "action": string|null (maks 160)}]}`;
+- Balas HANYA JSON valid: {"headline": string (SATU kalimat pendek, maks 90 karakter), "findings": [{"title": string (maks 80), "detail": string (maks 280), "action": string|null (maks 160)}]}`;
 
 function isFinding(value: unknown): value is AnalysisFinding {
   if (!value || typeof value !== "object") return false;
@@ -54,7 +58,7 @@ async function writeNarrative(admin: SupabaseClient<Database>, metrics: Analysis
       model,
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: `Data mingguan (JSON):\n${JSON.stringify(metrics)}` }],
+      messages: [{ role: "user", content: `Data periode (JSON):\n${JSON.stringify(metrics)}` }],
       output_config: { effort: process.env.ANTHROPIC_EFFORT || "low" },
     }),
   });
@@ -102,7 +106,7 @@ export interface WeeklyAnalysisResult {
 /**
  * Data Analysis Agent v1: hitung angka (kode) -> ringkas (AI) -> simpan ke ai.analysis_reports -> kirim email.
  * HANYA membaca data lain; tidak mengubah lead dan tidak mengirim pesan ke calon pembeli. Idempoten per tanggal WIB
- * (kind + period_end unik) kecuali force=true. Penerima email: ANALYSIS_REPORT_RECIPIENT, jika kosong PLATFORM_REPORT_RECIPIENT
+ * (kind + period_end unik) dan hanya bila laporan terakhir sudah lebih dari ~3 hari (kecuali force=true). Nilai kolom kind tetap "weekly" (nama lama, tidak diubah agar tanpa migration). Penerima email: ANALYSIS_REPORT_RECIPIENT, jika kosong PLATFORM_REPORT_RECIPIENT
  * (pemilik saja; tidak otomatis ke akun lain).
  */
 export async function generateWeeklyAnalysis(
@@ -111,22 +115,24 @@ export async function generateWeeklyAnalysis(
 ): Promise<WeeklyAnalysisResult> {
   const now = new Date();
   const periodEnd = wibDate(now);
-  const periodStart = wibDate(new Date(now.getTime() - 7 * 24 * 3600 * 1000));
+  const periodStart = wibDate(new Date(now.getTime() - PERIOD_DAYS * 24 * 3600 * 1000));
 
   if (!options.force) {
-    const { data: existing } = await admin
+    // Otomatis tiap 3 hari (PERIOD_DAYS): lewati bila laporan terakhir (otomatis maupun manual) belum cukup lama.
+    const { data: latest } = await admin
       .schema("ai")
       .from("analysis_reports")
-      .select("id")
+      .select("created_at")
       .eq("kind", "weekly")
-      .eq("period_end", periodEnd)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    if (existing) return { status: "exists", periodEnd };
+    if (latest && now.getTime() - new Date(latest.created_at).getTime() < DUE_AFTER_HOURS * 3600 * 1000) return { status: "exists", periodEnd };
   }
 
   try {
     // followUps memuat nama lead: disimpan dan diemailkan, TIDAK dikirim ke LLM (hanya `metrics` yang dikirim).
-    const { metrics, followUps } = await computeAnalysisData(admin, 7, now);
+    const { metrics, followUps } = await computeAnalysisData(admin, PERIOD_DAYS, now);
     const narrative = await writeNarrative(admin, metrics);
 
     const row = {

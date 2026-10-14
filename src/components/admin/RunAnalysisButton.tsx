@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-/** Memicu analisis mingguan sekarang (tes email / data terbaru). Hanya terlihat di Master Admin. */
+/** Memicu analisis berkala sekarang (tes email / data terbaru). Hanya terlihat di Master Admin. */
 export function RunAnalysisButton() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
