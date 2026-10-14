@@ -5,6 +5,7 @@
 // logo perusahaan (BUKAN logo Yohan.AI -- dokumen perjanjian tidak boleh bermerek platform).
 
 import { DocLogo } from "@/components/property/DocLogo";
+import type { LogoPosition } from "@/lib/branding/branding";
 import type { MouForm, MouListingInfo } from "@/lib/documents/mouTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 
@@ -44,7 +45,7 @@ function Signatures({ form, ownerLabel = true }: { form: MouForm; ownerLabel?: b
   );
 }
 
-export function MouDocument({ form, listing, code, logoUrl = null }: { form: MouForm; listing: MouListingInfo; code: string; logoUrl?: string | null }) {
+export function MouDocument({ form, listing, code, logoUrl = null, logoPosition = null }: { form: MouForm; listing: MouListingInfo; code: string; logoUrl?: string | null; logoPosition?: LogoPosition | null }) {
   const { owner, party2, property, agreement } = form;
   const commission = property.commissionPct ? `${property.commissionPct}%` : "";
   const dateText = formatSignDate(agreement.signDate);
@@ -61,12 +62,23 @@ export function MouDocument({ form, listing, code, logoUrl = null }: { form: Mou
       <thead>
         <tr>
           <td className="pb-3">
-            <div className="flex items-center justify-between border-b-2 border-black pb-2">
-              <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
-              <p className="text-right text-[0.9em]">
-                Listing ID : <strong>{code || "(dibuat saat disimpan)"}</strong>
-              </p>
-            </div>
+            {(logoPosition ?? "left") === "center" ? (
+              <div className="border-b-2 border-black pb-2">
+                <div className="flex justify-center">
+                  <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
+                </div>
+                <p className="mt-1 text-right text-[0.9em]">
+                  Listing ID : <strong>{code || "(dibuat saat disimpan)"}</strong>
+                </p>
+              </div>
+            ) : (
+              <div className={`flex items-center justify-between border-b-2 border-black pb-2 ${logoPosition === "right" ? "flex-row-reverse" : ""}`}>
+                <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
+                <p className={`text-[0.9em] ${logoPosition === "right" ? "text-left" : "text-right"}`}>
+                  Listing ID : <strong>{code || "(dibuat saat disimpan)"}</strong>
+                </p>
+              </div>
+            )}
           </td>
         </tr>
       </thead>

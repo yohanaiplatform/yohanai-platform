@@ -9,6 +9,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Printer, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { LogoPosition } from "@/lib/branding/branding";
 import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/section-card";
 import { DocChoiceField, DocTextField } from "@/components/property/documentFields";
@@ -25,9 +26,10 @@ interface KwitansiEditorProps {
   initialNumber: string;
   history: { id: string; createdAt: string; docNumber: string | null }[];
   logoUrl?: string | null;
+  logoPosition?: LogoPosition | null;
 }
 
-export function KwitansiEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null }: KwitansiEditorProps) {
+export function KwitansiEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null, logoPosition = null }: KwitansiEditorProps) {
   const [form, setForm] = useState<KwitansiForm>(initialForm);
   const [docNumber, setDocNumber] = useState(initialNumber);
   const [saving, setSaving] = useState(false);
@@ -199,7 +201,7 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
       <div>
         <p className="no-print mb-2 text-sm font-semibold">Pratinjau kwitansi</p>
         <div className="print-area mx-auto max-w-[210mm] rounded border border-border bg-white p-8 shadow-sm">
-          <KwitansiDocument form={form} docNumber={docNumber} logoUrl={logoUrl} />
+          <KwitansiDocument form={form} docNumber={docNumber} logoUrl={logoUrl} logoPosition={logoPosition} />
         </div>
       </div>
     </div>

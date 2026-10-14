@@ -155,6 +155,7 @@ export default async function PpjbPage({ params, searchParams }: PpjbPageProps) 
       </div>
       <PpjbEditor
         logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
+        logoPosition={(await getUserBranding(supabase, user.id)).logoPosition}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

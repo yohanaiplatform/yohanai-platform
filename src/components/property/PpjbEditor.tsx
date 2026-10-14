@@ -10,6 +10,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Plus, Printer, RotateCcw, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { LogoPosition } from "@/lib/branding/branding";
 import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/section-card";
 import { DocChoiceField, DocTextField } from "@/components/property/documentFields";
@@ -26,6 +27,7 @@ interface PpjbEditorProps {
   initialNumber: string;
   history: { id: string; createdAt: string; docNumber: string | null }[];
   logoUrl?: string | null;
+  logoPosition?: LogoPosition | null;
 }
 
 const CLAUSE_LABELS: Record<string, string> = {
@@ -60,7 +62,7 @@ function PersonFields({ title, person, onChange, extra }: { title: string; perso
   );
 }
 
-export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null }: PpjbEditorProps) {
+export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null, logoPosition = null }: PpjbEditorProps) {
   const [form, setForm] = useState<PpjbForm>(initialForm);
   const [docNumber, setDocNumber] = useState(initialNumber);
   const [saving, setSaving] = useState(false);
@@ -301,7 +303,7 @@ export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumbe
       <div>
         <p className="no-print mb-2 text-sm font-semibold">Pratinjau PPJB</p>
         <div className="print-area mx-auto max-w-[210mm] rounded border border-border bg-white p-8 shadow-sm">
-          <PpjbDocument form={form} docNumber={docNumber} logoUrl={logoUrl} />
+          <PpjbDocument form={form} docNumber={docNumber} logoUrl={logoUrl} logoPosition={logoPosition} />
         </div>
       </div>
     </div>

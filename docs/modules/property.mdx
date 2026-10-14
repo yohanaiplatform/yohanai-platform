@@ -220,7 +220,7 @@ Pencocokan listing untuk AI (`relevantListings.ts`): nomor tipe rumah menjadi si
 
 ## Logo & Watermark per Pengguna (14 Oktober 2026)
 
-Settings > Logo & Watermark: tiap akun punya logo dokumen dan watermark foto sendiri. Watermark dipakai `watermarkPhoto.ts` saat foto listing BARU diunggah (foto lama tidak berubah); logo dokumen dipakai header MoU/Kwitansi/PPJB (`DocLogo.tsx`, fallback nama kantor) dan Laporan Pemasaran. Standar gambar dan pemeriksaan ada di `src/lib/branding/` (browser + server dari isi file); metadata di `property.document_settings.branding`, file di R2 `branding/<userId>/`, disajikan lewat `/api/branding/file/<watermark|logo>`.
+Settings > Logo & Watermark: tiap akun punya logo dokumen dan watermark foto sendiri. Watermark dipakai `watermarkPhoto.ts` saat foto listing BARU diunggah (foto lama tidak berubah); logo dokumen dipakai header MoU/Kwitansi/PPJB (`DocLogo.tsx`, fallback nama kantor) dan Laporan Pemasaran. Standar gambar dan pemeriksaan ada di `src/lib/branding/` (browser + server dari isi file); metadata di `property.document_settings.branding`, file di R2 `branding/<userId>/`, disajikan lewat `/api/branding/file/<watermark|logo>`. Posisi dipilih pengguna: watermark (tengah/kiri atas/kiri bawah/kanan atas/kanan bawah, bawaan tengah) dan logo header dokumen (atas kiri/tengah/kanan; kosong = tata letak bawaan tiap dokumen), disimpan di `branding.watermarkPosition`/`logoPosition`.
 
 # Last Updated
 

@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BRANDING_SPECS, specSummary, validateBrandingImage, type BrandingKind } from "@/lib/branding/spec";
+import { LOGO_POSITIONS, WATERMARK_POSITIONS } from "@/lib/branding/branding";
 
 interface AssetStatus {
   width: number;
@@ -18,6 +19,21 @@ interface AssetStatus {
 interface BrandingStatus {
   watermark: AssetStatus | null;
   docLogo: AssetStatus | null;
+  watermarkPosition: string;
+  logoPosition: string | null;
+}
+
+interface PositionOption {
+  value: string;
+  label: string;
+}
+
+/** Letak pratinjau watermark di atas foto contoh (sama dengan hasil asli: pojok lebih kecil, jarak 4% dari tepi). */
+function watermarkPreviewStyle(position: string): React.CSSProperties {
+  const corner = position !== "center";
+  const style: React.CSSProperties = { position: "absolute", width: corner ? "26%" : "32%", opacity: 0.55, filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))" };
+  if (!corner) return { ...style, left: "50%", top: "50%", transform: "translate(-50%, -50%)" };
+  return { ...style, [position.endsWith("left") ? "left" : "right"]: "4%", [position.startsWith("top") ? "top" : "bottom"]: "6%" };
 }
 
 /** Baca dimensi + bagian piksel transparan di browser. */
@@ -52,6 +68,9 @@ function Slot({
   status,
   version,
   onChanged,
+  positions,
+  position,
+  onPosition,
 }: {
   kind: BrandingKind;
   title: string;
@@ -59,6 +78,9 @@ function Slot({
   status: AssetStatus | null;
   version: number;
   onChanged: () => void;
+  positions: readonly PositionOption[];
+  position: string | null;
+  onPosition: (value: string | null) => Promise<boolean>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -144,16 +166,13 @@ function Slot({
       {kind === "watermark" ? (
         <div className="relative h-40 overflow-hidden rounded-lg" style={{ background: "linear-gradient(135deg,#7fa6c9,#c9d6b8 55%,#8a7a6a)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt="Pratinjau watermark"
-            className="absolute left-1/2 top-1/2 w-[32%] -translate-x-1/2 -translate-y-1/2"
-            style={{ opacity: 0.55, filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))" }}
-          />
+          <img src={src} alt="Pratinjau watermark" style={watermarkPreviewStyle(position ?? "center")} />
           <span className="absolute bottom-1 right-2 text-[10px] text-white/80">Pratinjau di atas foto contoh</span>
         </div>
       ) : (
-        <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border bg-white p-2">
+        <div
+          className={`flex h-24 items-center rounded-lg border border-dashed border-border bg-white p-2 ${position === "left" ? "justify-start" : position === "right" ? "justify-end" : "justify-center"}`}
+        >
           {status ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={src} alt="Logo dokumen" className="max-h-full max-w-full object-contain" />
@@ -162,6 +181,48 @@ function Slot({
           )}
         </div>
       )}
+
+      <div>
+        <p className="mb-1 text-xs font-medium">Posisi {kind === "watermark" ? "watermark di foto" : "logo di header dokumen"}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {positions.map((p) => (
+            <Button
+              key={p.value}
+              type="button"
+              size="sm"
+              variant={position === p.value ? "default" : "outline"}
+              disabled={busy}
+              onClick={async () => {
+                setErrors(null);
+                setOk(null);
+                setBusy(true);
+                const saved = await onPosition(p.value);
+                setBusy(false);
+                if (saved) setOk(kind === "watermark" ? "Posisi watermark tersimpan. Berlaku untuk foto yang diunggah mulai sekarang." : "Posisi logo tersimpan. Berlaku di dokumen berikutnya.");
+                else setErrors(["Gagal menyimpan posisi. Coba lagi."]);
+              }}
+            >
+              {p.label}
+            </Button>
+          ))}
+          {kind === "logo" && position && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await onPosition(null);
+                setBusy(false);
+              }}
+            >
+              Kembali ke bawaan dokumen
+            </Button>
+          )}
+        </div>
+        {kind === "logo" && !position && <p className="mt-1 text-xs text-muted-foreground">Belum dipilih: tiap dokumen memakai tata letak bawaannya.</p>}
+      </div>
 
       <p className="text-xs text-muted-foreground">
         {status ? `Terpasang: ${status.width} x ${status.height}px` : kind === "watermark" ? "Memakai watermark bawaan Yohan.AI" : "Belum ada logo"}
@@ -225,6 +286,16 @@ export function BrandingCard() {
     setVersion((v) => v + 1);
   }
 
+  async function savePosition(patch: { watermarkPosition?: string; logoPosition?: string | null }): Promise<boolean> {
+    const res = await fetch("/api/branding", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (res.ok) setStatus((s) => (s ? { ...s, ...patch } : s));
+    return res.ok;
+  }
+
   if (!status) return <p className="text-sm text-muted-foreground">Memuat...</p>;
 
   return (
@@ -241,6 +312,9 @@ export function BrandingCard() {
           status={status.docLogo}
           version={version}
           onChanged={changed}
+          positions={LOGO_POSITIONS}
+          position={status.logoPosition}
+          onPosition={(v) => savePosition({ logoPosition: v })}
         />
         <Slot
           kind="watermark"
@@ -249,6 +323,9 @@ export function BrandingCard() {
           status={status.watermark}
           version={version}
           onChanged={changed}
+          positions={WATERMARK_POSITIONS}
+          position={status.watermarkPosition}
+          onPosition={(v) => savePosition({ watermarkPosition: v ?? "center" })}
         />
       </div>
     </div>

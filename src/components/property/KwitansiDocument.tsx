@@ -4,6 +4,7 @@
 // bukan logo Yohan.AI -- dokumen transaksi tidak bermerek platform.
 
 import { DocLogo } from "@/components/property/DocLogo";
+import type { LogoPosition } from "@/lib/branding/branding";
 import { computeBookingBalance, purposeLabel, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
@@ -19,7 +20,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export function KwitansiDocument({ form, docNumber, logoUrl = null }: { form: KwitansiForm; docNumber: string; logoUrl?: string | null }) {
+export function KwitansiDocument({ form, docNumber, logoUrl = null, logoPosition = null }: { form: KwitansiForm; docNumber: string; logoUrl?: string | null; logoPosition?: LogoPosition | null }) {
   const { buyer, unit, payment, party2 } = form;
   const amount = Number(String(payment.amount).replace(/[^0-9.-]/g, "")) || 0;
   const price = Number(String(unit.price).replace(/[^0-9.-]/g, "")) || 0;
@@ -29,13 +30,25 @@ export function KwitansiDocument({ form, docNumber, logoUrl = null }: { form: Kw
 
   return (
     <div className="kw-doc w-full text-[13px] leading-relaxed text-black">
-      <div className="flex items-center justify-between border-b-2 border-black pb-2">
-        <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
-        <div className="text-right">
-          <h1 className="text-lg font-bold tracking-wide">KWITANSI</h1>
-          <p className="text-[0.9em]">{purpose}</p>
+      {(logoPosition ?? "left") === "center" ? (
+        <div className="border-b-2 border-black pb-2">
+          <div className="flex justify-center">
+            <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
+          </div>
+          <div className="mt-1 text-center">
+            <h1 className="text-lg font-bold tracking-wide">KWITANSI</h1>
+            <p className="text-[0.9em]">{purpose}</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className={`flex items-center justify-between border-b-2 border-black pb-2 ${logoPosition === "right" ? "flex-row-reverse" : ""}`}>
+          <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
+          <div className={logoPosition === "right" ? "text-left" : "text-right"}>
+            <h1 className="text-lg font-bold tracking-wide">KWITANSI</h1>
+            <p className="text-[0.9em]">{purpose}</p>
+          </div>
+        </div>
+      )}
 
       <p className="mt-3 text-right">
         No. : <strong>{docNumber || "(dibuat saat disimpan)"}</strong>

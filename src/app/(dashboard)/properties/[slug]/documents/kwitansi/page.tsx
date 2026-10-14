@@ -125,6 +125,7 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
       </div>
       <KwitansiEditor
         logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
+        logoPosition={(await getUserBranding(supabase, user.id)).logoPosition}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

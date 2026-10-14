@@ -5,6 +5,7 @@
 // Logo perusahaan (bukan Yohan.AI).
 
 import { DocLogo } from "@/components/property/DocLogo";
+import type { LogoPosition } from "@/lib/branding/branding";
 import { computeBookingBalance } from "@/lib/documents/kwitansiTypes";
 import { formatBirthLong, formatLongDate, renderClause, rupiahWithWords, type PpjbForm, type PpjbPerson } from "@/lib/documents/ppjbTypes";
 
@@ -47,7 +48,7 @@ function PersonBlock({ index, person, role, company }: { index: number; person: 
   );
 }
 
-export function PpjbDocument({ form, docNumber, logoUrl = null }: { form: PpjbForm; docNumber: string; logoUrl?: string | null }) {
+export function PpjbDocument({ form, docNumber, logoUrl = null, logoPosition = null }: { form: PpjbForm; docNumber: string; logoUrl?: string | null; logoPosition?: LogoPosition | null }) {
   const { buyer, seller, property: p, party2 } = form;
   const balance = computeBookingBalance({ price: p.price, purchaseMethod: p.method, totalDp: p.totalDp }, p.booking);
   const clauses = form.clauses.map((c) => renderClause(c, form)).filter((c) => c.trim());
@@ -58,7 +59,7 @@ export function PpjbDocument({ form, docNumber, logoUrl = null }: { form: PpjbFo
 
   return (
     <div className="ppjb-doc w-full text-[13px] leading-relaxed text-black" style={{ ["--ppjb-fs" as string]: `${printFontPt.toFixed(2)}pt` }}>
-      <div className="flex justify-center">
+      <div className={`flex ${logoPosition === "left" ? "justify-start" : logoPosition === "right" ? "justify-end" : "justify-center"}`}>
         <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto print:h-11" />
       </div>
       <h1 className="mt-2 text-center text-sm font-bold print:mt-1">PERJANJIAN PENGIKATAN JUAL BELI ( PPJB )</h1>

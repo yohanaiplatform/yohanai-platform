@@ -673,6 +673,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             </>,
           ]}
         />
+        <GuideHeading>Posisi</GuideHeading>
+        <GuideList
+          items={[
+            "Watermark foto: pilih Tengah, Kiri atas, Kiri bawah, Kanan atas, atau Kanan bawah. Pratinjau di atas foto contoh langsung berubah. Posisi berlaku untuk foto yang diunggah sesudahnya.",
+            "Logo dokumen: pilih Atas kiri, Atas tengah, atau Atas kanan. Kalau belum memilih, tiap dokumen memakai tata letak bawaannya.",
+          ]}
+        />
         <GuideHeading>Standar gambar</GuideHeading>
         <GuideList
           items={[

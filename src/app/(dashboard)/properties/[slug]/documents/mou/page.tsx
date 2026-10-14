@@ -152,6 +152,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
       </div>
       <MouDocumentEditor
         logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
+        logoPosition={(await getUserBranding(supabase, user.id)).logoPosition}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

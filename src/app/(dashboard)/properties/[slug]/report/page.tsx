@@ -81,7 +81,9 @@ export default async function ListingReportPage({ params, searchParams }: Listin
   let agentName = "-";
   let brandName: string | null = null;
   // Logo header laporan = logo dokumen milik agen (Settings > Logo & Watermark); belum diatur -> hanya nama brand.
-  const logoUrl = userData.user ? docLogoUrl(await getUserBranding(supabase, userData.user.id)) : null;
+  const userBranding = userData.user ? await getUserBranding(supabase, userData.user.id) : null;
+  const logoUrl = userBranding ? docLogoUrl(userBranding) : null;
+  const logoPosition = userBranding?.logoPosition ?? null;
   if (userData.user) {
     const { data: profile } = await supabase
       .schema("auth_ext")
@@ -133,13 +135,23 @@ export default async function ListingReportPage({ params, searchParams }: Listin
         <EmptyState title="Error" description="Gagal memuat data lead untuk laporan ini." />
       ) : (
         <div className="print-area mx-auto max-w-4xl space-y-4 rounded-2xl border border-border bg-background p-6 text-sm print:border-none print:p-0">
+          {logoUrl && logoPosition === "center" && (
+            <div className="flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl} alt={reportBrandName} className="h-12 w-auto" />
+            </div>
+          )}
           <div className="flex items-start justify-between border-b border-border pb-3">
             <div>
+              {logoUrl && logoPosition === "left" && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt={reportBrandName} className="mb-1 h-10 w-auto" />
+              )}
               <h1 className="text-2xl font-bold">LAPORAN PEMASARAN</h1>
               <p className="text-sm italic text-muted-foreground">Marketing Report</p>
             </div>
             <div className="text-right">
-              {logoUrl && (
+              {logoUrl && logoPosition !== "left" && logoPosition !== "center" && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={logoUrl} alt={reportBrandName} className="mb-1 ml-auto h-10 w-auto" />
               )}
