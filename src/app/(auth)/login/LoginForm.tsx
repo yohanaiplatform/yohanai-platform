@@ -10,15 +10,31 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { IS_PLATFORM_LOCKED } from "@/config/platform";
 
+/** Pesan yang bisa dipahami pengguna untuk kegagalan login (kode dari Supabase /callback atau query auth_error). */
+function authErrorMessage(code: string | null): string | null {
+  switch (code) {
+    case null:
+      return null;
+    case "bad_oauth_state":
+      return "Login Google gagal karena sesi login-nya sudah kedaluwarsa atau terputus (biasanya karena halaman login dibiarkan terbuka lama, memakai beberapa tab, atau dibuka dari dalam aplikasi seperti WhatsApp/Instagram). Silakan coba lagi: tutup tab login yang lain, buka yohanai.id langsung di Chrome, lalu klik \"Continue with Google\" sekali saja dan selesaikan pilihan akun dengan cepat.";
+    case "access_denied":
+      return "Login Google dibatalkan. Silakan coba lagi.";
+    case "auth_callback_failed":
+      return "Login Google gagal diproses. Silakan coba lagi; kalau tetap gagal, gunakan email dan password.";
+    default:
+      return "Login gagal. Silakan coba lagi; kalau tetap gagal, hubungi admin.";
+  }
+}
+
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(() => authErrorMessage(searchParams.get("auth_error") ?? searchParams.get("error")));
   const supabase = createClient();
   const redirect = searchParams.get("redirect") ?? "/dashboard";
 

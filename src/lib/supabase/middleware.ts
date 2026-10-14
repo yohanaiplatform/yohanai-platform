@@ -42,6 +42,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Kegagalan login OAuth (mis. error_code=bad_oauth_state) dikembalikan Supabase ke Site URL (/) sebagai query string.
+  // Tanpa penanganan ini pengguna jatuh ke halaman depan/"under development" tanpa penjelasan dan query-nya hilang;
+  // arahkan ke /login dengan kode galatnya supaya pesan yang jelas bisa ditampilkan.
+  const params = request.nextUrl.searchParams
+  if (request.nextUrl.pathname === '/' && (params.has('error_code') || params.get('error') === 'invalid_request' || params.get('error') === 'access_denied')) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('auth_error', params.get('error_code') ?? params.get('error') ?? 'unknown')
+    return NextResponse.redirect(loginUrl)
+  }
+
   if (shouldBlockRequest(request.nextUrl.pathname, user)) {
     const lockRedirect = NextResponse.redirect(
       new URL(LOCK_NOTICE_PATH, request.url)

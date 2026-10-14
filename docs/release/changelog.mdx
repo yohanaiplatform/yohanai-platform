@@ -76,6 +76,7 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 ### Fixed
 
+- **Login Google gagal "bad_oauth_state" tanpa penjelasan**: kegagalan login OAuth yang dikembalikan ke halaman depan kini dialihkan ke halaman login dengan pesan yang jelas dan cara mencoba ulang
 - **AI memberi video/foto listing yang salah** (listing kembar dengan alamat dan harga sama; pencarian tidak memakai tipe rumah): perbaikan pencocokan di atas, plus aturan di prompt agar foto/video/harga tidak dicampur antar listing dan listing ber-video didahulukan saat lead minta video
 - **Pertanyaan lanjutan kehilangan lokasi acuan** (mis. "semua perumahan?" setelah bertanya jarak ke UNTAN): lokasi terakhir yang disebut kini terbawa dari riwayat chat
 - **Jarak lewat jalan kadang jatuh ke garis lurus tanpa jejak**: panggilan Google kini diulang sekali bila gagal sementara dan penyebab kegagalan dicatat di `ai.agent_runs.input_snapshot.geoDiagnostics`
