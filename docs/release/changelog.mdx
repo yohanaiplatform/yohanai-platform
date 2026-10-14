@@ -56,6 +56,8 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 ### Added
 - **Data Analysis Agent (analisis mingguan, hanya baca)**: tiap Senin 07.00 WIB menghitung corong & kecepatan lead, kualitas per sumber iklan, dan kinerja asisten AI; AI merangkum jadi maksimal 5 temuan. Dikirim ke email pemilik dan tampil di Master Admin. Angka dihitung kode, bukan AI; sampel kecil ditandai "belum cukup data".
 - Tabel `ai.analysis_reports` (migration `076`).
+- **Pemicu naik Hot dari isi percakapan**: per topik yang ditanyakan calon pembeli (DP, harga, lokasi, dll.) dibandingkan proporsi lead yang mencapai Hot; hanya korelasi dan sampel kecil ditandai.
+- Tombol "Buat analisis sekarang" di Master Admin.
 
 ## 12-14 Oktober 2026 — Master Admin, Dokumen Perjanjian (MoU, Kwitansi, PPJB), Perbaikan AI Listing & Jarak
 
