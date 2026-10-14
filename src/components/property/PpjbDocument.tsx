@@ -52,14 +52,17 @@ export function PpjbDocument({ form, docNumber }: { form: PpjbForm; docNumber: s
   const balance = computeBookingBalance({ price: p.price, purchaseMethod: p.method, totalDp: p.totalDp }, p.booking);
   const clauses = form.clauses.map((c) => renderClause(c, form)).filter((c) => c.trim());
   const dateText = form.signDate ? formatLongDate(form.signDate) : "";
+  // Muat satu halaman: ukuran huruf cetak turun bertahap kalau isi klausul panjang (maks sampai 7,5pt).
+  const chars = clauses.reduce((n, c) => n + c.length, 0) + (p.facilities?.length ?? 0);
+  const printFontPt = Math.max(7.5, 9 - (Math.max(0, chars - 2300) / 500) * 0.3);
 
   return (
-    <div className="ppjb-doc w-full text-[13px] leading-relaxed text-black">
+    <div className="ppjb-doc w-full text-[13px] leading-relaxed text-black" style={{ ["--ppjb-fs" as string]: `${printFontPt.toFixed(2)}pt` }}>
       <div className="flex justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto" />
+        <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto print:h-11" />
       </div>
-      <h1 className="mt-2 text-center text-sm font-bold">PERJANJIAN PENGIKATAN JUAL BELI ( PPJB )</h1>
+      <h1 className="mt-2 text-center text-sm font-bold print:mt-1">PERJANJIAN PENGIKATAN JUAL BELI ( PPJB )</h1>
       <p className="mb-3 text-center text-[0.95em]">Nomor : {docNumber || "(dibuat saat disimpan)"}</p>
 
       <p className="mb-2">Yang bertandatangan di bawah ini adalah :</p>
@@ -101,20 +104,20 @@ export function PpjbDocument({ form, docNumber }: { form: PpjbForm; docNumber: s
         <div>
           <p className="font-semibold">Penjual</p>
           <p className="text-[0.85em]">{seller.company}</p>
-          <div className="h-16" />
+          <div className="h-16 print:h-10" />
           <p className="font-semibold underline">{seller.name || "..................."}</p>
           <p className="text-[0.85em]">{seller.company}</p>
         </div>
         <div>
           <p className="font-semibold">Pembeli</p>
-          <div className="h-[calc(1rem+4rem)]" />
+          <div className="h-[calc(1rem+4rem)] print:h-[calc(1rem+2.5rem)]" />
           <p className="font-semibold underline">{buyer.name || "..................."}</p>
           <p className="text-[0.85em]">(Konsumen)</p>
         </div>
         <div>
           <p className="font-semibold">Saksi</p>
           <p className="text-[0.85em]">{party2.officeName}</p>
-          <div className="h-16" />
+          <div className="h-16 print:h-10" />
           <p className="font-semibold underline">{party2.agentName || "..................."}</p>
           <p className="text-[0.85em]">(Marketing)</p>
         </div>
