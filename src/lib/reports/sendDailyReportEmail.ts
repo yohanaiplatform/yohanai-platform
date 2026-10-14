@@ -1,6 +1,7 @@
 // src/lib/reports/sendDailyReportEmail.ts
 
 import type { DailyReport } from "@/lib/reports/getDailyReport";
+import { followUpTablesHtml } from "@/lib/analysis/sendAnalysisEmail";
 import { AI_AGENT_DOCS_URL, renderAiAgentKpiListHtml } from "@/lib/reports/aiAgentRoadmap";
 
 const APP_URL = "https://yohanai.id";
@@ -126,6 +127,8 @@ function formatUsd(n: number): string {
 
 function renderHtml(report: DailyReport, recipientName: string | null): string {
   const { leads, listings, chat, aiAgent, insights, reportDateWIB, isAggregate } = report;
+
+  const followUpHtml = followUpTablesHtml(report.followUps);
 
   const maxTemp = Math.max(leads.hot, leads.warm, leads.cold, leads.closing, leads.batal, 1);
   const listingTotal = listings.available + listings.booked + listings.sold + listings.hold || 1;
@@ -281,6 +284,8 @@ function renderHtml(report: DailyReport, recipientName: string | null): string {
                  </div>`
               )}
             </td></tr>
+
+            ${followUpHtml ? `<tr><td>${sectionCard("Lead Perlu Ditindaklanjuti", followUpHtml)}</td></tr>` : ""}
 
             <tr><td>
               ${sectionCard(

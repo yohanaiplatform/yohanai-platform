@@ -43,6 +43,11 @@ function objectionsOf(content: string): { key: string; label: string }[] {
   return OBJECTIONS.filter((o) => o.pattern.test(content)).map((o) => ({ key: o.key, label: o.label }));
 }
 
+/** Label keberatan pertama yang cocok pada satu pesan, atau null. */
+export function firstObjectionLabel(content: string): string | null {
+  return objectionsOf(content)[0]?.label ?? null;
+}
+
 export function computeObjectionMetrics(input: ObjectionInput): ObjectionResult {
   const rowsByKey = new Map<string, { label: string; leads: Set<string>; recent: Set<string> }>();
   const lastCustomerMessage = new Map<string, { at: string; content: string }>();

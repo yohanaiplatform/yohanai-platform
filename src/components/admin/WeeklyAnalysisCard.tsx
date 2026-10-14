@@ -2,8 +2,8 @@
 
 import { SectionCard } from "@/components/ui/section-card";
 import { RunAnalysisButton } from "@/components/admin/RunAnalysisButton";
-import type { AnalysisFinding, AnalysisMetrics, FollowUpLead, FollowUpList } from "@/lib/analysis/types";
-import { daysSince } from "@/lib/analysis/sendAnalysisEmail";
+import type { AnalysisFinding, AnalysisMetrics, FollowUpList } from "@/lib/analysis/types";
+import { FollowUpLists } from "@/components/analysis/FollowUpLists";
 
 export interface WeeklyAnalysisRecord {
   period_start: string;
@@ -13,45 +13,6 @@ export interface WeeklyAnalysisRecord {
   metrics: AnalysisMetrics;
   followups?: Partial<FollowUpList> | null;
   created_at: string;
-}
-
-function FollowUpTable({ title, hint, list, total }: { title: string; hint: string; list: FollowUpLead[]; total: number }) {
-  if (list.length === 0) return null;
-  return (
-    <div>
-      <p className="text-xs font-semibold">
-        {title} ({total.toLocaleString("id-ID")})
-      </p>
-      <p className="mb-1 text-xs text-muted-foreground">
-        {hint}
-        {total > list.length ? ` Ditampilkan ${list.length} dari ${total.toLocaleString("id-ID")}.` : ""}
-      </p>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-muted-foreground">
-            <th className="py-1 pr-2 font-medium">Lead</th>
-            <th className="py-1 pr-2 font-medium">Temperature</th>
-            <th className="py-1 pr-2 font-medium">Pesan terakhir</th>
-            <th className="py-1 pr-2 font-medium">Keberatan terakhir</th>
-          </tr>
-        </thead>
-        <tbody>
-          {list.map((l) => (
-            <tr key={l.leadId} className="border-t">
-              <td className="py-1 pr-2">
-                <a className="text-blue-600 hover:underline dark:text-blue-400" href={l.slug ? `/crm/${encodeURIComponent(l.slug)}` : "/crm"}>
-                  {l.name}
-                </a>
-              </td>
-              <td className="py-1 pr-2">{l.temperature}</td>
-              <td className="py-1 pr-2">{daysSince(l.lastAt)}</td>
-              <td className="py-1 pr-2 text-muted-foreground">{l.objection ?? ""}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 }
 
 const num = (n: number) => n.toLocaleString("id-ID");
@@ -97,24 +58,7 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
         {report.followups && (
           <div className="space-y-3 rounded-lg border p-3">
             <p className="text-sm font-semibold">Lead yang perlu ditindaklanjuti</p>
-            <FollowUpTable
-              title="Menunggu balasan"
-              hint="Pesan terakhir dari calon pembeli, belum dibalas lebih dari 2 jam. Paling mendesak."
-              list={report.followups.waiting ?? []}
-              total={report.followups.totals?.waiting ?? 0}
-            />
-            <FollowUpTable
-              title="Sepi lebih dari 5 hari"
-              hint="Hot/Warm yang tidak ada pesan sama sekali selama lebih dari 5 hari."
-              list={report.followups.stalled ?? []}
-              total={report.followups.totals?.stalled ?? 0}
-            />
-            <FollowUpTable
-              title="Berhenti setelah menyatakan keberatan"
-              hint="Warm/Cold, pesan terakhirnya berisi keberatan lalu sepi. Peluang reaktivasi."
-              list={report.followups.objection ?? []}
-              total={report.followups.totals?.objection ?? 0}
-            />
+            <FollowUpLists followUps={report.followups} />
             <p className="text-xs text-muted-foreground">Potret saat analisis dibuat. Urut: Hot dulu, lalu yang paling lama menunggu.</p>
           </div>
         )}

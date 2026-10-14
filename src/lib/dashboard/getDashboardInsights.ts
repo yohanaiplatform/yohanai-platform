@@ -5,6 +5,9 @@ import type { Database } from "@/types/database";
 import type { Insight } from "@/types/dashboard";
 import { PRIORITY } from "@/constants/dashboard";
 import { getLeadMetadataString } from "@/lib/crm/getLeads";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getFollowUps } from "@/lib/analysis/followUps";
+import { resolveFollowUpScope } from "@/lib/analysis/followUpScope";
 
 const FOLLOW_UP_OVERDUE_HOURS = 48;
 const FROZEN_LEAD_OVERDUE_DAYS = 30;
@@ -108,27 +111,46 @@ async function getFrozenLeadInsight(
   };
 }
 
+/**
+ * Kartu "Lead Perlu Tindak Lanjut" (menggantikan contoh ilustratif "Buyer Behavior Insight", 15 Okt 2026): dihitung dari
+ * percakapan WhatsApp 30 hari terakhir. Admin melihat semua lead, akun lain hanya lead miliknya (scope dari sesi login).
+ * Gagal membaca = kartu dihilangkan (bukan menampilkan angka palsu).
+ */
+async function getConversationFollowUpInsight(supabase: SupabaseClient<Database>): Promise<Insight | null> {
+  try {
+    const scope = await resolveFollowUpScope(supabase);
+    if (!scope) return null;
+    const { totals } = await getFollowUps(createAdminClient(), { assignedTo: scope.assignedTo });
+    const parts: string[] = [];
+    if (totals.waiting > 0) parts.push(`${totals.waiting} lead Hot/Warm menunggu balasan`);
+    if (totals.stalled > 0) parts.push(`${totals.stalled} lead Hot/Warm sepi lebih dari 5 hari`);
+    if (totals.objection > 0) parts.push(`${totals.objection} lead berhenti setelah menyatakan keberatan`);
+    return {
+      id: "insight-conversation-followup",
+      title: "Lead Perlu Tindak Lanjut",
+      description:
+        parts.length > 0
+          ? `${parts.join("; ")}. Klik untuk lihat daftar dan buka lead-nya.`
+          : "Tidak ada lead yang menunggu balasan atau sepi dalam percakapan 30 hari terakhir.",
+      category: "action",
+      priority: totals.waiting > 0 ? "high" : totals.stalled + totals.objection > 0 ? "medium" : "low",
+      created_at: new Date().toISOString(),
+      href: "/sales#tindak-lanjut",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getDashboardInsights(
   supabase: SupabaseClient<Database>
 ): Promise<Insight[]> {
-  const now = new Date().toISOString();
-  const [followUpBacklog, frozenLeads] = await Promise.all([
+  const [followUpBacklog, frozenLeads, conversationFollowUp] = await Promise.all([
     getFollowUpBacklogInsight(supabase),
     getFrozenLeadInsight(supabase),
+    getConversationFollowUpInsight(supabase),
   ]);
 
-  return [
-    followUpBacklog,
-    frozenLeads,
-    {
-      id: "insight-1",
-      title: "Buyer Behavior Insight",
-      description:
-        "(Contoh) Lead #8821 viewed pricing page 3 times in the last hour, indicating high purchase intent.",
-      category: "behavior",
-      priority: PRIORITY.HIGH.toLowerCase() as "high",
-      created_at: now,
-      isPlaceholder: true,
-    },
-  ];
+  // Hanya data asli: kartu contoh ilustratif "Buyer Behavior Insight" dihapus (digantikan kartu tindak lanjut percakapan).
+  return [conversationFollowUp, followUpBacklog, frozenLeads].filter((i): i is Insight => i !== null);
 }

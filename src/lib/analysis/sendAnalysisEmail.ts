@@ -33,12 +33,18 @@ function followUpTable(title: string, hint: string, list: FollowUpLead[], total:
     </tr>${rows}</table></div>`;
 }
 
-function followUpSection(followUps: FollowUpList | undefined): string {
+/** Isi tiga tabel tindak lanjut (tanpa kartu pembungkus); dipakai email analisis dan Daily Report. Kosong bila tidak ada lead. */
+export function followUpTablesHtml(followUps: FollowUpList | null | undefined): string {
   if (!followUps) return "";
-  const body =
+  return (
     followUpTable("Menunggu balasan", "Pesan terakhir dari calon pembeli, belum dibalas lebih dari 2 jam. Paling mendesak.", followUps.waiting, followUps.totals.waiting) +
     followUpTable("Sepi lebih dari 5 hari", "Hot/Warm yang tidak ada pesan sama sekali selama lebih dari 5 hari.", followUps.stalled, followUps.totals.stalled) +
-    followUpTable("Berhenti setelah menyatakan keberatan", "Warm/Cold, pesan terakhirnya berisi keberatan lalu sepi. Peluang reaktivasi.", followUps.objection, followUps.totals.objection);
+    followUpTable("Berhenti setelah menyatakan keberatan", "Warm/Cold, pesan terakhirnya berisi keberatan lalu sepi. Peluang reaktivasi.", followUps.objection, followUps.totals.objection)
+  );
+}
+
+function followUpSection(followUps: FollowUpList | undefined): string {
+  const body = followUpTablesHtml(followUps);
   if (!body) return "";
   return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Lead yang perlu ditindaklanjuti</div>${body}<div style="font-size:11px;color:#9CA3AF;">Urut: Hot dulu, lalu yang paling lama menunggu. Nama dibuka ke halaman lead.</div></div>`;
 }

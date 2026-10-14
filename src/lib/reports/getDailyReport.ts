@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getConversationInsights, type ConversationInsights } from "@/lib/knowledge/getConversationInsights";
 import type { Database } from "@/types/database";
 import { getAiAgentUsage, type AiAgentUsage } from "@/lib/reports/getAiAgentUsage";
+import { getFollowUps } from "@/lib/analysis/followUps";
+import type { FollowUpList } from "@/lib/analysis/types";
 
 export interface DailyReport {
   generatedAt: string;
@@ -40,6 +42,8 @@ export interface DailyReport {
   };
   aiAgent: AiAgentUsage;
   insights: ConversationInsights;
+  /** Lead yang perlu ditindaklanjuti dari percakapan 30 hari terakhir (per agen, atau semua untuk admin); null bila gagal dihitung. */
+  followUps: FollowUpList | null;
 }
 
 export interface GetDailyReportOptions {
@@ -246,6 +250,8 @@ export async function getDailyReport(
 
   const aiAgent = await getAiAgentUsage(supabase, dayStart, dayEnd, assignedTo);
   const insights = await getConversationInsights(supabase, { assignedTo });
+  // Gagal menghitung tidak boleh menggagalkan laporan harian: bagian ini dilewati.
+  const followUps = await getFollowUps(supabase, { assignedTo }).catch(() => null);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -280,5 +286,6 @@ export async function getDailyReport(
     },
     aiAgent,
     insights,
+    followUps,
   };
 }

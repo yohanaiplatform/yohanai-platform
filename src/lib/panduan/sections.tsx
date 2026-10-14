@@ -116,10 +116,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           pesan baru muncul otomatis (real-time), tidak perlu refresh.
         </GuideP>
 
-        <GuideHeading>Buyer Behavior Insight</GuideHeading>
+        <GuideHeading>Panel AI Intelligence</GuideHeading>
         <GuideP>
-          Panel ini meringkas pola perilaku calon pembeli dari data lead Anda (mis. area yang paling banyak
-          diminati, lead yang butuh follow-up) -- insight otomatis, bukan isian manual.
+          Panel ini meringkas hal yang perlu perhatian Anda, dihitung otomatis dari data lead dan percakapan
+          WhatsApp. Kartu <strong>Lead Perlu Tindak Lanjut</strong> menunjukkan berapa lead Hot/Warm yang menunggu
+          balasan atau sepi lebih dari 5 hari, dan berapa lead yang berhenti setelah menyatakan keberatan. Klik
+          kartunya untuk membuka daftar nama lead di halaman Sales, lalu klik nama untuk membuka lead-nya.
+          Kartu Follow-up Backlog dan Lead Beku menghitung lead Hot/Warm dan Cold yang lama tidak di-follow-up.
         </GuideP>
 
         <GuideHeading>Ringkasan Listing (Available/Booked/Sold/Hold)</GuideHeading>
@@ -411,6 +414,14 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           Daftar lead yang panjang tidak langsung dirender semua sekaligus dari atas ke bawah.
         </GuideP>
 
+        <GuideHeading>Lead perlu tindak lanjut (dari percakapan)</GuideHeading>
+        <GuideP>
+          Di bagian atas halaman Sales ada tiga daftar yang dibuat dari percakapan WhatsApp 30 hari terakhir:{" "}
+          <strong>Menunggu balasan</strong> (pesan terakhir dari calon pembeli, belum dibalas lebih dari 2 jam; paling
+          mendesak), <strong>Sepi lebih dari 5 hari</strong> (lead Hot/Warm tanpa pesan sama sekali), dan{" "}
+          <strong>Berhenti setelah menyatakan keberatan</strong> (peluang menghubungi lagi). Hot ditampilkan lebih dulu.
+          Anda hanya melihat lead yang ditugaskan kepada Anda. Ringkasan yang sama masuk ke email laporan harian.
+        </GuideP>
         <GuideHeading>Follow-up Hot Lead</GuideHeading>
         <GuideP>
           Menampilkan lead yang belum di-follow-up dalam 48 jam terakhir, dipisah jadi 2 kelompok terpisah --{" "}
