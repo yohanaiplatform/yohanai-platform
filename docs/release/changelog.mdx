@@ -54,10 +54,11 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 ## 15 Oktober 2026 — Data Analysis Agent v1
 
 ### Added
-- **Data Analysis Agent (analisis mingguan, hanya baca)**: tiap Senin 07.00 WIB menghitung corong & kecepatan lead, kualitas per sumber iklan, dan kinerja asisten AI; AI merangkum jadi maksimal 5 temuan. Dikirim ke email pemilik dan tampil di Master Admin. Angka dihitung kode, bukan AI; sampel kecil ditandai "belum cukup data".
+- **Data Analysis Agent (analisis tiap 3 hari, hanya baca)**: sekitar 07.00 WIB menghitung corong & kecepatan lead, kualitas per sumber iklan, dan kinerja asisten AI; AI merangkum jadi maksimal 5 temuan. Dikirim ke email pemilik dan tampil di Master Admin. Angka dihitung kode, bukan AI; sampel kecil ditandai "belum cukup data".
 - Tabel `ai.analysis_reports` (migration `076`).
 - **Pemicu naik Hot dari isi percakapan**: per topik yang ditanyakan calon pembeli (DP, harga, lokasi, dll.) dibandingkan proporsi lead yang mencapai Hot; hanya korelasi dan sampel kecil ditandai.
 - Tombol "Buat analisis sekarang" di Master Admin.
+- Analisis dikirim tiap 3 hari (bukan mingguan) dengan subjek email pendek yang dibuat sistem.
 - **Daftar lead tindak lanjut** di email dan Master Admin: menunggu balasan, sepi lebih dari 5 hari, dan berhenti setelah menyatakan keberatan (nama = tautan ke halaman lead). Migration `077`.
 - **Analisis keberatan calon pembeli**: 12 jenis keberatan dikenali dari kata kunci; jumlah, tren 7 hari, dan kondisi leadnya sekarang.
 
