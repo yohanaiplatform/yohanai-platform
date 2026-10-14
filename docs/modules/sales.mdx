@@ -45,6 +45,10 @@ Sales Module bertujuan untuk (**visi jangka panjang, lihat "Current Features (v1
 
 ---
 
+## Lead perlu tindak lanjut (15 Oktober 2026)
+
+Bagian di atas halaman `/sales` (`#tindak-lanjut`, `FollowUpLists.tsx`): tiga daftar dari percakapan WhatsApp 30 hari terakhir -- menunggu balasan (>2 jam), sepi >5 hari (Hot/Warm), dan berhenti setelah keberatan (Warm/Cold). Scope per agen lewat `resolveFollowUpScope()`; logika di `src/lib/analysis/followUps.ts`.
+
 ## Follow-up Hot Lead
 
 ✅ **Selesai, dipecah jadi 2 kelompok terpisah sama hari** (sebelumnya 1 daftar gabungan Hot+Warm). Lead yang belum di-follow-up dalam 48 jam terakhir (logika sama seperti insight "Follow-up Backlog" di Dashboard) sekarang ditampilkan sebagai 2 list terpisah -- **Hot** dan **Warm** -- masing-masing dengan badge warna sendiri, dibatasi ke 20 lead paling mendesak (diurutkan dari yang paling lama tidak disentuh), dan link "lihat semua di CRM" sendiri-sendiri (`/crm?temperature=hot` atau `/crm?temperature=warm`, bukan gabungan `hot,warm` seperti sebelumnya). `getHotFollowUpLeads()` sekarang balikin `{ hot: FollowUpBucket, warm: FollowUpBucket, error }`, bukan 1 array gabungan -- lihat `src/lib/sales/getSalesData.ts` dan `src/components/sales/HotLeadFollowUpList.tsx` (sekarang generic, nerima prop `temperature`).
