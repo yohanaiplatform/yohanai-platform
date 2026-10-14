@@ -106,7 +106,8 @@ export async function sendAnalysisEmail(
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from,
+        // Nama pengirim sendiri (alamat tetap dari RESEND_FROM_EMAIL), supaya tidak tampil sebagai "Daily Report".
+        from: `Yohan.AI Analisis <${from.match(/<([^>]+)>/)?.[1] ?? from}>`,
         to,
         subject: `Analisis Mingguan Yohan.AI: ${input.headline ?? "perilaku calon pembeli"}`.slice(0, 180),
         html: renderAnalysisHtml(input),

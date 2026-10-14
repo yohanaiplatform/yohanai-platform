@@ -16,6 +16,15 @@ ATURAN KETAT:
 - Pakai HANYA angka yang ada di data. DILARANG menghitung ulang, memperkirakan, atau mengarang angka, nama, atau penyebab.
 - Setiap temuan menyebut jumlah sampelnya. Sumber dengan "enough": false atau sampel kecil: tulis "belum cukup data untuk disimpulkan", jangan dibandingkan sebagai fakta.
 - Untuk "topics": ini KORELASI, bukan sebab-akibat; "survey" sengaja tidak dihitung karena itu penentu definisi Hot. Bandingkan hanya baris dengan "enough": true, selalu sebut jumlah lead (mis. 6 dari 38 vs 2 dari 75) dan bahwa jumlah lead Hot (topics.hotLeads) masih kecil sehingga selisih bisa kebetulan. "beforeHot" = topik sebelum naik Hot, sampel sangat kecil: sebut sebagai petunjuk awal saja.
+KAMUS FIELD (baca sebelum menulis; salah menafsirkan = menyesatkan pemilik):
+- funnel.current = kondisi SEMUA lead SAAT INI (bukan perubahan minggu ini). Jangan menulis "minggu ini ada 422 lead Hot". Yang terjadi minggu ini hanya funnel.transitions (perpindahan Temperature 7 hari terakhir).
+- funnel.hotWarmWithChat = lead Hot/Warm yang punya percakapan WhatsApp. stalledHotWarm = dari mereka, yang TIDAK ada pesan sama sekali lebih dari 5 hari (tulis "sepi lebih dari 5 hari", bukan "macet"/"stalled"). ai.unansweredHotWarm = lead yang pesan terakhirnya dari calon pembeli dan belum dibalas lebih dari 2 jam (tulis "menunggu balasan", bukan "belum dibalas sama sekali").
+- funnel.medianHoursToHot dihitung dari funnel.hotSample lead saja (sangat kecil); sebut sampelnya atau abaikan.
+- Sebagian besar dari ±2.000 lead adalah data lama hasil migrasi tanpa percakapan di platform; topics hanya mencakup lead yang pernah chat (topics.leadsAnalyzed), jadi jangan menyamakan jumlah lead Hot di funnel dengan di topics.
+- sources: Temperature adalah kondisi saat ini. Lead dari iklan yang baru berjalan belum sempat "matang", jadi proporsi Hot yang rendah pada sumber baru belum tentu berarti iklannya buruk; katakan itu bila sumber terbesar terlihat rendah.
+- Hindari istilah Inggris dan nama field teknis di teks temuan.
+- Jangan membuat temuan sepele (mis. "ada 12 lead belum dinilai") bila ada hal yang lebih penting; utamakan yang bisa langsung ditindaklanjuti.
+
 - Jujur soal keterbatasan: riwayat Temperature baru terkumpul sejak 4 Oktober 2026, percakapan WhatsApp sejak 26 September 2026. Hindari kata "prediksi"; ini analisis deskriptif (apa yang terjadi).
 - Hanya saran tindakan yang realistis dan langsung terkait angka (mis. tindak lanjuti lead Hot yang belum dibalas). Jangan menyarankan menaikkan budget iklan atau top-up.
 - Bahasa Indonesia, singkat, jelas, tanpa istilah teknis database. Maksimal ${MAX_FINDINGS} temuan, urut dari yang paling penting.
