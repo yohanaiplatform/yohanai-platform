@@ -51,19 +51,42 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
-## 5-7 Oktober 2026 — Sinkron Kontak, Nurturing per Akun, Laporan Biaya AI, Prompt Caching
+## 12-14 Oktober 2026 — Master Admin, Dokumen Perjanjian (MoU, Kwitansi, PPJB), Perbaikan AI Listing & Jarak
 
 ### Added
 
-- **PPJB dari data listing**: formulir pembeli/penjual, metode pembayaran KPR/Cash/Cash Bertahap, klausul kesepakatan yang bisa diubah (token otomatis), nomor PPJB berurutan, riwayat, cetak A4 berlogo perusahaan
-- **Kwitansi Booking Unit**: buat kwitansi dari data listing (nominal + terbilang otomatis, nomor kwitansi berurutan, riwayat, cetak A4 berlogo perusahaan)
-- **Dokumen MoU Pemasaran**: buat Surat Perjanjian Jasa Pemasaran dari data listing (tombol di detail listing), Listing ID otomatis, identitas pemilik tersimpan terpisah, riwayat dokumen, cetak/PDF A4 dengan logo perusahaan
-- **Laporan Master Admin versi investor**: ringkasan eksekutif, sorotan otomatis, sebaran Temperature, sumber lead, kapabilitas platform, biaya AI per lead; 4 halaman A4 dengan logo; perbaikan cetak yang terpotong
-- **Cetak laporan Master Admin**: tombol "Cetak / Simpan PDF" dengan pengaturan bagian yang dicetak dan catatan laporan; versi cetak A4 rapi dengan header nama platform, logo, tanggal cetak, header berjalan "Rahasia", dan nomor halaman; setiap bagian tidak terpotong antar halaman
+- **Dokumen MoU Pemasaran** (tombol di detail listing): Surat Perjanjian Jasa Pemasaran terisi dari data listing; identitas pemilik (tempat/tanggal lahir, alamat, pekerjaan, No. KTP, foto KTP) disimpan terpisah dan hanya terlihat admin/agen listing; Listing ID resmi (otomatis berurutan atau diisi manual); riwayat dokumen; cetak A4 4 halaman berlogo perusahaan
+- **Kwitansi Pembayaran Unit**: tujuan pembayaran (Booking, Angsuran Booking/Cash/Cash Bertahap, Lainnya) yang menjadi judul header, metode pembelian KPR/Cash/Cash Bertahap dengan Total DP dan sisa pembayaran otomatis, terbilang otomatis, nomor kwitansi berurutan, kolom "sudah dibayar sebelumnya" untuk angsuran lanjutan
+- **PPJB**: formulir pembeli/penjual mengikuti PPJB Kapur Mas Residence, metode KPR/Cash/Cash Bertahap, klausul kesepakatan yang bisa diedit/ditambah/dihapus/diurutkan dengan token otomatis dan pustaka klausul standar, nomor PPJB berurutan, cetak 1 halaman A4
+- **Laporan Master Admin versi investor**: ringkasan eksekutif, sorotan otomatis, sebaran Temperature, sumber lead, kapabilitas platform, biaya AI per lead; tombol "Cetak / Simpan PDF" dengan pengaturan bagian, catatan, dan logo di tiap halaman (nama lead dan saldo kredit tidak ikut tercetak)
 - **Master Admin** (`/admin`): halaman khusus admin berisi biaya & pemakaian AI (saldo taksiran, grafik harian, proyeksi), pertumbuhan lead (harian, mingguan, bulanan, sumber), dan tren ukuran database/storage; potret harian metrik platform mulai direkam (migration `072`)
 - **Penerima laporan platform**: admin bisa memberi akun non-admin akses ke Platform Report (email) dan halaman Master Admin tanpa peran admin penuh (Settings, Penerima Laporan Platform)
 - **Pengingat saldo kredit AI**: admin mencatat saldo Claude Console di Settings; Platform Report menaksir sisa saldo dan sisa hari, menampilkan banner peringatan (kuning <= 7 hari, merah <= 3 hari) dan menandai subjek email saat kritis (migration `071`)
 - **Jawaban lokasi umum yang menawarkan lokasi lain**: kalau lead hanya bertanya "lokasi?", "ini di mana?", "posisi?", "dekat mana?", asisten menjawab lokasi unit iklan (mis. Desa Kapur) lalu menawarkan lokasi lain dari daftar resmi agen (entri pengetahuan "Jawaban lokasi umum"), dan menutup dengan pertanyaan lokasi mana yang cocok
+
+### Changed
+
+- Cetak dokumen memakai aturan halaman biasa yang disuntik per halaman (bukan halaman bernama) dan wadah aplikasi tidak lagi memotong cetak
+- Pencarian listing untuk AI: nomor tipe ("tipe 45"/"type 45") menjadi sinyal kuat, frasa lokasi berurutan, kecocokan tanpa spasi, awalan "di"/"ke" dibuang ("diserdam" = "serdam"), istilah pesan baru diberi bonus
+- Data peta dihitung untuk lebih banyak listing (sampai 6) dan listing yang sedang dibahas lead selalu ikut
+
+### Fixed
+
+- **AI memberi video/foto listing yang salah** (listing kembar dengan alamat dan harga sama; pencarian tidak memakai tipe rumah): perbaikan pencocokan di atas, plus aturan di prompt agar foto/video/harga tidak dicampur antar listing dan listing ber-video didahulukan saat lead minta video
+- **Pertanyaan lanjutan kehilangan lokasi acuan** (mis. "semua perumahan?" setelah bertanya jarak ke UNTAN): lokasi terakhir yang disebut kini terbawa dari riwayat chat
+- **Jarak lewat jalan kadang jatuh ke garis lurus tanpa jejak**: panggilan Google kini diulang sekali bila gagal sementara dan penyebab kegagalan dicatat di `ai.agent_runs.input_snapshot.geoDiagnostics`
+- **Cetak Master Admin terpotong** (hanya satu layar ikut tercetak) dan halaman 1 kosong di dokumen perjanjian
+- **Listing ID salah format** ("GDI202694/2026/1") karena kolom awalan dipakai untuk nomor penuh: kolom Listing ID kini terlihat dan bisa diisi manual; awalan hanya huruf
+
+### Perlu perhatian
+
+- 79 listing aktif belum punya link Google Maps (daftar prioritas ada di `Listing tanpa link Maps.csv` dari sesi ini) sehingga jarak tidak bisa dihitung; beberapa listing kembar dan harga janggal (tanah Rp750.000/Rp1,6 juta) perlu dibereskan di data
+- Penyebab panggilan Routes yang kadang gagal belum terdiagnosis (menunggu catatan `geoDiagnostics` dari percakapan berikutnya)
+
+## 5-7 Oktober 2026 — Sinkron Kontak, Nurturing per Akun, Laporan Biaya AI, Prompt Caching
+
+### Added
+
 - **Sinkron Google Contacts otomatis**: lead baru (termasuk yang masuk dari WhatsApp) otomatis jadi kontak di akun Google agen yang ditugaskan; nama kontak ikut diperbarui saat nama lead dikonfirmasi atau diubah; tombol **Sinkronkan ke Google Contacts** di Lead Detail untuk lead lama; nomor disimpan format +62 (migration `067`)
 - **Follow-up Otomatis (Nurturing) per akun** di Settings: jam diam, jeda antar langkah, maksimal kirim, jam kirim, Temperature yang di-follow-up, template standar + aturan template per kata kunci, dan saklar aktif per akun; plus **Template & Riwayat Follow-up** (daftar template dan hasil kirim 30 hari; migration `069`)
 - **Pemakaian & Biaya AI** di laporan developer (Platform Report): kemarin, 7 hari, bulan ini, proyeksi akhir bulan, rata-rata per pesan, lead dengan biaya terbesar, jumlah template nurturing terkirim; pencatat pemakaian panggilan Claude di luar chat (migration `068`); endpoint admin `/api/admin/ai-usage`

@@ -57,6 +57,10 @@ profile_completeness_rules
 property.categories
         │
         └────────► property.listings ◄──────── auth.users (assigned_to, sejak 043)
+                         │
+                         ├────────► property.owner_identities (NYATA, sejak 073/074, 1:1 per listing -- identitas pemilik + foto KTP, SENSITIF)
+                         └────────► property.documents (NYATA, sejak 073 -- riwayat MoU/Kwitansi/PPJB, snapshot formulir)
+property.document_settings (NYATA, sejak 073) ──► auth.users (user_id, isian tetap Pihak 2 per pengguna)
 
 customer.lead_sources
         │

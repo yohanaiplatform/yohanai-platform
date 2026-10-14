@@ -540,6 +540,17 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           Di bagian Video ada tombol <strong>Edit</strong> (atau <strong>Tambah Video</strong> kalau belum ada)
           untuk mengisi link YouTube atau Google Drive. Kosongkan kolomnya untuk menghapus video.
         </GuideP>
+        <GuideHeading>Dokumen dari listing</GuideHeading>
+        <GuideP>
+          Di bagian atas halaman detail ada tombol <strong>MoU Pemasaran</strong>, <strong>Kwitansi</strong>, dan{" "}
+          <strong>PPJB</strong> untuk membuat dokumen langsung dari data listing, lalu menyimpannya sebagai PDF. Cara pakainya
+          ada di panduan &quot;Dokumen MoU Pemasaran&quot;, &quot;Kwitansi Pembayaran Unit&quot;, dan &quot;Dokumen PPJB&quot;.
+          Data listing yang rapi (judul, harga, alamat, spesifikasi) membuat dokumen terisi lebih lengkap otomatis.
+        </GuideP>
+        <GuideNote>
+          Dua listing yang sama persis (alamat dan harga sama) sebaiknya digabung atau salah satunya dihapus: asisten bisa
+          memilih listing yang salah, misalnya yang tidak punya video.
+        </GuideNote>
       </>
     ),
   },

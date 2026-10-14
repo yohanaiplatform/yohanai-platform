@@ -204,6 +204,20 @@ src/constants/property.ts  PROPERTY_STATUS_OPTIONS, CERTIFICATE_TYPE_OPTIONS
 
 Lokasi & Fasilitas Sekitar: untuk pertanyaan fasilitas, kampus/kesehatan/belanja terdekat memakai jarak lewat jalan + waktu tempuh (Google Routes, live, tidak disimpan); sekolah, tempat ibadah, SPBU, dan data OpenStreetMap tersimpan tetap garis lurus.
 
+## Dokumen Perjanjian dari Data Listing (14 Oktober 2026)
+
+Dari halaman detail listing ada tombol **MoU Pemasaran**, **Kwitansi**, dan **PPJB** (`/properties/[slug]/documents/{mou,kwitansi,ppjb}`). Semuanya memakai satu pola: formulir terisi dari data listing, simpan ke riwayat (`property.documents`, snapshot isi formulir), lalu cetak/Simpan PDF A4 lewat `window.print()` dengan `@page` tanpa nama yang disuntik komponen halaman itu (JANGAN pakai halaman bernama -- penyebab halaman 1 kosong). Dokumen memakai logo Griya Indonesia (`public/images/brand/griya-indonesia-logo.png`), bukan Yohan.AI.
+
+- **MoU Pemasaran** (`MouDocumentEditor.tsx`/`MouDocument.tsx`): teks pasal dari MoU GDI/2025/44; Listing ID resmi (`property.listings.listing_code`, unik; otomatis `AWALAN/TAHUN/NOMOR` atau manual); identitas pemilik di `property.owner_identities` (termasuk foto KTP, SENSITIF, tidak dibaca AI); isian Pihak 2 per pengguna di `property.document_settings`; hasil 4 halaman (perjanjian 2 + lampiran 1 + dokumen pendukung 1).
+- **Kwitansi** (`KwitansiEditor.tsx`): tujuan pembayaran (Booking, Angsuran Booking/Cash/Cash Bertahap, Lainnya) menjadi judul header; metode pembelian KPR/Cash/Cash Bertahap -- KPR & Bertahap memakai Total DP (sisa = Total DP - pembayaran), Cash memakai harga unit (`computeBookingBalance()` di `kwitansiTypes.ts`); terbilang otomatis (`terbilang.ts`); nomor `KW/AWALAN/TAHUN/001`; kolom "sudah dibayar sebelumnya" untuk angsuran lanjutan.
+- **PPJB** (`PpjbEditor.tsx`): tata letak PPJB Kapur Mas Residence; klausul adjustable (edit/tambah dari pustaka standar/hapus/urut) dengan token `{{booking}} {{sisa}} {{total_dp}} {{harga}} {{penerima}} {{fasilitas}}`; daftar awal mengikuti metode (KPR = 10 klausul asli; Cash/Bertahap = versi ringkas yang perlu ditinjau Yohan); nomor `PPJB/KODEPROYEK/bulan-romawi/tahun/0001`; ukuran huruf cetak menyesuaikan panjang klausul agar muat 1 halaman.
+- Menyimpan ulang dengan nomor dokumen yang sama memperbarui dokumen itu; nomor milik listing lain ditolak (409).
+- Menguji cetak tanpa menunggu PDF: lihat bagian "Menguji cetak" di `AGENTS.md` (Chrome headless + halaman uji sementara).
+
+## Update 13-14 Oktober 2026
+
+Pencocokan listing untuk AI (`relevantListings.ts`): nomor tipe rumah menjadi sinyal kuat (tipe lain dikurangi), frasa lokasi berurutan, kecocokan tanpa spasi, listing ber-video didahulukan saat lead minta video. **Data:** 79 listing aktif belum punya `maps_url`; beberapa listing kembar (alamat/harga sama) membingungkan AI -- gabung/hapus.
+
 # Last Updated
 
-7 Oktober 2026
+14 Oktober 2026

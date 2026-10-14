@@ -383,8 +383,14 @@ Continuous Learning Engine
 
 ---
 
+## Update 13-14 Oktober 2026
+
+- **Pencocokan listing** (`relevantListings.ts`, `runAiAgent.ts`): nomor tipe ("tipe 45" = "type 45") jadi bobot kuat dan tipe lain dikurangi; frasa lokasi berurutan; kecocokan tanpa spasi ("kota baru" = kotabaru); awalan di/ke dibuang ("diserdam" -> "serdam"); istilah pesan baru diberi bonus dibanding riwayat; listing ber-video didahulukan bila lead minta video. Prompt: foto/video/harga/alamat HARUS dari SATU listing yang persis dimaksud, jangan dicampur; "video belum ada" hanya bila listing itu memang tanpa baris Video.
+- **Konteks peta** (`placeContext.ts`): lokasi acuan dari kamus kawasan kini dicari juga di riwayat chat (pertanyaan lanjutan tidak kehilangan "UNTAN"); listing yang sedang dibahas selalu ikut dihitung jaraknya, dilengkapi sampai 6 listing terdekat.
+- **Diagnostik Google** (`google.ts`): Places/Routes diulang sekali saat gagal sementara; penyebab kegagalan dicatat di log dan di `ai.agent_runs.input_snapshot.geoDiagnostics` (log Vercel Hobby tidak bisa dibaca dari luar -- baca dengan SQL).
+
 # Last Updated
 
-7 Oktober 2026
+14 Oktober 2026
 
 Sprint 011
