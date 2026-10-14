@@ -2,13 +2,14 @@
 
 // src/components/settings/BrandingCard.tsx
 //
-// Settings: logo dokumen dan watermark foto milik pengguna sendiri. Gambar diperiksa dulu di browser (umpan balik cepat)
-// lalu diperiksa ulang oleh server; yang tidak sesuai standar ditolak dengan daftar alasan dan pengguna diminta mengedit
-// ulang gambarnya. Watermark baru hanya berlaku untuk foto yang diunggah sesudahnya; foto lama tidak berubah.
+// Settings: logo dokumen dan watermark foto milik pengguna sendiri. Pengguna boleh mengunggah gambar apa saja: browser
+// menyesuaikannya otomatis ke standar (hapus latar polos, potong tepi kosong, ukuran, proporsi) dengan pratinjau sebelum
+// disimpan; server tetap memeriksa ulang hasilnya, dan gambar yang benar-benar tidak bisa disesuaikan ditolak dengan alasan. Watermark baru hanya berlaku untuk foto yang diunggah sesudahnya; foto lama tidak berubah.
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BRANDING_SPECS, specSummary, validateBrandingImage, type BrandingKind } from "@/lib/branding/spec";
+import { specSummary, type BrandingKind } from "@/lib/branding/spec";
+import { BrandingProcessError, processBrandingImage, type ProcessedImage } from "@/lib/branding/processImage";
 import { LOGO_POSITIONS, WATERMARK_POSITIONS } from "@/lib/branding/branding";
 
 interface AssetStatus {
@@ -36,31 +37,6 @@ function watermarkPreviewStyle(position: string): React.CSSProperties {
   return { ...style, [position.endsWith("left") ? "left" : "right"]: "4%", [position.startsWith("top") ? "top" : "bottom"]: "6%" };
 }
 
-/** Baca dimensi + bagian piksel transparan di browser. */
-async function inspectInBrowser(file: File) {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 240 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  let transparentRatio = 0;
-  if (ctx) {
-    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    let transparent = 0;
-    for (let i = 3; i < data.length; i += 4) if (data[i] < 250) transparent += 1;
-    transparentRatio = transparent / (data.length / 4);
-  }
-  return { width: bitmap.width, height: bitmap.height, transparentRatio };
-}
-
-function formatOf(file: File): "png" | "jpeg" | null {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/jpeg") return "jpeg";
-  return null;
-}
-
 function Slot({
   kind,
   title,
@@ -86,34 +62,54 @@ function Slot({
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[] | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+  const [pending, setPending] = useState<ProcessedImage | null>(null);
+  const [lastFile, setLastFile] = useState<File | null>(null);
+  const [removeBg, setRemoveBg] = useState(true);
 
-  async function handleFile(file: File) {
+  function clearPending() {
+    setPending((old) => {
+      if (old) URL.revokeObjectURL(old.url);
+      return null;
+    });
+    setLastFile(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function runProcess(file: File, removeBackground: boolean) {
     setErrors(null);
     setOk(null);
     setBusy(true);
     try {
-      let info;
-      try {
-        info = await inspectInBrowser(file);
-      } catch {
-        setErrors(["Gambar tidak bisa dibaca. Pastikan file PNG/JPG yang valid."]);
-        return;
-      }
-      const reasons = validateBrandingImage(kind, {
-        format: formatOf(file),
-        width: info.width,
-        height: info.height,
-        bytes: file.size,
-        hasAlpha: info.transparentRatio > 0,
-        transparentRatio: info.transparentRatio,
+      const result = await processBrandingImage(file, kind, { removeBackground });
+      setPending((old) => {
+        if (old) URL.revokeObjectURL(old.url);
+        return result;
       });
-      if (reasons.length > 0) {
-        setErrors(reasons);
-        return;
-      }
+    } catch (e) {
+      setPending((old) => {
+        if (old) URL.revokeObjectURL(old.url);
+        return null;
+      });
+      setErrors([e instanceof BrandingProcessError ? e.message : "Gambar tidak bisa diproses. Coba file lain."]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleFile(file: File) {
+    setLastFile(file);
+    await runProcess(file, removeBg);
+  }
+
+  async function confirmUpload() {
+    if (!pending) return;
+    setErrors(null);
+    setOk(null);
+    setBusy(true);
+    try {
       const form = new FormData();
       form.append("kind", kind);
-      form.append("file", file);
+      form.append("file", new File([pending.blob], `${kind}.${pending.mime === "image/png" ? "png" : "jpg"}`, { type: pending.mime }));
       const res = await fetch("/api/branding/upload", { method: "POST", body: form });
       const json = (await res.json().catch(() => ({}))) as { error?: string; reasons?: string[] };
       if (!res.ok) {
@@ -121,10 +117,10 @@ function Slot({
         return;
       }
       setOk(kind === "watermark" ? "Watermark tersimpan. Berlaku untuk foto yang diunggah mulai sekarang." : "Logo dokumen tersimpan. Langsung dipakai di MoU, Kwitansi, dan PPJB berikutnya.");
+      clearPending();
       onChanged();
     } finally {
       setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
   }
 
@@ -155,7 +151,7 @@ function Slot({
       </div>
 
       <div>
-        <p className="mb-1 text-xs font-medium">Standar gambar</p>
+        <p className="mb-1 text-xs font-medium">Unggah gambar berukuran apa saja -- aplikasi menyesuaikannya otomatis ke standar ini:</p>
         <ul className="list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
           {specSummary(kind).map((line) => (
             <li key={line}>{line}</li>
@@ -228,11 +224,58 @@ function Slot({
         {status ? `Terpasang: ${status.width} x ${status.height}px` : kind === "watermark" ? "Memakai watermark bawaan Yohan.AI" : "Belum ada logo"}
       </p>
 
+      {pending && (
+        <div className="space-y-2 rounded-lg border border-emerald-300 bg-emerald-50/50 p-3">
+          <p className="text-sm font-semibold">Pratinjau hasil penyesuaian ({pending.width} x {pending.height}px)</p>
+          {kind === "watermark" ? (
+            <div className="relative h-40 overflow-hidden rounded-lg" style={{ background: "linear-gradient(135deg,#7fa6c9,#c9d6b8 55%,#8a7a6a)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={pending.url} alt="Pratinjau watermark baru" style={watermarkPreviewStyle(position ?? "center")} />
+            </div>
+          ) : (
+            <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border bg-white p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={pending.url} alt="Pratinjau logo baru" className="max-h-full max-w-full object-contain" />
+            </div>
+          )}
+          {pending.notes.length > 0 && (
+            <ul className="list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
+              {pending.notes.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" disabled={busy} onClick={confirmUpload}>
+              {busy ? "Menyimpan..." : "Pakai gambar ini"}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={clearPending}>
+              Batal
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {kind === "watermark" && (
+        <label className="flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={removeBg}
+            disabled={busy}
+            onChange={(e) => {
+              setRemoveBg(e.target.checked);
+              if (lastFile) void runProcess(lastFile, e.target.checked);
+            }}
+          />
+          Hapus latar belakang polos otomatis (untuk gambar yang berlatar putih/satu warna)
+        </label>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <input
           ref={inputRef}
           type="file"
-          accept={BRANDING_SPECS[kind].formats.map((f) => (f === "png" ? "image/png" : "image/jpeg")).join(",")}
+          accept="image/*"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -251,7 +294,7 @@ function Slot({
 
       {errors && (
         <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900">
-          <p className="font-semibold">Gambar ditolak. Edit ulang gambarnya lalu unggah lagi:</p>
+          <p className="font-semibold">Gambar belum bisa dipakai. Perbaiki gambarnya lalu unggah lagi:</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5">
             {errors.map((e) => (
               <li key={e}>{e}</li>

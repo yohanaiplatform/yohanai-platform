@@ -680,7 +680,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             "Logo dokumen: pilih Atas kiri, Atas tengah, atau Atas kanan. Kalau belum memilih, tiap dokumen memakai tata letak bawaannya.",
           ]}
         />
-        <GuideHeading>Standar gambar</GuideHeading>
+        <GuideHeading>Unggah gambar apa saja</GuideHeading>
+        <GuideP>
+          Anda tidak perlu mengedit gambar dulu: unggah saja, lalu aplikasi menyesuaikannya otomatis (menghapus latar belakang polos pada
+          watermark, memotong tepi kosong, mengatur ukuran dan proporsi). Hasilnya ditampilkan sebagai pratinjau beserta catatan penyesuaian;
+          klik <strong>&quot;Pakai gambar ini&quot;</strong> untuk menyimpan. Gambar yang berukuran terlalu kecil akan diperbesar sehingga bisa kurang tajam.
+        </GuideP>
+        <GuideHeading>Standar gambar hasil akhir</GuideHeading>
         <GuideList
           items={[
             "Watermark: PNG dengan latar belakang transparan (hanya logo/teks yang terlihat, bukan kotak berwarna), lebar 600-2400 px, tinggi minimal 150 px, bentuk mendatar atau persegi, ukuran file maksimal 1,5 MB.",
@@ -688,8 +694,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           ]}
         />
         <GuideNote>
-          Gambar yang tidak sesuai standar <strong>ditolak</strong> dan alasannya ditampilkan (mis. resolusi terlalu kecil, latar belakang tidak
-          transparan, bentuk terlalu menjulang). Edit ulang gambarnya lalu unggah lagi. Tombol &quot;Hapus&quot; mengembalikan ke pengaturan bawaan.
+          Gambar yang benar-benar tidak bisa disesuaikan <strong>ditolak</strong> dan alasannya ditampilkan (mis. foto berlatar ramai yang latarnya
+          tidak bisa dihapus otomatis). Gunakan logo berlatar polos atau transparan, lalu unggah lagi. Tombol &quot;Hapus&quot; mengembalikan ke pengaturan bawaan.
         </GuideNote>
       </>
     ),
