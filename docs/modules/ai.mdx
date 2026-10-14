@@ -389,8 +389,12 @@ Continuous Learning Engine
 - **Konteks peta** (`placeContext.ts`): lokasi acuan dari kamus kawasan kini dicari juga di riwayat chat (pertanyaan lanjutan tidak kehilangan "UNTAN"); listing yang sedang dibahas selalu ikut dihitung jaraknya, dilengkapi sampai 6 listing terdekat.
 - **Diagnostik Google** (`google.ts`): Places/Routes diulang sekali saat gagal sementara; penyebab kegagalan dicatat di log dan di `ai.agent_runs.input_snapshot.geoDiagnostics` (log Vercel Hobby tidak bisa dibaca dari luar -- baca dengan SQL).
 
+## Update 15 Oktober 2026 -- Data Analysis Agent v1
+
+Agen analisis mingguan (hanya baca) di `src/lib/analysis/`: angka dihitung kode (`computeMetrics.ts`), AI hanya merangkum (`generateWeeklyAnalysis.ts`), hasil di `ai.analysis_reports`, email ke pemilik, kartu di Master Admin. Tiga analisis v1: corong & kecepatan (Temperature, perpindahan 7 hari, lead sepi/menunggu balasan), kualitas per sumber iklan (sumber <10 lead tidak dibandingkan), kinerja AI. Jadwal Senin 07 WIB lewat `/api/cron/hourly` (`?force=analysis` tes manual). Belum: pemicu naik Hot dari isi percakapan, keberatan terbanyak, minat lokasi vs stok, Lead Scoring (menunggu data menebal; riwayat Temperature baru sejak 4 Okt). Ini langkah pertama Fase 3 (Buyer Behavior Intelligence): deskriptif, bukan prediktif.
+
 # Last Updated
 
-14 Oktober 2026
+15 Oktober 2026
 
 Sprint 011

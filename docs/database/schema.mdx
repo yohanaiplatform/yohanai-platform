@@ -221,7 +221,7 @@ Tulis `GRANT` eksplisit dan `DROP POLICY IF EXISTS` di setiap migration sejak aw
 
 # Riwayat Migration
 
-Folder `supabase/migrations/` berisi `001`–`075` secara berurutan (per 14 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
+Folder `supabase/migrations/` berisi `001`–`076` secara berurutan (per 15 Oktober 2026). Rentang ini bergerak terus tiap sesi — cek `ls supabase/migrations` untuk angka terkini alih-alih percaya angka yang tertulis di sini.
 
 | Rentang | Isi |
 |---------|-----|
@@ -262,6 +262,7 @@ Folder `supabase/migrations/` berisi `001`–`075` secara berurutan (per 14 Okto
 | `066` | Kolom `auth_ext.profiles.geo_radius_km` (radius pencarian fasilitas per user, 1-10 km) + seed 7 kampus Pontianak ke `knowledge.places` |
 | `067` | GRANT SELECT `auth_ext.google_contacts_connections` ke `service_role` (sinkron kontak otomatis tanpa sesi login) |
 | `068` | Tabel `ai.llm_usage` (pemakaian token Claude di luar AI Agent chat, untuk laporan biaya; hanya `service_role`) |
+| `076` | Tabel `ai.analysis_reports` (hasil Data Analysis Agent mingguan: `metrics` angka agregat dari kode, `headline`/`findings` ringkasan AI; unik per `kind`+`period_end`; hanya `service_role`) |
 | `075` | Kolom `property.document_settings.branding` (JSONB: logo dokumen + watermark foto per pengguna; gambar di R2, metadata di sini) |
 | `074` | Kolom `property.owner_identities.id_photo` (foto KTP pemilik untuk dokumen perjanjian, SENSITIF) |
 | `073` | Dokumen perjanjian dari data listing: kolom `property.listings.listing_code` (Listing ID resmi, unik, backfill dari tag migrasi), tabel `property.owner_identities` (identitas pemilik, SENSITIF, akses mengikuti RLS listing), `property.documents` (riwayat dokumen + snapshot formulir) dan `property.document_settings` (isian tetap Pihak 2 per pengguna) |
