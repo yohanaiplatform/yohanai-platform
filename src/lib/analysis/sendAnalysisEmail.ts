@@ -18,6 +18,25 @@ function table(headers: string[], rows: string[][]): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>${th}</tr>${tr}</table>`;
 }
 
+function topicSection(m: AnalysisMetrics): string {
+  const tp = m.topics;
+  if (!tp) return "";
+  const rows = tp.rows
+    .filter((r) => r.enough)
+    .map((r) => [
+      r.label,
+      `${num(r.withHot)} dari ${num(r.withLeads)} (${pct(r.withHot, r.withLeads)})`,
+      `${num(r.withoutHot)} dari ${num(r.withoutLeads)} (${pct(r.withoutHot, r.withoutLeads)})`,
+    ]);
+  const small = tp.rows.filter((r) => !r.enough).map((r) => r.label);
+  const before = tp.beforeHot.map((b) => `${b.label} (${num(b.count)})`).join(", ");
+  return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Pemicu naik Hot dari isi percakapan</div>
+    <div style="font-size:12px;color:#374151;margin-bottom:6px;">${num(tp.leadsAnalyzed)} lead yang pernah chat, ${num(tp.hotLeads)} di antaranya sudah Hot/Closing/Booking. Proporsi yang mencapai Hot menurut topik yang pernah mereka tanyakan. Ini korelasi, bukan sebab-akibat, dan jumlah lead Hot masih kecil.</div>
+    ${table(["Topik", "Yang menanyakan: Hot", "Yang tidak: Hot"], rows)}
+    ${small.length ? `<div style="font-size:11px;color:#6B7280;margin-top:6px;">Belum cukup data: ${esc(small.join(", "))}.</div>` : ""}
+    ${tp.beforeHotSample > 0 ? `<div style="font-size:11px;color:#6B7280;margin-top:4px;">Topik yang sudah disebut sebelum naik ke Hot (${num(tp.beforeHotSample)} lead, petunjuk awal): ${esc(before || "-")}.</div>` : ""}</div>`;
+}
+
 export function renderAnalysisHtml(input: {
   periodStart: string;
   periodEnd: string;
@@ -62,6 +81,7 @@ export function renderAnalysisHtml(input: {
       } Lead Hot/Warm dengan percakapan: ${num(m.funnel.hotWarmWithChat)}; ${num(m.funnel.stalledHotWarm)} tanpa pesan lebih dari 5 hari; ${num(m.ai.unansweredHotWarm)} menunggu balasan.</div>
       ${table(["Temperature", "Jumlah", "Porsi"], funnelRows)}<div style="height:8px;"></div>${table(["Perpindahan", "Jumlah"], transitionRows)}`
     )}
+    ${topicSection(m)}
     ${section(
       `Kualitas per sumber (lead ${m.sources.cohortDays} hari terakhir, ${num(m.sources.cohortLeads)} lead)`,
       `${table(["Sumber", "Lead", "Hot+Warm", "Hot", "Closing"], sourceRows)}<div style="font-size:11px;color:#6B7280;margin-top:6px;">Perbandingan hanya untuk sumber dengan minimal ${m.sources.minSample} lead. Temperature = kondisi saat ini, bukan akhir proses.</div>`

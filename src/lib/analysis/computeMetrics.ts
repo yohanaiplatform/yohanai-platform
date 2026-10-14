@@ -10,6 +10,7 @@ import {
   type CountItem,
   type SourceRow,
 } from "@/lib/analysis/types";
+import { computeTopicMetrics } from "@/lib/analysis/topics";
 
 const PAGE = 1000;
 const SOURCE_COHORT_DAYS = 30;
@@ -76,7 +77,7 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
   const periodStartISO = periodStart.toISOString();
   const cohortSince = new Date(now.getTime() - SOURCE_COHORT_DAYS * DAY_MS).toISOString();
 
-  const [leads, history, runs, queueRes, messages, conversations] = await Promise.all([
+  const [leads, history, runs, queueRes, messages, conversations, customerMessages] = await Promise.all([
     fetchAll((from, to) =>
       admin.schema("customer").from("leads").select("id, created_at, metadata").is("deleted_at", null).order("created_at").range(from, to)
     ),
@@ -110,6 +111,17 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
     ),
     fetchAll((from, to) =>
       admin.schema("chat").from("conversations").select("id, lead_id").is("deleted_at", null).order("created_at").range(from, to)
+    ),
+    // Seluruh pesan calon pembeli (isi hanya dicocokkan kata kunci di kode; tidak dikirim ke LLM).
+    fetchAll((from, to) =>
+      admin
+        .schema("chat")
+        .from("messages")
+        .select("conversation_id, content, created_at")
+        .eq("sender_type", "customer")
+        .is("deleted_at", null)
+        .order("created_at")
+        .range(from, to)
     ),
   ]);
 
@@ -213,6 +225,17 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
     else if (m.sender_type === "agent") fromAgent += 1;
   }
 
+  const leadOfConversation = new Map<string, string>();
+  for (const cv of conversations) if (cv.lead_id) leadOfConversation.set(cv.id, cv.lead_id);
+  const topics = computeTopicMetrics({
+    messages: customerMessages.flatMap((m) => {
+      const leadId = leadOfConversation.get(m.conversation_id);
+      return leadId && m.content ? [{ leadId, at: m.created_at, content: m.content }] : [];
+    }),
+    temperatureByLead: new Map(Array.from(leadById.entries()).map(([id, l]) => [id, l.temperature])),
+    hotTransitions: history.filter((h) => h.to_temperature === "Hot" && h.from_temperature).map((h) => ({ leadId: h.lead_id, at: h.created_at })),
+  });
+
   return {
     periodStart: periodStartISO,
     periodEnd: periodEnd.toISOString(),
@@ -228,6 +251,7 @@ export async function computeAnalysisMetrics(admin: Admin, days = 7, now = new D
       stalledHotWarm: stalled,
       hotWarmWithChat,
     },
+    topics,
     sources: { cohortDays: SOURCE_COHORT_DAYS, cohortLeads, minSample: MIN_SOURCE_SAMPLE, rows: sourceRows },
     ai: {
       runs: runs.length,

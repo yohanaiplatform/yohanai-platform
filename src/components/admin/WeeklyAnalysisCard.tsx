@@ -1,6 +1,7 @@
 // src/components/admin/WeeklyAnalysisCard.tsx
 
 import { SectionCard } from "@/components/ui/section-card";
+import { RunAnalysisButton } from "@/components/admin/RunAnalysisButton";
 import type { AnalysisFinding, AnalysisMetrics } from "@/lib/analysis/types";
 
 export interface WeeklyAnalysisRecord {
@@ -20,9 +21,12 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
   if (!report) {
     return (
       <SectionCard title="Analisis perilaku calon pembeli" description="Analisis mingguan otomatis oleh Data Analysis Agent.">
-        <p className="text-sm text-muted-foreground">
-          Belum ada analisis. Analisis pertama dibuat otomatis Senin pagi (07.00 WIB) dan dikirim ke email pemilik.
-        </p>
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Belum ada analisis. Analisis dibuat otomatis Senin pagi (07.00 WIB) dan dikirim ke email pemilik, atau buat sekarang.
+          </p>
+          <RunAnalysisButton />
+        </div>
       </SectionCard>
     );
   }
@@ -35,6 +39,7 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
       description={`Data Analysis Agent, periode ${report.period_start} s/d ${report.period_end} (dibuat ${created} WIB). Deskriptif: apa yang terjadi, bukan prediksi.`}
     >
       <div className="space-y-4 text-sm">
+        <RunAnalysisButton />
         <p className="text-base font-semibold">{report.headline ?? "Ringkasan AI tidak tersedia minggu ini"}</p>
         {report.findings.length > 0 && (
           <ul className="space-y-3">
@@ -46,6 +51,33 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
               </li>
             ))}
           </ul>
+        )}
+
+        {m.topics && m.topics.rows.length > 0 && (
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+              Pemicu naik Hot ({num(m.topics.leadsAnalyzed)} lead pernah chat, {num(m.topics.hotLeads)} Hot/Closing)
+            </p>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-1 pr-2 font-medium">Topik ditanyakan</th>
+                  <th className="py-1 pr-2 font-medium">Yang menanyakan: Hot</th>
+                  <th className="py-1 pr-2 font-medium">Yang tidak: Hot</th>
+                </tr>
+              </thead>
+              <tbody>
+                {m.topics.rows.map((r) => (
+                  <tr key={r.label} className="border-t">
+                    <td className="py-1 pr-2">{r.label}</td>
+                    <td className="py-1 pr-2 tabular-nums">{r.enough ? `${num(r.withHot)} dari ${num(r.withLeads)} (${pct(r.withHot, r.withLeads)})` : "sampel kecil"}</td>
+                    <td className="py-1 pr-2 tabular-nums">{r.enough ? `${num(r.withoutHot)} dari ${num(r.withoutLeads)} (${pct(r.withoutHot, r.withoutLeads)})` : "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-1 text-xs text-muted-foreground">Korelasi, bukan sebab-akibat; jumlah lead Hot masih kecil sehingga selisih bisa kebetulan.</p>
+          </div>
         )}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

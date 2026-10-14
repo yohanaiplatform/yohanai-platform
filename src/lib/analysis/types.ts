@@ -15,6 +15,28 @@ export interface SourceRow {
   enough: boolean;
 }
 
+export interface TopicLiftRow {
+  label: string;
+  /** Lead yang pernah menanyakan topik ini / dari mereka yang mencapai Hot (Hot, Closing, Booking). */
+  withLeads: number;
+  withHot: number;
+  /** Lead yang tidak menanyakan topik ini / dari mereka yang mencapai Hot. */
+  withoutLeads: number;
+  withoutHot: number;
+  /** Kedua kelompok >= minGroup lead, cukup untuk dibandingkan. */
+  enough: boolean;
+}
+
+export interface TopicMetrics {
+  leadsAnalyzed: number;
+  hotLeads: number;
+  minGroup: number;
+  rows: TopicLiftRow[];
+  /** Topik yang sudah disebut lead sebelum naik ke Hot (sampel kecil). */
+  beforeHot: CountItem[];
+  beforeHotSample: number;
+}
+
 export interface AnalysisMetrics {
   periodStart: string;
   periodEnd: string;
@@ -39,6 +61,8 @@ export interface AnalysisMetrics {
     minSample: number;
     rows: SourceRow[];
   };
+  /** Pemicu naik Hot dari isi percakapan; tidak ada di laporan lama. */
+  topics?: TopicMetrics;
   ai: {
     runs: number;
     success: number;
