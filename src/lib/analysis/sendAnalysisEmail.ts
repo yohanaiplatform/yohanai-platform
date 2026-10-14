@@ -43,6 +43,34 @@ function followUpSection(followUps: FollowUpList | undefined): string {
   return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Lead yang perlu ditindaklanjuti</div>${body}<div style="font-size:11px;color:#9CA3AF;">Urut: Hot dulu, lalu yang paling lama menunggu. Nama dibuka ke halaman lead.</div></div>`;
 }
 
+function demandSection(m: AnalysisMetrics): string {
+  const d = m.demand;
+  if (!d || d.rows.length === 0) return "";
+  const rows = d.rows.map((r) => [
+    r.label,
+    num(r.leads30),
+    num(r.leads),
+    num(r.hotWarm),
+    num(r.stock),
+    r.gap ? "STOK KOSONG, permintaan baru" : r.historicGap ? "stok kosong (permintaan lama)" : r.stock >= 5 && r.leads30 <= 1 ? "stok tanpa peminat baru" : "",
+  ]);
+  const unmapped = d.unmapped.map((u) => `${u.label} (${num(u.count)})`).join(", ");
+  return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Permintaan lokasi vs stok listing</div>
+    <div style="font-size:12px;color:#374151;margin-bottom:6px;">Dari ${num(d.leadsWithInterest)} lead yang menyebut minat (${num(d.undecided)} lain belum menentukan). Stok = listing tersedia yang menyebut area itu (semua jenis, termasuk tanah dan seken), jadi kasar. Satu lead bisa menyebut lebih dari satu area.</div>
+    ${table(["Area", "Lead 30 hari", "Lead semua", "Kini Hot/Warm", "Stok", "Catatan"], rows)}
+    ${unmapped ? `<div style="font-size:11px;color:#6B7280;margin-top:6px;">Istilah belum terpetakan (perlu ditambahkan ke kamus area): ${esc(unmapped)}.</div>` : ""}</div>`;
+}
+
+function reasonSection(m: AnalysisMetrics): string {
+  const r = m.reasons;
+  if (!r) return "";
+  const list = (items: { label: string; count: number }[]) => items.map((i) => `${i.label} (${num(i.count)})`).join("; ") || "belum ada";
+  return `<div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px 16px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:8px;">Alasan Batal dan Closing (dicatat agen)</div>
+    <div style="font-size:12px;color:#374151;">Batal: ${num(r.batalWithReason)} dari ${num(r.batalTotal)} lead sudah punya alasan. ${esc(list(r.batal))}.</div>
+    <div style="font-size:12px;color:#374151;margin-top:4px;">Closing: ${num(r.closingWithReason)} dari ${num(r.closingTotal)} lead sudah punya alasan. ${esc(list(r.closing))}.</div>
+    <div style="font-size:11px;color:#6B7280;margin-top:6px;">Alasan dicatat di Lead Detail saat Temperature diubah menjadi Batal atau Closing. Lead lama tidak ditebak.</div></div>`;
+}
+
 function objectionSection(m: AnalysisMetrics): string {
   const ob = m.objections;
   if (!ob || ob.rows.length === 0) return "";
@@ -141,6 +169,8 @@ export function renderAnalysisHtml(input: {
     )}
     ${topicSection(m)}
     ${objectionSection(m)}
+    ${reasonSection(m)}
+    ${demandSection(m)}
     ${section(
       `Kualitas per sumber (lead ${m.sources.cohortDays} hari terakhir, ${num(m.sources.cohortLeads)} lead)`,
       `${table(["Sumber", "Lead", "Hot+Warm", "Hot", "Closing"], sourceRows)}<div style="font-size:11px;color:#6B7280;margin-top:6px;">Perbandingan hanya untuk sumber dengan minimal ${m.sources.minSample} lead. Temperature = kondisi saat ini, bukan akhir proses.</div>`

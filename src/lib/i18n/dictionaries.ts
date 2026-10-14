@@ -84,6 +84,11 @@ export interface CrmDictionary {
     comment: string;
     saveError: string;
     requiredError: string;
+    reasonBatal: string;
+    reasonClosing: string;
+    reasonPlaceholder: string;
+    reasonNote: string;
+    reasonRequired: string;
     notesTitle: string;
     notesDescription: string;
     notePlaceholder: string;
@@ -205,6 +210,11 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       comment: "Komentar",
       saveError: "Gagal menyimpan perubahan. Coba lagi.",
       requiredError: "Nama, No. HP, dan Ditugaskan ke wajib diisi.",
+      reasonBatal: "Alasan Batal",
+      reasonClosing: "Alasan Closing",
+      reasonPlaceholder: "Pilih alasan",
+      reasonNote: "Catatan alasan (opsional)",
+      reasonRequired: "Pilih alasan terlebih dahulu saat mengubah Temperature menjadi Batal atau Closing.",
       notesTitle: "Catatan",
       notesDescription: "Riwayat update, dengan waktu -- tidak menimpa catatan sebelumnya.",
       notePlaceholder: "mis. Lead sudah dapat unit di lokasi lain, follow-up dihentikan",
@@ -329,6 +339,11 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       comment: "Comment",
       saveError: "Failed to save changes. Please try again.",
       requiredError: "Name, phone, and Assigned To are required.",
+      reasonBatal: "Cancellation reason",
+      reasonClosing: "Closing reason",
+      reasonPlaceholder: "Select a reason",
+      reasonNote: "Reason note (optional)",
+      reasonRequired: "Please select a reason when changing Temperature to Batal or Closing.",
       notesTitle: "Notes",
       notesDescription: "Timestamped update history -- doesn't overwrite previous notes.",
       notePlaceholder: "e.g. Lead already got a unit elsewhere, follow-up stopped",

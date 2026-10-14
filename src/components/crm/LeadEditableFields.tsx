@@ -11,6 +11,7 @@ import {
   LEAD_SUMBER_OPTIONS,
   LEAD_TEMPERATURE_OPTIONS,
   LEAD_SUDAH_SURVEY_OPTIONS,
+  reasonOptionsFor,
 } from "@/constants/crm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,8 @@ interface LeadEditableFieldsProps {
   minatUnitLokasi: string | null;
   permintaan: string | null;
   komentar: string | null;
+  /** Alasan di balik status Batal/Closing (metadata.alasan_status), bila sudah dicatat. */
+  alasanStatus: { status: string; alasan: string; catatan: string | null; at: string | null } | null;
   t: CrmDictionary;
 }
 
@@ -53,6 +56,7 @@ export function LeadEditableFields({
   minatUnitLokasi,
   permintaan,
   komentar,
+  alasanStatus,
   t,
 }: LeadEditableFieldsProps) {
   const router = useRouter();
@@ -67,6 +71,8 @@ export function LeadEditableFields({
   const [formMinatUnitLokasi, setFormMinatUnitLokasi] = useState(minatUnitLokasi ?? "");
   const [formPermintaan, setFormPermintaan] = useState(permintaan ?? "");
   const [formKomentar, setFormKomentar] = useState(komentar ?? "");
+  const [formAlasan, setFormAlasan] = useState(alasanStatus?.alasan ?? "");
+  const [formAlasanCatatan, setFormAlasanCatatan] = useState(alasanStatus?.catatan ?? "");
 
   function handleCancel() {
     setFormSumber(sumberInformasi ?? "");
@@ -76,13 +82,26 @@ export function LeadEditableFields({
     setFormMinatUnitLokasi(minatUnitLokasi ?? "");
     setFormPermintaan(permintaan ?? "");
     setFormKomentar(komentar ?? "");
+    setFormAlasan(alasanStatus?.alasan ?? "");
+    setFormAlasanCatatan(alasanStatus?.catatan ?? "");
     setError(null);
     setIsEditing(false);
   }
 
   async function handleSave() {
-    setSaving(true);
     setError(null);
+
+    // Alasan wajib hanya saat Temperature BARU diubah menjadi Batal/Closing (mengedit field lain pada lead yang sudah
+    // Batal/Closing tidak dipaksa mengisi). Alasan lama dipakai ulang bila Temperature tidak berubah.
+    const reasonOptions = reasonOptionsFor(formTemperature);
+    const temperatureChanged = formTemperature !== (statusFunnelAwal ?? "");
+    const alasanForStatus = alasanStatus?.status === formTemperature ? alasanStatus.alasan : "";
+    const finalAlasan = formAlasan || alasanForStatus;
+    if (reasonOptions && temperatureChanged && !finalAlasan) {
+      setError(t.detail.reasonRequired);
+      return;
+    }
+    setSaving(true);
 
     const baseMetadata =
       typeof metadata === "object" && metadata !== null && !Array.isArray(metadata)
@@ -103,6 +122,16 @@ export function LeadEditableFields({
           minat_unit_lokasi: formMinatUnitLokasi || null,
           permintaan: formPermintaan || null,
           komentar: formKomentar || null,
+          // Alasan status akhir (Batal/Closing); dihapus bila Temperature bukan lagi salah satunya.
+          alasan_status:
+            reasonOptions && finalAlasan
+              ? {
+                  status: formTemperature,
+                  alasan: finalAlasan,
+                  catatan: formAlasanCatatan.trim() || null,
+                  at: alasanStatus?.status === formTemperature && alasanStatus.alasan === finalAlasan ? (alasanStatus.at ?? new Date().toISOString()) : new Date().toISOString(),
+                }
+              : null,
         },
       })
       .eq("id", leadId);
@@ -130,6 +159,12 @@ export function LeadEditableFields({
           <LeadDetailField label={t.detail.source} value={sumberInformasi ?? leadSourceName} />
           <LeadDetailField label={t.detail.category} value={<LeadCategoryBadge kategori={kategori} />} />
           <LeadDetailField label={t.detail.temperature} value={statusFunnelAwal} />
+          {alasanStatus && (
+            <LeadDetailField
+              label={alasanStatus.status === "Batal" ? t.detail.reasonBatal : t.detail.reasonClosing}
+              value={alasanStatus.catatan ? `${alasanStatus.alasan} (${alasanStatus.catatan})` : alasanStatus.alasan}
+            />
+          )}
           <LeadDetailField label={t.detail.surveyed} value={sudahSurvey} />
           <LeadDetailField label={t.detail.unitLocation} value={minatUnitLokasi} />
           <div />
@@ -190,6 +225,25 @@ export function LeadEditableFields({
             </SelectContent>
           </Select>
         </div>
+
+        {reasonOptionsFor(formTemperature) && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="edit-alasan">{formTemperature === "Batal" ? t.detail.reasonBatal : t.detail.reasonClosing}</Label>
+            <Select value={formAlasan} onValueChange={(v) => setFormAlasan(v ?? "")}>
+              <SelectTrigger id="edit-alasan">
+                <SelectValue placeholder={t.detail.reasonPlaceholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {(reasonOptionsFor(formTemperature) ?? []).map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input value={formAlasanCatatan} onChange={(e) => setFormAlasanCatatan(e.target.value)} placeholder={t.detail.reasonNote} />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="edit-sudah-survey">{t.addLead.surveyed}</Label>

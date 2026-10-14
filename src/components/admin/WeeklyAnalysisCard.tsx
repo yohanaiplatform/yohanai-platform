@@ -119,6 +119,57 @@ export function WeeklyAnalysisCard({ report }: { report: WeeklyAnalysisRecord | 
           </div>
         )}
 
+        {m.demand && m.demand.rows.length > 0 && (
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Permintaan lokasi vs stok listing ({num(m.demand.leadsWithInterest)} lead menyebut minat)</p>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-1 pr-2 font-medium">Area</th>
+                  <th className="py-1 pr-2 font-medium">Lead 30 hari</th>
+                  <th className="py-1 pr-2 font-medium">Lead semua</th>
+                  <th className="py-1 pr-2 font-medium">Kini Hot/Warm</th>
+                  <th className="py-1 pr-2 font-medium">Stok</th>
+                  <th className="py-1 pr-2 font-medium">Catatan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {m.demand.rows.map((r) => (
+                  <tr key={r.label} className="border-t">
+                    <td className="py-1 pr-2">{r.label}</td>
+                    <td className="py-1 pr-2 tabular-nums">{num(r.leads30)}</td>
+                    <td className="py-1 pr-2 tabular-nums">{num(r.leads)}</td>
+                    <td className="py-1 pr-2 tabular-nums">{num(r.hotWarm)}</td>
+                    <td className="py-1 pr-2 tabular-nums">{num(r.stock)}</td>
+                    <td className="py-1 pr-2 text-amber-700 dark:text-amber-400">
+                      {r.gap ? "Stok kosong, permintaan baru" : r.historicGap ? "Stok kosong (permintaan lama)" : r.stock >= 5 && r.leads30 <= 1 ? "Stok tanpa peminat baru" : ""}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Stok = listing tersedia yang menyebut area itu (semua jenis, kasar).
+              {m.demand.unmapped.length > 0 ? ` Istilah belum terpetakan: ${m.demand.unmapped.map((u) => `${u.label} (${u.count})`).join(", ")}.` : ""}
+            </p>
+          </div>
+        )}
+
+        {m.reasons && (
+          <div className="space-y-1 text-xs">
+            <p className="font-semibold uppercase text-muted-foreground">Alasan Batal dan Closing (dicatat agen)</p>
+            <p>
+              Batal: {num(m.reasons.batalWithReason)} dari {num(m.reasons.batalTotal)} lead punya alasan.{" "}
+              {m.reasons.batal.map((i) => `${i.label} (${i.count})`).join("; ") || "Belum ada."}
+            </p>
+            <p>
+              Closing: {num(m.reasons.closingWithReason)} dari {num(m.reasons.closingTotal)} lead punya alasan.{" "}
+              {m.reasons.closing.map((i) => `${i.label} (${i.count})`).join("; ") || "Belum ada."}
+            </p>
+            <p className="text-muted-foreground">Dicatat di Lead Detail saat Temperature diubah menjadi Batal atau Closing. Lead lama tidak ditebak.</p>
+          </div>
+        )}
+
         {m.objections && m.objections.rows.length > 0 && (
           <div>
             <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Keberatan calon pembeli ({num(m.objections.leadsAnalyzed)} lead pernah chat)</p>

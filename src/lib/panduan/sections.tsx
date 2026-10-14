@@ -373,6 +373,13 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
               salah hapus.
             </>,
             "Ubah Temperature dan siapa yang ditugaskan (assigned) ke lead itu.",
+            <>
+              <strong>Alasan Batal / Closing</strong> -- saat Anda mengubah Temperature menjadi <strong>Batal</strong> atau{" "}
+              <strong>Closing</strong>, pilih alasannya (mis. harga terlalu mahal, KPR ditolak, lokasi tidak cocok, atau
+              untuk Closing: lokasi cocok, promo menarik) dan tambahkan catatan singkat bila perlu. Alasan ini membantu
+              laporan analisis mengerti kenapa lead gagal atau berhasil; pengisiannya wajib hanya saat Temperature baru
+              diubah ke salah satunya.
+            </>,
             "Percakapan WhatsApp tampil live di bagian bawah -- bisa balas langsung dari situ, update real-time tanpa refresh halaman.",
             "Catatan (notes) bisa ditambahkan untuk mencatat detail penting yang tidak masuk field standar.",
             <>

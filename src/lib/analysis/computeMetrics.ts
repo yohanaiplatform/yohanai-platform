@@ -12,6 +12,8 @@ import {
 } from "@/lib/analysis/types";
 import { computeTopicMetrics } from "@/lib/analysis/topics";
 import { computeObjectionMetrics } from "@/lib/analysis/objections";
+import { computeDemandMetrics } from "@/lib/analysis/demand";
+import { computeReasonMetrics } from "@/lib/analysis/reasons";
 import { FOLLOW_UP_LIST_LIMIT, type FollowUpLead, type FollowUpList } from "@/lib/analysis/types";
 
 const PAGE = 1000;
@@ -91,7 +93,7 @@ export async function computeAnalysisData(
   const periodStartISO = periodStart.toISOString();
   const cohortSince = new Date(now.getTime() - SOURCE_COHORT_DAYS * DAY_MS).toISOString();
 
-  const [leads, history, runs, queueRes, messages, conversations, customerMessages] = await Promise.all([
+  const [leads, history, runs, queueRes, messages, conversations, customerMessages, listings] = await Promise.all([
     fetchAll((from, to) =>
       admin
         .schema("customer")
@@ -142,6 +144,9 @@ export async function computeAnalysisData(
         .is("deleted_at", null)
         .order("created_at")
         .range(from, to)
+    ),
+    fetchAll((from, to) =>
+      admin.schema("property").from("listings").select("id, title, address, metadata").is("deleted_at", null).order("created_at").range(from, to)
     ),
   ]);
 
@@ -274,6 +279,29 @@ export async function computeAnalysisData(
     silentBefore: new Date(stalledBefore).toISOString(),
   });
 
+  // Permintaan lokasi vs stok listing tersedia (tidak disembunyikan).
+  const demand = computeDemandMetrics({
+    leads: Array.from(leadById.values()).flatMap((l) => {
+      const interest = str(l.metadata.minat_unit_lokasi);
+      return interest ? [{ createdAt: l.createdAt, temperature: l.temperature, interest }] : [];
+    }),
+    listings: listings.flatMap((li) => {
+      const meta = asRecord(li.metadata);
+      if (meta.status !== "available" || meta.hidden === true) return [];
+      const tags = Array.isArray(meta.ai_tags) ? meta.ai_tags.filter((t): t is string => typeof t === "string") : [];
+      return [{ text: [li.title, li.address, ...tags].filter(Boolean).join(" ") }];
+    }),
+    recentSince: cohortSince,
+  });
+
+  // Alasan Batal/Closing yang dicatat agen.
+  const reasons = computeReasonMetrics({
+    leads: Array.from(leadById.values()).map((l) => {
+      const raw = asRecord(l.metadata.alasan_status);
+      return { temperature: l.temperature, alasan: str(raw.alasan) };
+    }),
+  });
+
   // Daftar tindak lanjut (memuat nama lead -- tidak ikut ke LLM). Hot didahulukan, lalu yang paling lama menunggu.
   const toLead = (kind: FollowUpLead["kind"], leadId: string, at: string): FollowUpLead => {
     const lead = leadById.get(leadId);
@@ -325,6 +353,8 @@ export async function computeAnalysisData(
     },
     topics,
     objections: objectionResult.metrics,
+    demand,
+    reasons,
     sources: { cohortDays: SOURCE_COHORT_DAYS, cohortLeads, minSample: MIN_SOURCE_SAMPLE, rows: sourceRows },
     ai: {
       runs: runs.length,

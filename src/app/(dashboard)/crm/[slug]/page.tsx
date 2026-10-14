@@ -58,6 +58,21 @@ interface DatangDariView {
   url: string | null;
 }
 
+/** Baca metadata.alasan_status (alasan Batal/Closing yang dicatat agen). */
+function getAlasanStatus(metadata: unknown): { status: string; alasan: string; catatan: string | null; at: string | null } | null {
+  if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) return null;
+  const raw = (metadata as Record<string, unknown>).alasan_status;
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.status !== "string" || typeof r.alasan !== "string" || !r.alasan) return null;
+  return {
+    status: r.status,
+    alasan: r.alasan,
+    catatan: typeof r.catatan === "string" && r.catatan ? r.catatan : null,
+    at: typeof r.at === "string" ? r.at : null,
+  };
+}
+
 /** Baca metadata.datang_dari (asal postingan/iklan, diisi webhook WhatsApp dari referral Meta). */
 function getDatangDari(metadata: unknown): DatangDariView | null {
   if (typeof metadata !== "object" || metadata === null || Array.isArray(metadata)) return null;
@@ -121,6 +136,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const minatUnitLokasi = getLeadMetadataString(lead.metadata, "minat_unit_lokasi");
   const sudahSurvey = getLeadMetadataString(lead.metadata, "sudah_survey");
   const statusFunnelAwal = getLeadMetadataString(lead.metadata, "status_funnel_awal");
+  const alasanStatus = getAlasanStatus(lead.metadata);
   const datangDari = getDatangDari(lead.metadata);
   const followUpTerakhir = formatMetadataDate(
     getLeadMetadataString(lead.metadata, "follow_up_terakhir")
@@ -214,6 +230,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           minatUnitLokasi={minatUnitLokasi}
           permintaan={permintaan}
           komentar={komentar}
+          alasanStatus={alasanStatus}
           t={t}
         />
       </SectionCard>

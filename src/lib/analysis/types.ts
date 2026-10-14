@@ -65,6 +65,10 @@ export interface AnalysisMetrics {
   topics?: TopicMetrics;
   /** Keberatan calon pembeli; tidak ada di laporan lama. */
   objections?: ObjectionMetrics;
+  /** Permintaan lokasi vs stok listing; tidak ada di laporan lama. */
+  demand?: DemandMetrics;
+  /** Alasan Batal/Closing yang dicatat agen; tidak ada di laporan lama. */
+  reasons?: ReasonMetrics;
   ai: {
     runs: number;
     success: number;
@@ -132,3 +136,37 @@ export interface FollowUpList {
 }
 
 export const FOLLOW_UP_LIST_LIMIT = 12;
+
+export interface DemandRow {
+  label: string;
+  /** Lead yang menyebut area ini sebagai minat (seluruh riwayat) / dibuat 30 hari terakhir / kini Hot atau Warm. */
+  leads: number;
+  leads30: number;
+  hotWarm: number;
+  /** Listing tersedia (tidak disembunyikan) di area ini. */
+  stock: number;
+  /** Permintaan 30 hari >= minDemandForGap tetapi stok 0. */
+  gap: boolean;
+  /** Stok 0 dan permintaan sepanjang riwayat >= minHistoricDemand (permintaan lama, mungkin proyek yang sudah habis). */
+  historicGap: boolean;
+}
+
+export interface DemandMetrics {
+  leadsWithInterest: number;
+  /** Lead yang menjawab "belum tahu / tidak jelas" -- tidak dihitung sebagai permintaan. */
+  undecided: number;
+  rows: DemandRow[];
+  /** Istilah minat yang belum terpetakan ke area mana pun (dasar menambah kamus). */
+  unmapped: CountItem[];
+  minDemandForGap: number;
+  minHistoricDemand: number;
+}
+
+export interface ReasonMetrics {
+  batalTotal: number;
+  batalWithReason: number;
+  closingTotal: number;
+  closingWithReason: number;
+  batal: CountItem[];
+  closing: CountItem[];
+}
