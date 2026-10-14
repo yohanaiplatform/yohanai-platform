@@ -116,6 +116,11 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
                 Kwitansi
               </Button>
             </Link>
+            <Link href={`/properties/${listing.slug}/documents/ppjb`}>
+              <Button type="button" variant="outline" size="sm">
+                PPJB
+              </Button>
+            </Link>
             <PropertyExportButtons
               filenameBase={listing.slug}
               data={{

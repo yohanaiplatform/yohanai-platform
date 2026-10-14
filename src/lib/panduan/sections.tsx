@@ -641,6 +641,32 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "dokumen-ppjb",
+    title: "Dokumen PPJB",
+    description: "Buat Perjanjian Pengikatan Jual Beli dari data listing; klausul kesepakatan bisa disesuaikan.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Dari halaman detail listing, klik <strong>&quot;PPJB&quot;</strong>. Data properti dan penjual terisi dari listing; Anda melengkapi data pembeli,
+          nomor unit, angka pembayaran, dan memilih <strong>Metode pembayaran</strong> (KPR, Cash, atau Cash Bertahap).
+        </GuideP>
+        <GuideList
+          items={[
+            "Isi identitas pembeli dan penjual (nama, tempat/tanggal lahir, alamat, No. KTP).",
+            "Isi harga unit, booking, dan (untuk KPR / Cash Bertahap) Total DP -- sisa dihitung otomatis dari Total DP dikurangi booking; untuk Cash dari harga unit.",
+            "Ketentuan kesepakatan bisa diubah: edit teks tiap klausul, tambah dari klausul standar, hapus, atau urutkan. Tulisan seperti {{booking}} atau {{sisa}} diganti otomatis dengan angka dari isian.",
+            "Klik \"Simpan & Cetak / PDF\", lalu pilih \"Simpan sebagai PDF\", ukuran A4.",
+          ]}
+        />
+        <GuideNote>
+          Isi klausul adalah kesepakatan Anda dengan pembeli. Klausul standar disalin dari PPJB yang selama ini dipakai; tinjau dan sesuaikan sebelum ditandatangani. Setiap PPJB tersimpan di Riwayat PPJB listing itu.
+        </GuideNote>
+        <GuideNote>Identitas pembeli bersifat rahasia: hanya admin dan agen yang menangani listing tersebut yang bisa melihatnya.</GuideNote>
+      </>
+    ),
+  },
+  {
     slug: "dokumen-kwitansi-booking",
     title: "Kwitansi Pembayaran Unit",
     description: "Buat kwitansi booking atau angsuran dari data listing, lengkap dengan terbilang otomatis.",
