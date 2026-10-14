@@ -51,7 +51,7 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 
 # Unreleased
 
-## 15 Oktober 2026 — Data Analysis Agent v1
+## 15 Oktober 2026 — Data Analysis Agent, Tindak Lanjut per Agen, Alasan Batal/Closing
 
 ### Added
 - **Data Analysis Agent (analisis tiap 3 hari, hanya baca)**: sekitar 07.00 WIB menghitung corong & kecepatan lead, kualitas per sumber iklan, dan kinerja asisten AI; AI merangkum jadi maksimal 5 temuan. Dikirim ke email pemilik dan tampil di Master Admin. Angka dihitung kode, bukan AI; sampel kecil ditandai "belum cukup data".
@@ -64,6 +64,11 @@ Belum ada git tag yang dibuat. Seluruh pekerjaan setelah 24 Juli 2026 tercatat d
 - Analisis dikirim tiap 3 hari (bukan mingguan) dengan subjek email pendek yang dibuat sistem.
 - **Daftar lead tindak lanjut** di email dan Master Admin: menunggu balasan, sepi lebih dari 5 hari, dan berhenti setelah menyatakan keberatan (nama = tautan ke halaman lead). Migration `077`.
 - **Analisis keberatan calon pembeli**: 12 jenis keberatan dikenali dari kata kunci; jumlah, tren 7 hari, dan kondisi leadnya sekarang.
+
+### Changed
+- Kartu contoh ilustratif "Buyer Behavior Insight" di dashboard dihapus dan digantikan kartu nyata "Lead Perlu Tindak Lanjut".
+- Subjek email analisis dibuat sistem (pendek), bukan kalimat tulisan AI; periode analisis 3 hari.
+- Panduan diperbarui: dashboard, Sales, Lead Detail (alasan Batal/Closing), dan laporan harian.
 
 ## 12-14 Oktober 2026 — Master Admin, Dokumen Perjanjian (MoU, Kwitansi, PPJB), Perbaikan AI Listing & Jarak
 

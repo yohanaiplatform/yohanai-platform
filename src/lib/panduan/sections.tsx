@@ -996,6 +996,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
           data milik Anda sendiri (admin dapat versi agregat semua data). Ada juga bagian <strong>Insight Lead 7
           Hari</strong>: tahap lead baru, lokasi/perumahan yang paling dicari, postingan atau iklan asal lead, dan
           sumber informasinya -- berguna untuk melihat apa yang sedang diminati dan postingan mana yang efektif.
+          Bagian <strong>Lead Perlu Ditindaklanjuti</strong> mendaftar nama lead yang menunggu balasan, sepi lebih
+          dari 5 hari, atau berhenti setelah menyatakan keberatan; nama bisa diklik untuk membuka lead-nya.
         </GuideP>
         <GuideHeading>Mematikan laporan</GuideHeading>
         <GuideP>
