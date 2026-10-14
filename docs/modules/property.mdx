@@ -218,6 +218,10 @@ Dari halaman detail listing ada tombol **MoU Pemasaran**, **Kwitansi**, dan **PP
 
 Pencocokan listing untuk AI (`relevantListings.ts`): nomor tipe rumah menjadi sinyal kuat (tipe lain dikurangi), frasa lokasi berurutan, kecocokan tanpa spasi, listing ber-video didahulukan saat lead minta video. **Data:** 79 listing aktif belum punya `maps_url`; beberapa listing kembar (alamat/harga sama) membingungkan AI -- gabung/hapus.
 
+## Logo & Watermark per Pengguna (14 Oktober 2026)
+
+Settings > Logo & Watermark: tiap akun punya logo dokumen dan watermark foto sendiri. Watermark dipakai `watermarkPhoto.ts` saat foto listing BARU diunggah (foto lama tidak berubah); logo dokumen dipakai header MoU/Kwitansi/PPJB (`DocLogo.tsx`, fallback nama kantor) dan Laporan Pemasaran. Standar gambar dan pemeriksaan ada di `src/lib/branding/` (browser + server dari isi file); metadata di `property.document_settings.branding`, file di R2 `branding/<userId>/`, disajikan lewat `/api/branding/file/<watermark|logo>`.
+
 # Last Updated
 
 14 Oktober 2026

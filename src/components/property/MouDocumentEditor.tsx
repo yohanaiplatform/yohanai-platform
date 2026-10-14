@@ -22,6 +22,7 @@ interface MouDocumentEditorProps {
   listing: MouListingInfo;
   initialCode: string;
   history: { id: string; createdAt: string; docNumber: string | null }[];
+  logoUrl?: string | null;
 }
 
 /** Kecilkan foto KTP di browser (maks 1100px, JPEG) supaya ringan disimpan dan dicetak. */
@@ -87,7 +88,7 @@ function ChoiceField({
   );
 }
 
-export function MouDocumentEditor({ listingId, slug, initialForm, listing, initialCode, history }: MouDocumentEditorProps) {
+export function MouDocumentEditor({ listingId, slug, initialForm, listing, initialCode, history, logoUrl = null }: MouDocumentEditorProps) {
   const [form, setForm] = useState<MouForm>(initialForm);
   const [code, setCode] = useState(initialCode);
   const [birth, setBirth] = useState(() => parseBirthInfo(initialForm.owner.birthInfo));
@@ -298,7 +299,7 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
       <div>
         <p className="no-print mb-2 text-sm font-semibold">Pratinjau dokumen</p>
         <div className="print-area mx-auto max-w-[210mm] rounded border border-border bg-white p-8 shadow-sm">
-          <MouDocument form={form} listing={listing} code={code} />
+          <MouDocument form={form} listing={listing} code={code} logoUrl={logoUrl} />
         </div>
       </div>
     </div>

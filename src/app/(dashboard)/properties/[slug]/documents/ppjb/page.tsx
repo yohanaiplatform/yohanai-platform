@@ -9,6 +9,7 @@ import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { getListingMetadataValue } from "@/lib/property/getListings";
 import { createClient } from "@/lib/supabase/server";
+import { docLogoUrl, getUserBranding } from "@/lib/branding/branding";
 import { parseBirthInfo, parseParty2 } from "@/lib/documents/mouTypes";
 import { defaultClauses, type PpjbForm } from "@/lib/documents/ppjbTypes";
 
@@ -18,6 +19,11 @@ interface PpjbPageProps {
 }
 
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** Tanggal hari ini (WIB) YYYY-MM-DD -- di luar komponen supaya tidak dianggap fungsi tidak murni saat render. */
+function todayWib(): string {
+  return new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
 
 function formatHistoryDate(iso: string): string {
   return new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(iso));
@@ -108,7 +114,7 @@ export default async function PpjbPage({ params, searchParams }: PpjbPageProps) 
     clausesEdited: false,
     footnote: "",
     signPlace: "",
-    signDate: new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10),
+    signDate: todayWib(),
     party2,
   };
 
@@ -148,6 +154,7 @@ export default async function PpjbPage({ params, searchParams }: PpjbPageProps) 
         </p>
       </div>
       <PpjbEditor
+        logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

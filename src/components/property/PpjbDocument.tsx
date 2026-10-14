@@ -4,10 +4,10 @@
 // logo di tengah, judul, nomor, data Pembeli dan Penjual, rincian properti, ketentuan bernomor, tanda tangan Penjual/Pembeli/Saksi.
 // Logo perusahaan (bukan Yohan.AI).
 
+import { DocLogo } from "@/components/property/DocLogo";
 import { computeBookingBalance } from "@/lib/documents/kwitansiTypes";
 import { formatBirthLong, formatLongDate, renderClause, rupiahWithWords, type PpjbForm, type PpjbPerson } from "@/lib/documents/ppjbTypes";
 
-const LOGO = "/images/brand/griya-indonesia-logo.png";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -47,7 +47,7 @@ function PersonBlock({ index, person, role, company }: { index: number; person: 
   );
 }
 
-export function PpjbDocument({ form, docNumber }: { form: PpjbForm; docNumber: string }) {
+export function PpjbDocument({ form, docNumber, logoUrl = null }: { form: PpjbForm; docNumber: string; logoUrl?: string | null }) {
   const { buyer, seller, property: p, party2 } = form;
   const balance = computeBookingBalance({ price: p.price, purchaseMethod: p.method, totalDp: p.totalDp }, p.booking);
   const clauses = form.clauses.map((c) => renderClause(c, form)).filter((c) => c.trim());
@@ -59,8 +59,7 @@ export function PpjbDocument({ form, docNumber }: { form: PpjbForm; docNumber: s
   return (
     <div className="ppjb-doc w-full text-[13px] leading-relaxed text-black" style={{ ["--ppjb-fs" as string]: `${printFontPt.toFixed(2)}pt` }}>
       <div className="flex justify-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto print:h-11" />
+        <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto print:h-11" />
       </div>
       <h1 className="mt-2 text-center text-sm font-bold print:mt-1">PERJANJIAN PENGIKATAN JUAL BELI ( PPJB )</h1>
       <p className="mb-3 text-center text-[0.95em]">Nomor : {docNumber || "(dibuat saat disimpan)"}</p>

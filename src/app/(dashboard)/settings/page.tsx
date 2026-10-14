@@ -11,10 +11,15 @@ import { NurtureSettingsForm } from "@/components/settings/NurtureSettingsForm";
 import { NurtureOverview } from "@/components/settings/NurtureOverview";
 import { AiCreditCard } from "@/components/settings/AiCreditCard";
 import { PlatformAccessCard } from "@/components/settings/PlatformAccessCard";
+import { BrandingCard } from "@/components/settings/BrandingCard";
 
 export default function SettingsPage() {
   return (
     <div className="space-y-6 p-6">
+      <SectionCard title="Logo & Watermark" description="Logo header dokumen dan watermark foto listing milik akun Anda. Gambar harus memenuhi standar; yang tidak sesuai ditolak.">
+        <BrandingCard />
+      </SectionCard>
+
       <SectionCard title="Pengaturan Peta" description="Radius pencarian fasilitas umum di sekitar listing, khusus akun Anda.">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Memuat...</p>}>
           <GeoRadiusSetting />

@@ -3,11 +3,11 @@
 // Isi dokumen Kwitansi Booking Unit (presentasional): pratinjau di layar dan isi cetak. Logo perusahaan (Griya Indonesia),
 // bukan logo Yohan.AI -- dokumen transaksi tidak bermerek platform.
 
+import { DocLogo } from "@/components/property/DocLogo";
 import { computeBookingBalance, purposeLabel, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 import { terbilangRupiah } from "@/lib/documents/terbilang";
 
-const LOGO = "/images/brand/griya-indonesia-logo.png";
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -19,7 +19,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docNumber: string }) {
+export function KwitansiDocument({ form, docNumber, logoUrl = null }: { form: KwitansiForm; docNumber: string; logoUrl?: string | null }) {
   const { buyer, unit, payment, party2 } = form;
   const amount = Number(String(payment.amount).replace(/[^0-9.-]/g, "")) || 0;
   const price = Number(String(unit.price).replace(/[^0-9.-]/g, "")) || 0;
@@ -30,8 +30,7 @@ export function KwitansiDocument({ form, docNumber }: { form: KwitansiForm; docN
   return (
     <div className="kw-doc w-full text-[13px] leading-relaxed text-black">
       <div className="flex items-center justify-between border-b-2 border-black pb-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto" />
+        <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
         <div className="text-right">
           <h1 className="text-lg font-bold tracking-wide">KWITANSI</h1>
           <p className="text-[0.9em]">{purpose}</p>

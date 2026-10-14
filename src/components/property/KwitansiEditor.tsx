@@ -24,9 +24,10 @@ interface KwitansiEditorProps {
   listing: KwitansiListingInfo;
   initialNumber: string;
   history: { id: string; createdAt: string; docNumber: string | null }[];
+  logoUrl?: string | null;
 }
 
-export function KwitansiEditor({ listingId, slug, initialForm, listing, initialNumber, history }: KwitansiEditorProps) {
+export function KwitansiEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null }: KwitansiEditorProps) {
   const [form, setForm] = useState<KwitansiForm>(initialForm);
   const [docNumber, setDocNumber] = useState(initialNumber);
   const [saving, setSaving] = useState(false);
@@ -198,7 +199,7 @@ export function KwitansiEditor({ listingId, slug, initialForm, listing, initialN
       <div>
         <p className="no-print mb-2 text-sm font-semibold">Pratinjau kwitansi</p>
         <div className="print-area mx-auto max-w-[210mm] rounded border border-border bg-white p-8 shadow-sm">
-          <KwitansiDocument form={form} docNumber={docNumber} />
+          <KwitansiDocument form={form} docNumber={docNumber} logoUrl={logoUrl} />
         </div>
       </div>
     </div>

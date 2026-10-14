@@ -8,6 +8,7 @@ import { KwitansiEditor } from "@/components/property/KwitansiEditor";
 import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { createClient } from "@/lib/supabase/server";
+import { docLogoUrl, getUserBranding } from "@/lib/branding/branding";
 import { parseParty2 } from "@/lib/documents/mouTypes";
 import { PAYMENT_PURPOSES, type KwitansiForm } from "@/lib/documents/kwitansiTypes";
 
@@ -17,6 +18,11 @@ interface KwitansiPageProps {
 }
 
 const WIB_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** Tanggal hari ini (WIB) YYYY-MM-DD -- di luar komponen supaya tidak dianggap fungsi tidak murni saat render. */
+function todayWib(): string {
+  return new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
 
 function formatHistoryDate(iso: string): string {
   return new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(iso));
@@ -77,7 +83,7 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
       purposeCustom: "",
       previouslyPaid: "",
       method: "Transfer",
-      date: new Date(Date.now() + WIB_OFFSET_MS).toISOString().slice(0, 10),
+      date: todayWib(),
       notes: "",
     },
     party2,
@@ -118,6 +124,7 @@ export default async function KwitansiPage({ params, searchParams }: KwitansiPag
         </p>
       </div>
       <KwitansiEditor
+        logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

@@ -1457,16 +1457,19 @@ export type Database = {
       }
       document_settings: {
         Row: {
+          branding: Json
           data: Json
           updated_at: string
           user_id: string
         }
         Insert: {
+          branding?: Json
           data?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
+          branding?: Json
           data?: Json
           updated_at?: string
           user_id?: string

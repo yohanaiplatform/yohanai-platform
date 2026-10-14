@@ -4,10 +4,10 @@
 // dan sebagai isi cetak/PDF. Teks pasal mengikuti dokumen MoU yang dipakai Griya Indonesia (GDI/2025/44). Header memakai
 // logo perusahaan (BUKAN logo Yohan.AI -- dokumen perjanjian tidak boleh bermerek platform).
 
+import { DocLogo } from "@/components/property/DocLogo";
 import type { MouForm, MouListingInfo } from "@/lib/documents/mouTypes";
 import { formatSignDate, rupiah } from "@/lib/documents/mouTypes";
 
-const LOGO = "/images/brand/griya-indonesia-logo.png";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -44,7 +44,7 @@ function Signatures({ form, ownerLabel = true }: { form: MouForm; ownerLabel?: b
   );
 }
 
-export function MouDocument({ form, listing, code }: { form: MouForm; listing: MouListingInfo; code: string }) {
+export function MouDocument({ form, listing, code, logoUrl = null }: { form: MouForm; listing: MouListingInfo; code: string; logoUrl?: string | null }) {
   const { owner, party2, property, agreement } = form;
   const commission = property.commissionPct ? `${property.commissionPct}%` : "";
   const dateText = formatSignDate(agreement.signDate);
@@ -62,8 +62,7 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
         <tr>
           <td className="pb-3">
             <div className="flex items-center justify-between border-b-2 border-black pb-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={LOGO} alt={party2.officeName || "Logo perusahaan"} className="h-14 w-auto" />
+              <DocLogo logoUrl={logoUrl} name={party2.officeName || party2.companyName} className="h-14 w-auto" />
               <p className="text-right text-[0.9em]">
                 Listing ID : <strong>{code || "(dibuat saat disimpan)"}</strong>
               </p>

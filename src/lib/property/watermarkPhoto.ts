@@ -1,6 +1,8 @@
 // src/lib/property/watermarkPhoto.ts
 
-const LOGO_SRC = "/images/logo/logo-dark.png"; // versi teks putih -- header, BUKAN app-icon.png (boot/loading)
+// Watermark milik pengguna yang login (proxy same-origin); belum diatur -> server mengalihkan ke logo bawaan Yohan.AI
+// (/images/logo/logo-dark.png, versi teks putih -- BUKAN app-icon.png). Foto yang sudah diunggah sebelumnya tidak berubah.
+const LOGO_SRC = "/api/branding/file/watermark";
 const LOGO_WIDTH_RATIO = 0.32; // lebar watermark relatif ke lebar foto
 const LOGO_OPACITY = 0.55;
 /** Batas sisi terpanjang canvas -- canvas raksasa (foto kamera HP 12-50 MP) gagal diam-diam di browser mobile. */
@@ -45,7 +47,7 @@ async function loadLogo(): Promise<Drawable> {
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const res = await fetch(LOGO_SRC, { cache: "force-cache" });
+      const res = await fetch(LOGO_SRC, { cache: "no-cache" });
       if (!res.ok) throw new Error(`Logo HTTP ${res.status}`);
       return await decodePhoto(await res.blob());
     } catch (error) {
@@ -56,7 +58,7 @@ async function loadLogo(): Promise<Drawable> {
 }
 
 /**
- * Taruh logo Yohan.AI (versi header, logo-dark.png) di tengah foto, semi-transparan
+ * Taruh watermark pengguna (bawaan: logo Yohan.AI versi header) di tengah foto, semi-transparan
  * dengan shadow supaya tetap kebaca di foto terang maupun gelap. Dipanggil setelah
  * kompresi (browser-image-compression), sebelum upload ke Storage.
  *

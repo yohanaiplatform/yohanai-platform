@@ -25,6 +25,7 @@ interface PpjbEditorProps {
   listing: { title: string };
   initialNumber: string;
   history: { id: string; createdAt: string; docNumber: string | null }[];
+  logoUrl?: string | null;
 }
 
 const CLAUSE_LABELS: Record<string, string> = {
@@ -59,7 +60,7 @@ function PersonFields({ title, person, onChange, extra }: { title: string; perso
   );
 }
 
-export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumber, history }: PpjbEditorProps) {
+export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumber, history, logoUrl = null }: PpjbEditorProps) {
   const [form, setForm] = useState<PpjbForm>(initialForm);
   const [docNumber, setDocNumber] = useState(initialNumber);
   const [saving, setSaving] = useState(false);
@@ -300,7 +301,7 @@ export function PpjbEditor({ listingId, slug, initialForm, listing, initialNumbe
       <div>
         <p className="no-print mb-2 text-sm font-semibold">Pratinjau PPJB</p>
         <div className="print-area mx-auto max-w-[210mm] rounded border border-border bg-white p-8 shadow-sm">
-          <PpjbDocument form={form} docNumber={docNumber} />
+          <PpjbDocument form={form} docNumber={docNumber} logoUrl={logoUrl} />
         </div>
       </div>
     </div>

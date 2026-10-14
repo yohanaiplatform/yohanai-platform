@@ -9,6 +9,7 @@ import { SetBreadcrumbLabel } from "@/components/layout/BreadcrumbLabels";
 import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { getListingMetadataValue } from "@/lib/property/getListings";
 import { createClient } from "@/lib/supabase/server";
+import { docLogoUrl, getUserBranding } from "@/lib/branding/branding";
 import { parseParty2, type MouForm, type MouListingInfo } from "@/lib/documents/mouTypes";
 
 interface MouPageProps {
@@ -150,6 +151,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
         </p>
       </div>
       <MouDocumentEditor
+        logoUrl={docLogoUrl(await getUserBranding(supabase, user.id))}
         listingId={listing.id}
         slug={listing.slug}
         initialForm={initialForm}

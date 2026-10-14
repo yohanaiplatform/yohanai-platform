@@ -15,6 +15,7 @@ import { getListingBySlug } from "@/lib/property/getListingBySlug";
 import { getListingMetadataValue } from "@/lib/property/getListings";
 import { getListingReport } from "@/lib/property/getListingReport";
 import { createClient } from "@/lib/supabase/server";
+import { docLogoUrl, getUserBranding } from "@/lib/branding/branding";
 
 interface ListingReportPageProps {
   params: Promise<{ slug: string }>;
@@ -79,6 +80,8 @@ export default async function ListingReportPage({ params, searchParams }: Listin
   const { data: userData } = await supabase.auth.getUser();
   let agentName = "-";
   let brandName: string | null = null;
+  // Logo header laporan = logo dokumen milik agen (Settings > Logo & Watermark); belum diatur -> hanya nama brand.
+  const logoUrl = userData.user ? docLogoUrl(await getUserBranding(supabase, userData.user.id)) : null;
   if (userData.user) {
     const { data: profile } = await supabase
       .schema("auth_ext")
@@ -136,6 +139,10 @@ export default async function ListingReportPage({ params, searchParams }: Listin
               <p className="text-sm italic text-muted-foreground">Marketing Report</p>
             </div>
             <div className="text-right">
+              {logoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt={reportBrandName} className="mb-1 ml-auto h-10 w-auto" />
+              )}
               <p className="text-sm font-semibold">{reportBrandName}</p>
               <p className="text-xs text-muted-foreground">yohanai.id</p>
             </div>

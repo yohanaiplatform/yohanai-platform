@@ -652,6 +652,42 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
     ),
   },
   {
+    slug: "logo-dan-watermark",
+    title: "Logo & Watermark Saya",
+    description: "Pasang logo header dokumen dan watermark foto milik Anda sendiri.",
+    status: "ready",
+    Content: () => (
+      <>
+        <GuideP>
+          Di <strong>Pengaturan</strong>, bagian <strong>Logo &amp; Watermark</strong>, Anda bisa memasang dua gambar milik akun Anda:
+        </GuideP>
+        <GuideList
+          items={[
+            <>
+              <strong>Logo dokumen</strong> -- tampil di header MoU, Kwitansi, PPJB, dan Laporan Pemasaran. Kalau belum dipasang, dokumen
+              memakai nama kantor sebagai teks.
+            </>,
+            <>
+              <strong>Watermark foto</strong> -- ditempel otomatis di tengah setiap foto listing yang Anda unggah SETELAH watermark dipasang.
+              Foto yang sudah diunggah sebelumnya tidak berubah. Kalau belum dipasang, dipakai watermark bawaan.
+            </>,
+          ]}
+        />
+        <GuideHeading>Standar gambar</GuideHeading>
+        <GuideList
+          items={[
+            "Watermark: PNG dengan latar belakang transparan (hanya logo/teks yang terlihat, bukan kotak berwarna), lebar 600-2400 px, tinggi minimal 150 px, bentuk mendatar atau persegi, ukuran file maksimal 1,5 MB.",
+            "Logo dokumen: PNG atau JPG, lebar 600-2400 px, tinggi minimal 150 px, bentuk mendatar atau persegi, ukuran file maksimal 1,5 MB.",
+          ]}
+        />
+        <GuideNote>
+          Gambar yang tidak sesuai standar <strong>ditolak</strong> dan alasannya ditampilkan (mis. resolusi terlalu kecil, latar belakang tidak
+          transparan, bentuk terlalu menjulang). Edit ulang gambarnya lalu unggah lagi. Tombol &quot;Hapus&quot; mengembalikan ke pengaturan bawaan.
+        </GuideNote>
+      </>
+    ),
+  },
+  {
     slug: "dokumen-ppjb",
     title: "Dokumen PPJB",
     description: "Buat Perjanjian Pengikatan Jual Beli dari data listing; klausul kesepakatan bisa disesuaikan.",
