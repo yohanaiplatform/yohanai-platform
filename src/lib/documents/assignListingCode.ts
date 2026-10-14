@@ -16,7 +16,7 @@ export async function ensureListingCode(
   const { data: existing } = await admin.schema("property").from("listings").select("listing_code").eq("id", listingId).maybeSingle();
   if (existing?.listing_code) return existing.listing_code;
 
-  const cleanPrefix = prefix.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "GDI";
+  const cleanPrefix = prefix.replace(/[^A-Za-z]/g, "").toUpperCase() || "GDI";
   const year = new Date(Date.now() + WIB_OFFSET_MS).getUTCFullYear();
   const like = `${cleanPrefix}/${year}/`;
 

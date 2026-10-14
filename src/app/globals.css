@@ -179,16 +179,7 @@
  * nomor halaman) ditambahkan komponen editor lewat <style>, karena isinya dinamis. Header (logo perusahaan) memakai
  * <thead> tabel yang berulang di tiap halaman cetak.
  */
-@page mou {
-  size: A4;
-  margin: 12mm 15mm 16mm 15mm;
-}
-
 @media print {
-  body:has(.mou-doc),
-  .mou-doc {
-    page: mou;
-  }
   /* Jarak baris dan antar blok dirapatkan supaya perjanjian 2 halaman + lampiran 2 halaman. */
   .mou-doc .mou-table {
     font-size: 9pt;

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = (await request.json().catch(() => null)) as { listingId?: string; form?: MouForm; listing?: MouListingInfo } | null;
+  const body = (await request.json().catch(() => null)) as { listingId?: string; form?: MouForm; listing?: MouListingInfo; listingCode?: string } | null;
   if (!body?.listingId || !body.form || !body.listing) {
     return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
   }
@@ -36,7 +36,22 @@ export async function POST(request: Request) {
   const form = body.form;
   const party2 = parseParty2(form.party2);
   const admin = createAdminClient();
-  const code = listing.listing_code ?? (await ensureListingCode(admin, listing.id, party2.listingPrefix));
+  // Listing ID: boleh diisi manual (mis. GDI/2026/12); kosong = pakai yang sudah ada atau buat otomatis berurutan.
+  const requested = (body.listingCode ?? "").trim().toUpperCase();
+  if (requested && !/^[A-Z0-9][A-Z0-9/_-]{2,39}$/.test(requested)) {
+    return NextResponse.json({ error: "Format Listing ID tidak valid. Pakai huruf, angka, garis miring atau strip, mis. GDI/2026/12." }, { status: 400 });
+  }
+  let code: string | null = listing.listing_code;
+  if (requested && requested !== listing.listing_code) {
+    const { error: codeError } = await admin.schema("property").from("listings").update({ listing_code: requested }).eq("id", listing.id);
+    if (codeError) {
+      const dup = codeError.code === "23505";
+      return NextResponse.json({ error: dup ? `Listing ID ${requested} sudah dipakai listing lain.` : "Gagal menyimpan Listing ID" }, { status: dup ? 409 : 500 });
+    }
+    code = requested;
+  } else if (!code) {
+    code = await ensureListingCode(admin, listing.id, party2.listingPrefix);
+  }
   if (!code) return NextResponse.json({ error: "Gagal membuat Listing ID" }, { status: 500 });
 
   const now = new Date().toISOString();

@@ -125,7 +125,7 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
               <li>Jika Masa Perjanjian Eksklusif telah habis maka perjanjian Eksklusif secara otomatis berubah menjadi perjanjian Non-Eksklusif dengan jangka waktu pemasaran selama 1 tahun setelah masa perjanjian Eksklusif berakhir.</li>
             </ol>
 
-            <p className="font-semibold">Kesepakatan Kerjasama Pemasaran :</p>
+            <p className="font-semibold" style={{ breakAfter: "avoid" }}>Kesepakatan Kerjasama Pemasaran :</p>
             <ol className="mb-3 ml-5 list-decimal space-y-1 text-justify">
               <li>Para Pihak bersepakat bahwa jenis perjanjian ini adalah <strong>{agreement.kind}</strong> selama <strong>{agreement.months || "12"} Bulan</strong>.</li>
               <li>Pihak 1 menjamin bahwa Pihak 1 adalah Pemilik sah atau yang dikuasakan oleh pemilik untuk memberi izin kepada Pihak 2 untuk memasarkan properti dimaksud.</li>
@@ -147,6 +147,18 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
               Perjanjian ini ditandatangani di <strong>{agreement.signPlace || "..................."}</strong>, Pada Tanggal: <strong>{dateText}</strong>
             </p>
             <Signatures form={form} />
+
+            <div className="print-avoid-break mt-4">
+              <h3 className="mb-1 font-semibold">Komitmen, Kerahasiaan dan Korespondensi</h3>
+              <ol className="ml-5 list-decimal space-y-1 text-justify">
+                <li>
+                  Apabila dikemudian hari terjadi perubahan pada data properti maka Pihak 1 wajib menginformasikan kepada Pihak 2 via telepon, whatsapp, atau melalui email
+                  {party2.officeEmail ? <> ke alamat <strong>{party2.officeEmail}</strong></> : null}.
+                </li>
+                <li>Para pihak setuju untuk menjaga kerahasiaan informasi yang tercantum dalam dokumen ini dengan cara tidak disebarluaskan kepada pihak lain yang tidak terkait dengan perjanjian ini kecuali telah disepakati oleh para pihak.</li>
+                <li>Perjanjian ini bisa ditandatangani secara manual maupun secara elektronik dan para pihak telah setuju untuk mematuhi seluruh kesepakatan yang tertera.</li>
+              </ol>
+            </div>
 
             {/* Lampiran */}
             <div className="mou-page-break">
@@ -214,46 +226,39 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
               </p>
               <Signatures form={form} />
 
-              <div className="print-avoid-break mt-6">
-                <h3 className="mb-1 font-semibold">Komitmen, Kerahasiaan dan Korespondensi</h3>
-                <ol className="ml-5 list-decimal space-y-1 text-justify">
-                  <li>
-                    Apabila dikemudian hari terjadi perubahan pada data properti maka Pihak 1 wajib menginformasikan kepada Pihak 2 via telepon, whatsapp, atau melalui email
-                    {party2.officeEmail ? <> ke alamat <strong>{party2.officeEmail}</strong></> : null}.
-                  </li>
-                  <li>Para pihak setuju untuk menjaga kerahasiaan informasi yang tercantum dalam dokumen ini dengan cara tidak disebarluaskan kepada pihak lain yang tidak terkait dengan perjanjian ini kecuali telah disepakati oleh para pihak.</li>
-                  <li>Perjanjian ini bisa ditandatangani secara manual maupun secara elektronik dan para pihak telah setuju untuk mematuhi seluruh kesepakatan yang tertera.</li>
-                </ol>
-              </div>
             </div>
 
-            {/* Dokumen pendukung */}
-            <div className="mou-page-break">
-              <h2 className="mb-3 text-center text-base font-bold">Dokumen Pendukung</h2>
+            {/* Dokumen pendukung: mengalir setelah lampiran (halaman baru hanya bila tidak muat) */}
+            <div className="mt-4">
+              <div className="print-avoid-break">
+              <h2 className="mb-2 text-center text-base font-bold" style={{ breakAfter: "avoid" }}>Dokumen Pendukung</h2>
               <p className="mb-1 font-semibold">Identitas Diri Pihak 1 (KTP) :</p>
               {owner.idPhoto ? (
-                <div className="mb-4 flex justify-center print-avoid-break">
+                <div className="mb-3 flex justify-center print-avoid-break">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={owner.idPhoto} alt="KTP Pihak 1" className="max-h-[300px] w-auto max-w-full rounded border border-black/20 object-contain" />
+                  <img src={owner.idPhoto} alt="KTP Pihak 1" className="max-h-[200px] w-auto max-w-full rounded border border-black/20 object-contain" />
                 </div>
               ) : (
-                <div className="mb-4 flex h-40 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
+                <div className="mb-3 flex h-24 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
                   Belum ada foto KTP (unggah di formulir atau tempelkan fotokopi)
                 </div>
               )}
+              </div>
+              <div className="print-avoid-break">
               <p className="mb-1 font-semibold">Foto Unit / Properti :</p>
               {listing.photoUrls.length === 0 ? (
-                <div className="flex h-40 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
+                <div className="flex h-24 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
                   Belum ada foto listing
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {listing.photoUrls.slice(0, 4).map((url) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={url} src={url} alt="Foto properti" className="h-36 w-full rounded border border-black/20 object-cover" />
+                    <img key={url} src={url} alt="Foto properti" className="h-28 w-full rounded border border-black/20 object-cover" />
                   ))}
                 </div>
               )}
+              </div>
             </div>
           </td>
         </tr>

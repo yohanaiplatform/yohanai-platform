@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SectionCard } from "@/components/ui/section-card";
 import { MouDocument } from "@/components/property/MouDocument";
-import type { MouForm, MouListingInfo } from "@/lib/documents/mouTypes";
+import { formatBirthInfo, parseBirthInfo, type MouForm, type MouListingInfo } from "@/lib/documents/mouTypes";
 
 interface MouDocumentEditorProps {
   listingId: string;
@@ -90,11 +90,16 @@ function ChoiceField({
 export function MouDocumentEditor({ listingId, slug, initialForm, listing, initialCode, history }: MouDocumentEditorProps) {
   const [form, setForm] = useState<MouForm>(initialForm);
   const [code, setCode] = useState(initialCode);
+  const [birth, setBirth] = useState(() => parseBirthInfo(initialForm.owner.birthInfo));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   function setOwner<K extends keyof MouForm["owner"]>(key: K, value: string) {
     setForm((f) => ({ ...f, owner: { ...f.owner, [key]: value } }));
+  }
+  function setBirthPart(next: { place: string; dateIso: string }) {
+    setBirth(next);
+    setOwner("birthInfo", formatBirthInfo(next.place, next.dateIso));
   }
   function setParty2<K extends keyof MouForm["party2"]>(key: K, value: string) {
     setForm((f) => ({ ...f, party2: { ...f.party2, [key]: value } }));
@@ -113,7 +118,7 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
       const res = await fetch("/api/properties/documents/mou", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId, form, listing }),
+        body: JSON.stringify({ listingId, form, listing, listingCode: code }),
       });
       const json = (await res.json().catch(() => ({}))) as { listingCode?: string; error?: string };
       if (!res.ok) {
@@ -142,14 +147,18 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
 
   return (
     <div className="mou-doc space-y-6">
-      <style>{`@page mou { @bottom-left { content: "${footer}"; font-size: 8pt; color: #6b7280; } @bottom-right { content: "Halaman " counter(page) " dari " counter(pages); font-size: 8pt; color: #6b7280; } }`}</style>
+      <style>{`@page { size: A4; margin: 12mm 15mm 16mm 15mm; @bottom-left { content: "${footer}"; font-size: 8pt; color: #6b7280; } @bottom-right { content: "Halaman " counter(page) " dari " counter(pages); font-size: 8pt; color: #6b7280; } }`}</style>
 
       <div className="no-print space-y-6">
         <SectionCard title="Pihak 1 -- Pemilik" description="Identitas pemilik disimpan terpisah dan hanya bisa dilihat admin dan agen yang menangani listing ini.">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextField label="Nama" value={form.owner.name} onChange={(v) => setOwner("name", v)} />
             <TextField label="No. telepon" value={form.owner.phone} onChange={(v) => setOwner("phone", v)} />
-            <TextField label="Tempat, tanggal lahir" value={form.owner.birthInfo} onChange={(v) => setOwner("birthInfo", v)} placeholder="Pontianak, 20/10/1990" />
+            <TextField label="Tempat lahir Pihak 1" value={birth.place} onChange={(v) => setBirthPart({ ...birth, place: v })} placeholder="Pontianak" />
+            <div className="space-y-1">
+              <Label className="text-xs">Tanggal lahir Pihak 1</Label>
+              <Input type="date" value={birth.dateIso} onChange={(e) => setBirthPart({ ...birth, dateIso: e.target.value })} />
+            </div>
             <TextField label="Pekerjaan" value={form.owner.occupation} onChange={(v) => setOwner("occupation", v)} />
             <TextField label="Alamat" value={form.owner.address} onChange={(v) => setOwner("address", v)} wide />
             <TextField label="No. KTP / SIM" value={form.owner.idNumber} onChange={(v) => setOwner("idNumber", v)} wide />
@@ -217,11 +226,18 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
 
         <SectionCard title="Perjanjian" description="Jenis, masa berlaku, tempat dan tanggal tanda tangan.">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1 sm:col-span-2">
+              <Label className="text-xs">Listing ID (nomor dokumen)</Label>
+              <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder={`Kosongkan = otomatis, mis. ${form.party2.listingPrefix || "GDI"}/${new Date().getFullYear()}/12`} />
+              <p className="text-xs text-muted-foreground">
+                Format: AWALAN/TAHUN/NOMOR, mis. GDI/2026/12. Tercetak di setiap halaman dan menjadi nomor listing ini. Kosongkan untuk dibuat otomatis berurutan.
+              </p>
+            </div>
             <ChoiceField label="Jenis perjanjian" value={form.agreement.kind} options={["NON-EKSKLUSIF", "EKSKLUSIF"]} onChange={(v) => setAgreement("kind", v)} />
             <TextField label="Masa perjanjian (bulan)" value={form.agreement.months} onChange={(v) => setAgreement("months", v)} />
-            <TextField label="Ditandatangani di" value={form.agreement.signPlace} onChange={(v) => setAgreement("signPlace", v)} />
+            <TextField label="Kota penandatanganan MoU" value={form.agreement.signPlace} onChange={(v) => setAgreement("signPlace", v)} placeholder="Pontianak" />
             <div className="space-y-1">
-              <Label className="text-xs">Tanggal</Label>
+              <Label className="text-xs">Tanggal penandatanganan MoU (bukan tanggal lahir)</Label>
               <Input type="date" value={form.agreement.signDate} onChange={(e) => setAgreement("signDate", e.target.value)} />
             </div>
             <ChoiceField label="Pemasangan spanduk" value={form.agreement.banner} options={["YA", "TIDAK"]} onChange={(v) => setAgreement("banner", v)} />
@@ -242,7 +258,7 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
             <TextField label="Atas nama rekening" value={form.party2.accountName} onChange={(v) => setParty2("accountName", v)} />
             <TextField label="Email kantor" value={form.party2.officeEmail} onChange={(v) => setParty2("officeEmail", v)} />
             <TextField label="Service area" value={form.party2.serviceArea} onChange={(v) => setParty2("serviceArea", v)} />
-            <TextField label="Awalan Listing ID" value={form.party2.listingPrefix} onChange={(v) => setParty2("listingPrefix", v)} placeholder="GDI" />
+            <TextField label="Awalan nomor otomatis (huruf saja)" value={form.party2.listingPrefix} onChange={(v) => setParty2("listingPrefix", v.replace(/[^A-Za-z]/g, "").toUpperCase())} placeholder="GDI" />
           </div>
         </SectionCard>
 

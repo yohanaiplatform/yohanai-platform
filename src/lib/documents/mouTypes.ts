@@ -106,6 +106,20 @@ export function rupiah(value: string | number | null | undefined): string {
   return `Rp. ${Math.round(n).toLocaleString("id-ID")}`;
 }
 
+/** "Pontianak, 08/10/1982" -> { place, dateIso } (dateIso kosong kalau tidak terbaca). */
+export function parseBirthInfo(value: string): { place: string; dateIso: string } {
+  const m = /^(.*?)[,\s]*(\d{2})\/(\d{2})\/(\d{4})\s*$/.exec(value.trim());
+  if (!m) return { place: value.trim(), dateIso: "" };
+  return { place: m[1].trim(), dateIso: `${m[4]}-${m[3]}-${m[2]}` };
+}
+
+/** { place: "Pontianak", dateIso: "1982-10-08" } -> "Pontianak, 08/10/1982" */
+export function formatBirthInfo(place: string, dateIso: string): string {
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateIso);
+  const date = d ? `${d[3]}/${d[2]}/${d[1]}` : "";
+  return [place.trim(), date].filter(Boolean).join(", ");
+}
+
 /** 2026-10-14 -> 14/10/2026 */
 export function formatSignDate(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
