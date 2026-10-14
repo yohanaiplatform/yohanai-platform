@@ -27,6 +27,8 @@ export interface MouForm {
     occupation: string;
     idNumber: string;
     phone: string;
+    /** Foto KTP (data URL JPEG kecil). Disimpan di property.owner_identities, TIDAK ikut snapshot dokumen. */
+    idPhoto: string;
   };
   party2: MouParty2;
   property: {
@@ -36,6 +38,8 @@ export interface MouForm {
     location: string;
     certificate: string;
     certificateNumber: string;
+    /** Deskripsi properti: diisi manual (tidak diambil dari data listing). */
+    description: string;
     price: string;
     commissionPct: string;
     commissionNominal: string;
@@ -55,7 +59,6 @@ export interface MouForm {
 /** Data listing yang ikut dicetak di lampiran (snapshot dari listing saat dokumen dibuat). */
 export interface MouListingInfo {
   title: string;
-  description: string | null;
   landArea: number | null;
   buildingArea: number | null;
   bedrooms: number | null;

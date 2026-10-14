@@ -11,7 +11,7 @@ const LOGO = "/images/brand/griya-indonesia-logo.png";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-2 py-[1px]">
+    <div className="flex gap-2 py-[1px] leading-snug">
       <span className="w-[42%] shrink-0">{label}</span>
       <span className="shrink-0">:</span>
       <span className="min-w-0 flex-1 font-medium break-words">{children || "-"}</span>
@@ -21,23 +21,23 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Signatures({ form, ownerLabel = true }: { form: MouForm; ownerLabel?: boolean }) {
   return (
-    <div className="mt-6 grid grid-cols-3 gap-4 text-center print-avoid-break">
+    <div className="mt-4 grid grid-cols-3 gap-4 text-center print-avoid-break">
       <div>
         <p>Pihak 1</p>
         {ownerLabel && <p className="text-[0.85em]">Pemilik Properti / Perwakilan</p>}
-        <div className="h-20" />
+        <div className="h-14" />
         <p className="font-semibold underline">{form.owner.name || "..................."}</p>
       </div>
       <div>
         <p>Pihak 2</p>
         <p className="text-[0.85em]">Agen Properti</p>
-        <div className="h-20" />
+        <div className="h-14" />
         <p className="font-semibold underline">{form.party2.agentName || "..................."}</p>
       </div>
       <div>
         <p>Mengetahui</p>
         <p className="text-[0.85em]">Pimpinan/Principal</p>
-        <div className="h-20" />
+        <div className="h-14" />
         <p className="font-semibold underline">{form.party2.principalName || "..................."}</p>
       </div>
     </div>
@@ -194,7 +194,7 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
               )}
 
               <div className="mb-3 ml-4">
-                <Field label="Deskripsi Properti">{listing.description}</Field>
+                <Field label="Deskripsi Properti">{property.description}</Field>
               </div>
 
               <p className="mb-1 font-semibold">Data Perjanjian Pemasaran</p>
@@ -230,20 +230,27 @@ export function MouDocument({ form, listing, code }: { form: MouForm; listing: M
             {/* Dokumen pendukung */}
             <div className="mou-page-break">
               <h2 className="mb-3 text-center text-base font-bold">Dokumen Pendukung</h2>
-              <p className="mb-1 font-semibold">Identitas Diri Pihak 1 :</p>
-              <div className="mb-4 flex h-44 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
-                Tempelkan fotokopi KTP Pihak 1
-              </div>
+              <p className="mb-1 font-semibold">Identitas Diri Pihak 1 (KTP) :</p>
+              {owner.idPhoto ? (
+                <div className="mb-4 flex justify-center print-avoid-break">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={owner.idPhoto} alt="KTP Pihak 1" className="max-h-[300px] w-auto max-w-full rounded border border-black/20 object-contain" />
+                </div>
+              ) : (
+                <div className="mb-4 flex h-40 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
+                  Belum ada foto KTP (unggah di formulir atau tempelkan fotokopi)
+                </div>
+              )}
               <p className="mb-1 font-semibold">Foto Unit / Properti :</p>
               {listing.photoUrls.length === 0 ? (
-                <div className="flex h-44 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
+                <div className="flex h-40 items-center justify-center rounded border border-dashed border-black/40 text-[0.85em] text-black/50">
                   Belum ada foto listing
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {listing.photoUrls.slice(0, 4).map((url) => (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img key={url} src={url} alt="Foto properti" className="h-44 w-full rounded border border-black/20 object-cover" />
+                    <img key={url} src={url} alt="Foto properti" className="h-36 w-full rounded border border-black/20 object-cover" />
                   ))}
                 </div>
               )}

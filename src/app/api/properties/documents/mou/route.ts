@@ -51,6 +51,7 @@ export async function POST(request: Request) {
         address: form.owner.address || null,
         occupation: form.owner.occupation || null,
         id_number: form.owner.idNumber || null,
+        id_photo: form.owner.idPhoto || null,
         created_by: user.id,
         updated_by: user.id,
         updated_at: now,
@@ -72,7 +73,8 @@ export async function POST(request: Request) {
       listing_id: listing.id,
       doc_type: "mou_pemasaran",
       doc_number: code,
-      data: { form, listing: body.listing } as unknown as Json,
+      // Foto KTP disimpan hanya di owner_identities (bukan di snapshot dokumen) supaya tidak digandakan.
+      data: { form: { ...form, owner: { ...form.owner, idPhoto: "" } }, listing: body.listing } as unknown as Json,
       created_by: user.id,
     })
     .select("id")

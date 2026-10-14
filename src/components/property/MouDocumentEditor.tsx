@@ -24,6 +24,19 @@ interface MouDocumentEditorProps {
   history: { id: string; createdAt: string; docNumber: string | null }[];
 }
 
+/** Kecilkan foto KTP di browser (maks 1100px, JPEG) supaya ringan disimpan dan dicetak. */
+async function shrinkImage(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1100 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas");
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.72);
+}
+
 function TextField({
   label,
   value,
@@ -140,6 +153,40 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
             <TextField label="Pekerjaan" value={form.owner.occupation} onChange={(v) => setOwner("occupation", v)} />
             <TextField label="Alamat" value={form.owner.address} onChange={(v) => setOwner("address", v)} wide />
             <TextField label="No. KTP / SIM" value={form.owner.idNumber} onChange={(v) => setOwner("idNumber", v)} wide />
+            <div className="space-y-2 sm:col-span-2">
+              <Label className="text-xs">Foto KTP (tampil di halaman Dokumen Pendukung)</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById("mou-ktp-file")?.click()}>
+                  {form.owner.idPhoto ? "Ganti foto KTP" : "Unggah foto KTP"}
+                </Button>
+                {form.owner.idPhoto && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setOwner("idPhoto", "")}>
+                    Hapus
+                  </Button>
+                )}
+                <input
+                  id="mou-ktp-file"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    try {
+                      setOwner("idPhoto", await shrinkImage(file));
+                    } catch {
+                      setMessage({ text: "Gagal membaca gambar KTP. Coba file lain.", ok: false });
+                    }
+                  }}
+                />
+                {form.owner.idPhoto && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form.owner.idPhoto} alt="Pratinjau KTP" className="h-16 w-auto rounded border border-border" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Foto dilindungi akses (hanya admin dan agen listing ini) dan dikecilkan otomatis.</p>
+            </div>
           </div>
         </SectionCard>
 
@@ -152,6 +199,16 @@ export function MouDocumentEditor({ listingId, slug, initialForm, listing, initi
             <TextField label="Lokasi" value={form.property.location} onChange={(v) => setProperty("location", v)} wide />
             <TextField label="Jenis sertifikat" value={form.property.certificate} onChange={(v) => setProperty("certificate", v)} placeholder="Sertifikat Hak Milik (SHM)" />
             <TextField label="Nomor sertifikat" value={form.property.certificateNumber} onChange={(v) => setProperty("certificateNumber", v)} />
+            <div className="space-y-1 sm:col-span-2">
+              <Label className="text-xs">Deskripsi properti (diisi manual)</Label>
+              <textarea
+                value={form.property.description}
+                onChange={(e) => setProperty("description", e.target.value)}
+                rows={3}
+                placeholder="mis. Rumah type 45, sudah renovasi dan siap huni"
+                className="w-full rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:border-ring"
+              />
+            </div>
             <TextField label="Komisi (%)" value={form.property.commissionPct} onChange={(v) => setProperty("commissionPct", v)} placeholder="3" />
             <TextField label="Atau komisi nominal (Rp)" value={form.property.commissionNominal} onChange={(v) => setProperty("commissionNominal", v)} />
             <TextField label="Closing fee (Rp)" value={form.property.closingFee} onChange={(v) => setProperty("closingFee", v)} />

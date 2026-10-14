@@ -181,12 +181,39 @@
  */
 @page mou {
   size: A4;
-  margin: 14mm 16mm 18mm 16mm;
+  margin: 12mm 15mm 16mm 15mm;
 }
 
 @media print {
+  body:has(.mou-doc),
   .mou-doc {
     page: mou;
+  }
+  /* Jarak baris dan antar blok dirapatkan supaya perjanjian 2 halaman + lampiran 2 halaman. */
+  .mou-doc .mou-table {
+    font-size: 9pt;
+    line-height: 1.28;
+  }
+  .mou-doc .mou-table h1,
+  .mou-doc .mou-table h2 {
+    font-size: 10.5pt;
+    margin-bottom: 4pt;
+  }
+  .mou-doc .mou-table p,
+  .mou-doc .mou-table ol {
+    margin-top: 0;
+  }
+  .mou-doc .mou-table .mb-3 {
+    margin-bottom: 4pt;
+  }
+  .mou-doc .mou-table .mb-2 {
+    margin-bottom: 3pt;
+  }
+  .mou-doc .mou-table .mb-1 {
+    margin-bottom: 1pt;
+  }
+  .mou-doc .mou-table .space-y-1 > * + * {
+    margin-top: 1pt;
   }
   .mou-doc .print-area {
     position: static;
@@ -195,7 +222,6 @@
     border: 0;
     box-shadow: none;
     padding: 0;
-    font-size: 11pt;
   }
   .mou-doc .mou-table thead {
     display: table-header-group;

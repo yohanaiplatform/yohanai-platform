@@ -625,9 +625,9 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         <GuideList
           items={[
             "Buka listing, klik \"MoU Pemasaran\".",
-            "Lengkapi data yang belum ada: identitas pemilik (tempat/tanggal lahir, alamat, pekerjaan, No. KTP), nomor sertifikat, komisi dan closing fee, jenis perjanjian (Eksklusif/Non-Eksklusif) dan masa berlakunya.",
+            "Lengkapi data yang belum ada: identitas pemilik (tempat/tanggal lahir, alamat, pekerjaan, No. KTP, dan unggah foto KTP), nomor sertifikat, deskripsi properti (diisi manual), komisi dan closing fee, jenis perjanjian (Eksklusif/Non-Eksklusif) dan masa berlakunya.",
             "Isi data Pihak 2 (agen dan perusahaan, rekening, principal). Cukup sekali -- tersimpan untuk dokumen berikutnya di akun Anda.",
-            "Klik \"Simpan & Cetak / PDF\", lalu di jendela cetak pilih \"Simpan sebagai PDF\", ukuran A4.",
+            "Klik \"Simpan & Cetak / PDF\", lalu di jendela cetak pilih \"Simpan sebagai PDF\", ukuran A4. Hasilnya 4 halaman: perjanjian 2 halaman, lampiran data 1 halaman, dan dokumen pendukung (foto KTP dan foto properti) 1 halaman.",
           ]}
         />
         <GuideNote>

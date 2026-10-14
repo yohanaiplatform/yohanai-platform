@@ -57,7 +57,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
 
   const [{ data: codeRow }, { data: identity }, { data: settingsRow }, { data: profile }, { data: docs }] = await Promise.all([
     supabase.schema("property").from("listings").select("listing_code").eq("id", listing.id).maybeSingle(),
-    supabase.schema("property").from("owner_identities").select("birth_info, address, occupation, id_number").eq("listing_id", listing.id).maybeSingle(),
+    supabase.schema("property").from("owner_identities").select("birth_info, address, occupation, id_number, id_photo").eq("listing_id", listing.id).maybeSingle(),
     supabase.schema("property").from("document_settings").select("data").eq("user_id", user.id).maybeSingle(),
     supabase.schema("auth_ext").from("profiles").select("first_name, last_name, brand_name").eq("user_id", user.id).maybeSingle(),
     supabase
@@ -73,11 +73,9 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
 
   const owner = getListingMetadataValue<{ name: string | null; phone: string | null }>(listing.metadata, "owner");
   const commission = getListingMetadataValue<{ type: "percentage" | "fixed" | null; value: number | null }>(listing.metadata, "commission");
-  const description = (listing.description ?? "").replace(/\[Migrasi dari spreadsheet,[^\]]*\]/g, "").trim() || null;
 
   const listingInfo: MouListingInfo = {
     title: listing.title,
-    description,
     landArea: getListingMetadataValue<number>(listing.metadata, "land_area") ?? null,
     buildingArea: getListingMetadataValue<number>(listing.metadata, "building_area") ?? null,
     bedrooms: getListingMetadataValue<number>(listing.metadata, "bedrooms") ?? null,
@@ -99,6 +97,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
       address: identity?.address ?? "",
       occupation: identity?.occupation ?? "",
       idNumber: identity?.id_number ?? "",
+      idPhoto: identity?.id_photo ?? "",
     },
     party2,
     property: {
@@ -108,6 +107,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
       location: listing.address ?? "",
       certificate: getListingMetadataValue<string>(listing.metadata, "certificate_type") ?? "",
       certificateNumber: "",
+      description: "",
       price: String(Math.round(listing.price)),
       commissionPct: commission?.type === "percentage" && commission.value ? String(commission.value) : "",
       commissionNominal: commission?.type === "fixed" && commission.value ? String(commission.value) : "",
@@ -129,7 +129,8 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
   const saved = chosen?.data as { form?: Partial<MouForm> } | null | undefined;
   if (saved?.form) {
     const f = saved.form;
-    initialForm.owner = { ...initialForm.owner, ...(f.owner ?? {}) };
+    // Foto KTP selalu dari identitas pemilik terbaru (tidak ikut snapshot).
+    initialForm.owner = { ...initialForm.owner, ...(f.owner ?? {}), idPhoto: initialForm.owner.idPhoto };
     initialForm.property = { ...initialForm.property, ...(f.property ?? {}) };
     initialForm.agreement = { ...initialForm.agreement, ...(f.agreement ?? {}) };
     // Pihak 2 selalu memakai isian tetap terbaru milik pengguna bila ada; selain itu pakai dari dokumen.
@@ -139,7 +140,7 @@ export default async function MouPage({ params, searchParams }: MouPageProps) {
   const history = (docs ?? []).map((d) => ({ id: d.id, docNumber: d.doc_number, createdAt: formatHistoryDate(d.created_at) }));
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 print:p-0">
       <SetBreadcrumbLabel segment={listing.slug} label={listing.title} />
       <div className="no-print space-y-1">
         {backLink}
