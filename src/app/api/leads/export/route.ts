@@ -4,10 +4,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getAllLeadsForExport, type LeadFilters } from "@/lib/crm/getLeads";
 import { buildLeadsCsv } from "@/lib/crm/exportLeadsCsv";
-import { buildLeadsJson } from "@/lib/crm/exportLeadsJson";
 
 /**
- * Download CSV (default) atau JSON (`?format=json`, hanya field CRM yang diizinkan -- lihat exportLeadsJson.ts) sesuai filter yang aktif di Lead List. Session-based
+ * Download CSV sesuai filter yang aktif di Lead List. Session-based
  * (bukan service-role) -- RLS leads_owner_or_admin otomatis berlaku,
  * jadi non-admin cuma bisa export lead miliknya sendiri, tanpa perlu
  * kode pembatas tambahan di route ini.
@@ -40,20 +39,6 @@ export async function GET(request: Request) {
       u.display_name ?? u.email ?? u.user_id,
     ])
   );
-
-  if (searchParams.get("format") === "json") {
-    // JSON: nama agen saja (tanpa email/UUID sebagai cadangan label) -- hanya field allowlist.
-    const assignedToNames = new Map(
-      (assignableUsers ?? []).filter((u) => u.display_name).map((u) => [u.user_id, u.display_name as string])
-    );
-    const json = JSON.stringify(buildLeadsJson(rows, assignedToNames), null, 2);
-    return new NextResponse(json, {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="leads-export-${new Date().toISOString().slice(0, 10)}.json"`,
-      },
-    });
-  }
 
   const csv = buildLeadsCsv(rows, assignedToLabels);
   const filename = `leads-export-${new Date().toISOString().slice(0, 10)}.csv`;

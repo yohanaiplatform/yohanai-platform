@@ -394,12 +394,8 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
         />
         <GuideHeading>Export</GuideHeading>
         <GuideP>
-          Tombol <strong>Export CSV</strong> mengunduh hasil filter/pencarian yang sedang aktif sebagai CSV -- bukan
-          seluruh data, cuma yang cocok filter saat itu. Tombol <strong>Export JSON</strong> mengunduh data yang sama
-          dalam format JSON untuk dipakai tim pengembang: hanya berisi field inti lead (nama, kontak, sumber,
-          kategori, Temperature, status, agen, minat, permintaan, komentar, tanggal masuk), tanpa isi chat, catatan,
-          atau data internal lainnya. Nomor telepon dan email di file ini TIDAK disamarkan, jadi kirim hanya ke
-          pihak yang berhak dan simpan dengan aman.
+          Tombol Export mengunduh hasil filter/pencarian yang sedang aktif sebagai CSV -- bukan seluruh data,
+          cuma yang cocok filter saat itu.
         </GuideP>
       </>
     ),

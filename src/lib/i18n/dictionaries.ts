@@ -15,7 +15,6 @@ export interface CrmDictionary {
     title: string;
     description: string;
     exportCsv: string;
-    exportJson: string;
     addLead: string;
     activeFilter: string;
     clearFilter: string;
@@ -148,7 +147,6 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       title: "CRM",
       description: "Lead dari Google Form dan channel lain, tersimpan di database.",
       exportCsv: "Export CSV",
-      exportJson: "Export JSON",
       addLead: "+ Tambah Lead",
       activeFilter: "Filter aktif:",
       clearFilter: "Hapus filter",
@@ -278,7 +276,6 @@ export const dictionaries: Record<Locale, CrmDictionary> = {
       title: "CRM",
       description: "Leads from Google Form and other channels, stored in the database.",
       exportCsv: "Export CSV",
-      exportJson: "Export JSON",
       addLead: "+ Add Lead",
       activeFilter: "Active filter:",
       clearFilter: "Clear filter",
