@@ -59,6 +59,9 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
   if (filters.temperature) exportParams.set("temperature", filters.temperature);
   if (filters.search) exportParams.set("search", filters.search);
   const exportHref = `/api/leads/export${exportParams.size > 0 ? `?${exportParams}` : ""}`;
+  const exportJsonParams = new URLSearchParams(exportParams);
+  exportJsonParams.set("format", "json");
+  const exportJsonHref = `/api/leads/export?${exportJsonParams}`;
 
   return (
     <div className="space-y-6 p-6">
@@ -70,6 +73,11 @@ export default async function CRMPage({ searchParams }: CRMPageProps) {
             <a href={exportHref}>
               <Button size="sm" variant="outline">
                 {t.list.exportCsv}
+              </Button>
+            </a>
+            <a href={exportJsonHref}>
+              <Button size="sm" variant="outline">
+                {t.list.exportJson}
               </Button>
             </a>
             <Link href="/crm/new">
