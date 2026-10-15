@@ -890,6 +890,12 @@ export const PANDUAN_SECTIONS: PanduanSection[] = [
             </>,
             "Membalas pertanyaan umum (harga, lokasi, spesifikasi, DP/cicilan) pakai data listing yang benar-benar ada di sistem.",
             "Mengirim foto listing asli lewat WhatsApp -- TAPI cuma kalau lead eksplisit minta foto/gambar/video (termasuk singkatan seperti \"gbr\") (AI sengaja tidak menawarkan sendiri supaya tidak terkesan memaksa, sekalian hemat biaya).",
+            <>
+              <strong>Memperkenalkan diri sebagai Gia</strong>, asisten AI Griya Indonesia, pada balasan pertama ke
+              lead baru. Setelah itu tidak mengulang perkenalan. Kalau lead bertanya nama atau &quot;ini bot atau
+              orang?&quot;, Gia menjawab jujur bahwa ia asisten AI dan hal penting akan dihubungi langsung oleh Bg. Yohan
+              atau agen.
+            </>,
             "Menampilkan indikator \"sedang mengetik...\" di WhatsApp lead selama memproses.",
             <>
               Menilai status <strong>Temperature</strong> otomatis dari obrolan: <strong>Cold</strong> untuk lead baru
